@@ -1,0 +1,19 @@
+* History
+** 17/07/23
+   Currently the program is structured to use a matrix of chars. Each cell in 
+   the grid is represented by an entry in the matrix. The grid at t-1 is given 
+   by the first bit, while the grid at t is given by the second bit. 
+   If the user selects ordered evolution, all changes will occur on the first 
+   bit (in place) while, if the user selects static evolution, the program will 
+   look at the first bit and calculate the second bit. 
+   Currently however, this is a problem in two ways:
+
+   - ordered evolution cannot be serialized. 
+   - The program cannot handle multiple time steps. 
+
+   For this reason, I am switching to another paradigm: 
+
+   Two matrices will be used for $t-1$ and $t$, and to save space, I will encode 
+   the state of 8 adjacent cells in the 8 bits of the char. This means that I 
+   will use 8 times less memory compared to using a char for each cell. 
+   Therefore I will also need to handle the updating procedure.
