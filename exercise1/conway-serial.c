@@ -9,14 +9,18 @@ const unsigned int cols = 5;
 char check_if_nth_bit_is_set(char* g, int pos, int n)
 {
     // Pretty self explanatory, returns 1 if bit is set and zero otherwise
+    //
     // The flag = 00000001
     unsigned char flag = 1;
+
     // then I shift the flag n bits to the left
     // so result will be 00100000 (for n = 5)
     flag = flag << n;
-    // then I take the bitwise and between this and the 8-bit element of the 
+
+    // then I take the bitwise AND between this and the 8-bit element of the 
     // matrix.
     return g[pos] & flag;      
+
     // so if my element was 01011101 and I wanted to check if the 3rd bit was 
     // set, I would create the flag, shift 3 bits left and obtain 00001000
     // the bitwise and:
@@ -149,14 +153,14 @@ void display_grid(char *g)
 
 int main()
 {
-    char g1[] = {
+    char g0[] = {
         1,0,0,1,0,
         0,1,0,1,1,
         0,0,1,0,0,
         1,0,1,1,1,
         0,0,0,0,1
     };
-    char g2[] =  {
+    char g1_static[] =  {
         1,1,1,1,0,
         1,1,0,1,1,
         0,0,0,0,0,
@@ -165,7 +169,7 @@ int main()
     };
 
     printf("Grid of life before:\n");
-    display_grid(g1);
+    display_grid(g0);
 
     for (int i=0; i<rows; i++){
         for (int j=0; j<cols; j++){
