@@ -3,6 +3,7 @@
 #include <string.h>
 #include <getopt.h>
 
+
 #define INIT 1
 #define RUN  2
 
@@ -11,8 +12,11 @@
 #define ORDERED 0
 #define STATIC  1
 
+
 char fname_deflt[] = "game_of_life.pgm";
 
+// DEFAULT VALUES
+//
 int   action = 0;
 int   k      = K_DFLT;
 int   e      = ORDERED;
@@ -21,7 +25,7 @@ int   s      = 1;
 char *fname  = NULL;
 
 
-int get_args ( int argc, char **argv )
+void get_args( int argc, char **argv )
 {
   char *optstring = "irk:e:f:n:s:";
 
@@ -56,26 +60,6 @@ int get_args ( int argc, char **argv )
       printf("argument -%c not known\n", c ); break;
     }
   }
-
-  return 0;
-}
-
-void check_args(){
-    printf("action: %d\t k: %d\t e:%d\t f:%s\t n:%d\t s:%d\n", action, k, e, fname, n, s);
-}
-
-int main(int argc, char **argv)
-{
-    get_args(argc, argv);
-    check_args();
-
-    if ( action == INIT){
-
-    }
-
-
-    if ( fname != NULL )
-      free ( fname );
-
-    return 0;
+    // if ( fname != NULL )
+    //   free ( fname );
 }
