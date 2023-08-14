@@ -1,3 +1,11 @@
+// THIS IS VERSION V1 WHICH USES THE PGM FILE FORMAT. THIS MEANS THAT 
+// EVERYWHERE WE ARE USING MATRICES OF CHARS AND ENCODING DEAD OR ALIVE 
+// AS 0 AND 255 RESPECTIVELY. SOME KEY DIFFERENCES ARE:
+// THE HEADER USES P5 INSTEAD OF P4 FOR PBM.
+// THE HEADER INCLUDES AN EXTRA MAX VAL PARAMETER. 
+// IT IS NOT NECESSARY TO ENCODE EVERYTHING AT BIT LEVEL.
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -17,7 +25,6 @@
 
 
 // DEFAULT VALUES
-//
 char fname_deflt[] = "game_of_life.pgm";
 
 int   action = 0;
@@ -28,6 +35,7 @@ int   e      = ORDERED;
 int   n      = 10000;
 int   s      = 1;
 char *fname  = NULL;
+char *f_prefix = ".pgm";
 
 
 void get_args( int argc, char **argv )
@@ -51,8 +59,8 @@ void get_args( int argc, char **argv )
                 e = atoi(optarg); break;
 
             case 'f':
-                fname = (char*)malloc( sizeof(optarg)+1 );
-                sprintf(fname, "%s", optarg );
+                fname = (char*)malloc( sizeof(optarg)+sizeof(f_prefix)+1 );
+                sprintf(fname, "%s%s", optarg, f_prefix);
                 break;
 
             case 'n':
@@ -88,7 +96,7 @@ int get_my_rows(int total_rows, int rank, int size)
     return my_rows;
 }
 
-int get_my_offset(int total_rows, int rank, int size)
+int get_my_row_offset(int total_rows, int rank, int size)
 {
     // returns the offset from which the rank must get its rows 
 
@@ -116,8 +124,6 @@ int get_my_offset(int total_rows, int rank, int size)
 }
 
 int main(int argc, char **argv){
-
-
     // initialize MPI
     MPI_Init(&argc, &argv);
 
@@ -135,47 +141,44 @@ int main(int argc, char **argv){
     get_args(argc, argv);
 
     // setting up neighbors
-    int prev = (size - 1)*(rank==0) + (rank - 1)*!(rank==0);
-    int next = 0*(rank==(size-1)) + (rank + 1)*!(rank==(size-1));
+    const int prev = (size - 1)*(rank==0) + (rank - 1)*!(rank==0);
+    const int next = 0*(rank==(size-1)) + (rank + 1)*!(rank==(size-1));
 
     // for each rank, determine its part of the matrix
-    int my_rows = get_my_rows(rows, rank, size);
-    int my_offset = get_my_offset(rows, rank, size);
+    const int my_rows = get_my_rows(rows, rank, size);
+    const int my_row_offset = get_my_row_offset(rows, rank, size);
+    const MPI_Offset my_file_offset = my_row_offset * cols * sizeof(char);
 
-    // printf("I am rank %d of %d and I need to deal with %d rows out of %d. My offset is %d\n", rank, size, my_rows, rows, my_offset);
-
-    char ** grid, ** grid_prev;
-    char * data, * data_prev;
+    printf("I am rank %d of %d and I need to deal with %d rows out of %d. My offset is %d\n", rank, size, my_rows, rows, my_row_offset);
 
     // allocate memory for the data each rank will store
     // grid is an array of pointers which will be connected to the 1D structure 
     // that actually holds the data and will allow us to access this data as if 
     // it was a 2D matrix. This is a common trick taught in class to 
     // avoid allocating memory inefficiently. 
-    
-    grid = (char **) malloc((my_rows + 2) * sizeof(char *));
-    grid_prev = (char **) malloc((my_rows + 2) * sizeof(char *));
 
-    data = (char *) malloc( (my_rows + 2) * (cols + 2) * sizeof(char));
-    data_prev = (char *) malloc( (my_rows + 2) * (cols + 2) * sizeof(char));
+    char ** grid, ** grid_prev;
+    char * data, * data_prev;
+
+    const int augmented_rows = my_rows + 2;
+    
+    grid = (char **) malloc(augmented_rows * sizeof(char *));
+    grid_prev = (char **) malloc(augmented_rows * sizeof(char *));
+
+    data = (char *) malloc( augmented_rows * cols * sizeof(char));
+    data_prev = (char *) malloc( augmented_rows * cols * sizeof(char));
 
     // now we need to make sure that each of the pointers in grid point to the 
     // right place of the data.
-    int augmented_cols = cols+2;
-
-    for(int i = 0; i<my_rows+2; ++i){
-        grid[i] = data + i*augmented_cols;
-        grid_prev[i] = data_prev + i*augmented_cols;
+    for(int i = 0; i<augmented_rows; ++i){
+        grid[i] = data + i*cols;
+        grid_prev[i] = data_prev + i*cols;
     }
 
     // initialize the halo regions to being DEAD
-    for(int j = 0; j<cols+2; ++j){
+    for(int j = 0; j<cols; ++j){
         grid[0][j] = grid[my_rows + 1][j] = grid_prev[0][j]
             = grid_prev[my_rows + 1][j] = DEAD;
-    }
-    for(int j = 0; j<my_rows+2; ++j){
-        grid[j][0] = grid[j][cols + 1] = grid_prev[j][0]
-            = grid_prev[j][cols + 1] = DEAD;
     }
 
     if(action == INIT){
@@ -188,25 +191,36 @@ int main(int argc, char **argv){
                 grid[i][j] = drand48() > 0.5 ? ALIVE : DEAD ;
         }
 
-        // MPI_File fh;
-        // int err;
-        // MPI_Info info = MPI_NULL;
-        //
-        // err = MPI_File_Open(MPI_COMM_WORLD, fname, MPI_MODE_WRONLY | MPI_MODE_CREATE, info, &fh);
-        // if(err != MPI_SUCCESS){
-        //     fprintf(stderr, "Error opening %s\n", fname);
-        //     return err;
-        // }
-        //
-        // err = MPI_File_write_at_all(fh, my_offset,)
+        MPI_File fh;
+
+        const int err = MPI_File_open(MPI_COMM_WORLD, fname, MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
+
+        if(err != MPI_SUCCESS){
+            fprintf(stderr, "Error opening %s\n", fname);
+            return err;
+        }
+        
+        // intuition: https://stackoverflow.com/questions/3919995/determining-sprintf-buffer-size-whats-the-standard
+        int header_size = snprintf(NULL, 0, "P5 %d %d ", rows, cols);
+        char * header = malloc(header_size + 1);
+        sprintf(header, "P5 %d %d ", rows, cols);
+        const MPI_Offset header_offset = header_size * sizeof(char);
+
+        if(rank == 0){
+            MPI_File_write_at(fh, 0, header, header_size, MPI_CHAR, MPI_STATUS_IGNORE);
+        }
+
+        // try to get rid of this barrier in future
+        // by taking advantage of non blocking write at all
+        MPI_Barrier(MPI_COMM_WORLD);
+
+        MPI_Offset my_total_file_offset = my_file_offset + header_offset;
+
+        MPI_File_write_at_all(fh, my_total_file_offset, data + cols, rows*cols, MPI_CHAR, MPI_STATUS_IGNORE);
+
+        MPI_File_close(&fh);
 
     }
-
-
-
-
-    
-
 
 
     // display_args(rank, size);
