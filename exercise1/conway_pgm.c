@@ -15,8 +15,12 @@
 #define INIT 1
 #define RUN  2
 
-#define DEAD 0 
-#define ALIVE 1
+// for pgm files, 0 is black and 255(MAXVAL) is white
+// since we want black squares to denote alive, we define 
+// alive to be 0 (black) and dead to be 255 (white)
+#define DEAD 255
+#define ALIVE 0
+#define MAX_VAL 255
 
 #define K_DFLT 100
 
@@ -180,15 +184,15 @@ int main(int argc, char **argv){
         grid[0][j] = grid[my_rows + 1][j] = grid_prev[0][j]
             = grid_prev[my_rows + 1][j] = DEAD;
     }
-
     if(action == INIT){
         srand48(1*rank);
         // initialize the matrix randomly
         // possibility to optimize loop here by exploiting 
         // ILP
-        for(int i = 0; i<my_rows; ++i){
+        for(int i = 1; i<my_rows+1; ++i){
             for(int j = 0; j<cols; ++j)
                 grid[i][j] = drand48() > 0.5 ? ALIVE : DEAD ;
+                // grid[i][j] = ALIVE;
         }
 
         MPI_File fh;
@@ -201,9 +205,9 @@ int main(int argc, char **argv){
         }
         
         // intuition: https://stackoverflow.com/questions/3919995/determining-sprintf-buffer-size-whats-the-standard
-        int header_size = snprintf(NULL, 0, "P5 %d %d ", rows, cols);
+        int header_size = snprintf(NULL, 0, "P5 %d %d\n%d\n", rows, cols, MAX_VAL);
         char * header = malloc(header_size + 1);
-        sprintf(header, "P5 %d %d ", rows, cols);
+        sprintf(header, "P5 %d %d\n%d\n", rows, cols, MAX_VAL);
         const MPI_Offset header_offset = header_size * sizeof(char);
 
         if(rank == 0){
@@ -216,7 +220,7 @@ int main(int argc, char **argv){
 
         MPI_Offset my_total_file_offset = my_file_offset + header_offset;
 
-        MPI_File_write_at_all(fh, my_total_file_offset, data + cols, rows*cols, MPI_CHAR, MPI_STATUS_IGNORE);
+        MPI_File_write_at_all(fh, my_total_file_offset, data + cols, my_rows*cols, MPI_CHAR, MPI_STATUS_IGNORE);
 
         MPI_File_close(&fh);
 
