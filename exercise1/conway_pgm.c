@@ -27,6 +27,8 @@
 #define ORDERED 0
 #define STATIC  1
 
+#define HEADER_FORMAT_STRING "P5 %d %d %d\n"
+
 
 // DEFAULT VALUES
 char fname_deflt[] = "game_of_life.pgm";
@@ -126,6 +128,25 @@ int get_my_row_offset(int total_rows, int rank, int size)
 
     return my_offset;
 }
+void save_grid(char * fname, MPI_Comm comm, int rank, char * header, int header_size, MPI_Offset offset, char * data, int my_rows, int cols, MPI_File fh){
+
+    // Opening the file in MPI_MODE_WRITEONLY or MPI_MODE_CREATE_ONLY
+    const int err = MPI_File_open(comm, fname, MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
+
+    // Check that the file was opened correctly
+    if(err != MPI_SUCCESS){
+        fprintf(stderr, "Error opening %s\n", fname);
+        MPI_Abort(MPI_COMM_WORLD, err);
+    }
+    
+    if(rank == 0){
+        MPI_File_write_at(fh, 0, header, header_size, MPI_CHAR, MPI_STATUS_IGNORE);
+    }
+
+    MPI_File_write_at_all(fh, offset, data + cols, my_rows*cols, MPI_CHAR, MPI_STATUS_IGNORE);
+
+    MPI_File_close(&fh);
+}
 
 int main(int argc, char **argv){
     // initialize MPI
@@ -138,6 +159,9 @@ int main(int argc, char **argv){
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
+    char ** grid, ** grid_prev;
+    char * data, * data_prev;
+
     // get arguments
     // MPI standard does not specify how arguments are processed. 
     // Ideally it would be better to have master process and then broad cast 
@@ -148,82 +172,165 @@ int main(int argc, char **argv){
     const int prev = (size - 1)*(rank==0) + (rank - 1)*!(rank==0);
     const int next = 0*(rank==(size-1)) + (rank + 1)*!(rank==(size-1));
 
-    // for each rank, determine its part of the matrix
-    const int my_rows = get_my_rows(rows, rank, size);
-    const int my_row_offset = get_my_row_offset(rows, rank, size);
-    const MPI_Offset my_file_offset = my_row_offset * cols * sizeof(char);
 
-    printf("I am rank %d of %d and I need to deal with %d rows out of %d. My offset is %d\n", rank, size, my_rows, rows, my_row_offset);
-
-    // allocate memory for the data each rank will store
-    // grid is an array of pointers which will be connected to the 1D structure 
-    // that actually holds the data and will allow us to access this data as if 
-    // it was a 2D matrix. This is a common trick taught in class to 
-    // avoid allocating memory inefficiently. 
-
-    char ** grid, ** grid_prev;
-    char * data, * data_prev;
-
-    const int augmented_rows = my_rows + 2;
-    
-    grid = (char **) malloc(augmented_rows * sizeof(char *));
-    grid_prev = (char **) malloc(augmented_rows * sizeof(char *));
-
-    data = (char *) malloc( augmented_rows * cols * sizeof(char));
-    data_prev = (char *) malloc( augmented_rows * cols * sizeof(char));
-
-    // now we need to make sure that each of the pointers in grid point to the 
-    // right place of the data.
-    for(int i = 0; i<augmented_rows; ++i){
-        grid[i] = data + i*cols;
-        grid_prev[i] = data_prev + i*cols;
-    }
-
-    // initialize the halo regions to being DEAD
-    for(int j = 0; j<cols; ++j){
-        grid[0][j] = grid[my_rows + 1][j] = grid_prev[0][j]
-            = grid_prev[my_rows + 1][j] = DEAD;
-    }
     if(action == INIT){
-        srand48(1*rank);
-        // initialize the matrix randomly
+
+        // for each rank, determine its part of the matrix
+        const int my_rows = get_my_rows(rows, rank, size);
+        const int my_row_offset = get_my_row_offset(rows, rank, size);
+        const MPI_Offset my_file_offset = my_row_offset * cols * sizeof(char);
+
+        printf("I am rank %d of %d and I need to deal with %d rows out of %d. My offset is %d\n", rank, size, my_rows, rows, my_row_offset);
+
+        const int augmented_rows = my_rows + 2;
+
+        grid = (char **) malloc(augmented_rows * sizeof(char *));
+        grid_prev = (char **) malloc(augmented_rows * sizeof(char *));
+
+        data = (char *) malloc( augmented_rows * cols * sizeof(char));
+        data_prev = (char *) malloc( augmented_rows * cols * sizeof(char));
+
+        // now we need to make sure that each of the pointers in grid point to the 
+        // right place of the data.
+        for(int i = 0; i<augmented_rows; ++i){
+            grid[i] = data + i*cols;
+            grid_prev[i] = data_prev + i*cols;
+        }
+
+        // initialize the halo regions to being DEAD
+        for(int j = 0; j<cols; ++j){
+            grid[0][j] = grid[my_rows + 1][j] = grid_prev[0][j]
+                = grid_prev[my_rows + 1][j] = DEAD;
+        }
+
+        MPI_File fh;
+
+        // HEADER INFO CALCULATION
+
+        // intuition: https://stackoverflow.com/questions/3919995/determining-sprintf-buffer-size-whats-the-standard
+        int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
+        char * header = malloc(header_size + 1);
+        sprintf(header, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
+        const MPI_Offset header_offset = header_size * sizeof(char);
+        const MPI_Offset my_total_file_offset = my_file_offset + header_offset;
+
+
+        // INITIALIZE MATRIX RANDOMLY
+        
+        // for reproducible results. If we want truly random then we also 
+        // need to include some changing information such as time
+        srand48(1*rank); 
+
         // possibility to optimize loop here by exploiting 
         // ILP
+        // HERE IS A POSSIBILITY TO USE OPENMP
         for(int i = 1; i<my_rows+1; ++i){
             for(int j = 0; j<cols; ++j)
                 grid[i][j] = drand48() > 0.5 ? ALIVE : DEAD ;
                 // grid[i][j] = ALIVE;
         }
 
+        save_grid(fname, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data, my_rows, cols, fh);
+        // // Opening the file in MPI_MODE_WRITEONLY or MPI_MODE_CREATE_ONLY
+        // const int err = MPI_File_open(MPI_COMM_WORLD, fname, MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
+        //
+        // // Check that the file was opened correctly
+        // if(err != MPI_SUCCESS){
+        //     fprintf(stderr, "Error opening %s\n", fname);
+        //     MPI_Abort(MPI_COMM_WORLD, err);
+        // }
+        // 
+        // if(rank == 0){
+        //     MPI_File_write_at(fh, 0, header, header_size, MPI_CHAR, MPI_STATUS_IGNORE);
+        // }
+        //
+        // MPI_File_write_at_all(fh, my_total_file_offset, data + cols, my_rows*cols, MPI_CHAR, MPI_STATUS_IGNORE);
+        //
+        // MPI_File_close(&fh);
+
+    }
+    else if (action == RUN){
+
         MPI_File fh;
 
-        const int err = MPI_File_open(MPI_COMM_WORLD, fname, MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
+        // read file 
+        // in general, we cannot assume we will use the same number 
+        // of processors as the initialization phase
+        // so we need to first read the header, broadcast to the other 
+        // processes, distribute an area of the matrix for each process 
+        // and read from the file
+        
+        const int err = MPI_File_open(MPI_COMM_WORLD, fname, MPI_MODE_RDWR, MPI_INFO_NULL, &fh);
 
         if(err != MPI_SUCCESS){
             fprintf(stderr, "Error opening %s\n", fname);
-            return err;
+            MPI_Abort(MPI_COMM_WORLD, err);
         }
-        
-        // intuition: https://stackoverflow.com/questions/3919995/determining-sprintf-buffer-size-whats-the-standard
-        int header_size = snprintf(NULL, 0, "P5 %d %d\n%d\n", rows, cols, MAX_VAL);
-        char * header = malloc(header_size + 1);
-        sprintf(header, "P5 %d %d\n%d\n", rows, cols, MAX_VAL);
-        const MPI_Offset header_offset = header_size * sizeof(char);
+
+        int opt_args[2] = {0,0};
 
         if(rank == 0){
-            MPI_File_write_at(fh, 0, header, header_size, MPI_CHAR, MPI_STATUS_IGNORE);
+
+            FILE * fh_posix = fopen(fname, "r");
+
+            // we know that the magic number is P5 so we set the offset as the  
+            // length of P5 * sizeof(char)
+            if(fh_posix == NULL){
+                fprintf(stderr, "Error opening %s\n", fname);
+                MPI_Abort(MPI_COMM_WORLD, MPI_ERR_REQUEST);
+
+            }
+
+            fscanf(fh_posix, "P5 %d %d 255\n",opt_args, opt_args+1 );
         }
 
-        // try to get rid of this barrier in future
-        // by taking advantage of non blocking write at all
-        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Bcast(opt_args, 2, MPI_INT, 0, MPI_COMM_WORLD);
 
-        MPI_Offset my_total_file_offset = my_file_offset + header_offset;
+        rows = opt_args[0];
+        cols = opt_args[1];
 
-        MPI_File_write_at_all(fh, my_total_file_offset, data + cols, my_rows*cols, MPI_CHAR, MPI_STATUS_IGNORE);
+        // printf("I am rank %d and I got %d rows and %d cols\n", rank, rows, cols);
+        
+        const int my_rows = get_my_rows(rows, rank, size);
+        const int my_row_offset = get_my_row_offset(rows, rank, size);
+        const MPI_Offset my_file_offset = my_row_offset * cols * sizeof(char);
+
+        const int augmented_rows = my_rows + 2;
+
+        grid = (char **) malloc(augmented_rows * sizeof(char *));
+        grid_prev = (char **) malloc(augmented_rows * sizeof(char *));
+
+        data = (char *) malloc( augmented_rows * cols * sizeof(char));
+        data_prev = (char *) malloc( augmented_rows * cols * sizeof(char));
+
+        // now we need to make sure that each of the pointers in grid point to the 
+        // right place of the data.
+        for(int i = 0; i<augmented_rows; ++i){
+            grid[i] = data + i*cols;
+            grid_prev[i] = data_prev + i*cols;
+        }
+
+        // initialize the halo regions to being DEAD
+        for(int j = 0; j<cols; ++j){
+            grid[0][j] = grid[my_rows + 1][j] = grid_prev[0][j]
+                = grid_prev[my_rows + 1][j] = DEAD;
+        }
+
+        int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
+        char * header = malloc(header_size + 1);
+        sprintf(header, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
+        const MPI_Offset header_offset = header_size * sizeof(char);
+        const MPI_Offset my_total_file_offset = my_file_offset + header_offset;
+
+        MPI_File_read_at_all(fh, my_total_file_offset, data + cols, my_rows*cols, MPI_CHAR, MPI_STATUS_IGNORE);
 
         MPI_File_close(&fh);
 
+        char * fname2 = "lala2.pgm";
+
+        save_grid(fname2, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data, my_rows, cols, fh);
+
+    
     }
 
 
