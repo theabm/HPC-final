@@ -65,7 +65,7 @@ void get_args( int argc, char **argv )
                 e = atoi(optarg); break;
 
             case 'f':
-                fname = (char*)malloc( sizeof(optarg)+sizeof(f_prefix)+1 );
+                fname = (char*)malloc(sizeof(optarg)+sizeof(f_prefix)+1 );
                 sprintf(fname, "%s%s", optarg, f_prefix);
                 break;
 
@@ -128,7 +128,10 @@ int get_my_row_offset(int total_rows, int rank, int size)
 
     return my_offset;
 }
-void save_grid(char * fname, MPI_Comm comm, int rank, char * header, int header_size, MPI_Offset offset, char * data, int my_rows, int cols, MPI_File fh){
+void save_grid(char * fname, MPI_Comm comm, int rank, char * header, int header_size, MPI_Offset offset, char * data, int my_rows, int cols)
+{
+
+    MPI_File fh;
 
     // Opening the file in MPI_MODE_WRITEONLY or MPI_MODE_CREATE_ONLY
     const int err = MPI_File_open(comm, fname, MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
@@ -148,6 +151,32 @@ void save_grid(char * fname, MPI_Comm comm, int rank, char * header, int header_
     MPI_File_close(&fh);
 }
 
+void upgrade_cell(char ** grid_prev, char** grid, int i, int j)
+{
+
+    // by construction, the index for rows will work as is, since we take 
+    // care of halo cells explicitly.
+    // However, we need to deal with the fact that a column may be out of bounds
+    int jm1 = (j-1)%(int)cols + cols*(j-1<0);
+    int jp1 = (j+1)%(int)cols + cols*(j+1<0);
+
+    char n_alive_cells = grid_prev[i-1][jm1]
+        + grid_prev[i-1][j]
+        + grid_prev[i-1][jp1]
+        + grid_prev[i][jm1]
+        + grid_prev[i][jp1]
+        + grid_prev[i+1][jm1]
+        + grid_prev[i+1][j]
+        + grid_prev[i+1][jp1];
+    
+    if (n_alive_cells >= 2 && n_alive_cells <=3){
+        grid[i][j] = ALIVE;
+    }
+    else{
+        grid[i][j] = DEAD;
+    }
+}
+
 int main(int argc, char **argv){
     // initialize MPI
     MPI_Init(&argc, &argv);
@@ -156,39 +185,56 @@ int main(int argc, char **argv){
     int rank;
     int size;
 
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-
     char ** grid, ** grid_prev;
     char * data, * data_prev;
 
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
     // get arguments
     // MPI standard does not specify how arguments are processed. 
-    // Ideally it would be better to have master process and then broad cast 
-    // the arguments. However, for now this is ok.
+    // Ideally it would be better to have master process the args and then 
+    // broadcast the arguments. However, for now this is ok.
     get_args(argc, argv);
 
-    // setting up neighbors
+    // setting up neighbors for 1D splitting
+    // Note that with 1D splitting, we have a limitation on how many processes 
+    // this program will work with. 
+    // If the processes are more than the number of rows, then the program will 
+    // not use some of these processes.
     const int prev = (size - 1)*(rank==0) + (rank - 1)*!(rank==0);
     const int next = 0*(rank==(size-1)) + (rank + 1)*!(rank==(size-1));
 
-
     if(action == INIT){
 
-        // for each rank, determine its part of the matrix
+        // for each rank, we want to determine how many rows it will need to 
+        // handle.
+        // Since we are running the program with -i option (INIT), 
+        // we also specify the number of rows and columns. 
+        // So this operation is well defined.
+        
         const int my_rows = get_my_rows(rows, rank, size);
         const int my_row_offset = get_my_row_offset(rows, rank, size);
-        const MPI_Offset my_file_offset = my_row_offset * cols * sizeof(char);
-
-        printf("I am rank %d of %d and I need to deal with %d rows out of %d. My offset is %d\n", rank, size, my_rows, rows, my_row_offset);
-
         const int augmented_rows = my_rows + 2;
+
+        const MPI_Offset my_file_offset = my_row_offset * cols * sizeof(char);
 
         grid = (char **) malloc(augmented_rows * sizeof(char *));
         grid_prev = (char **) malloc(augmented_rows * sizeof(char *));
 
         data = (char *) malloc( augmented_rows * cols * sizeof(char));
         data_prev = (char *) malloc( augmented_rows * cols * sizeof(char));
+
+        if(
+                grid == NULL
+                || grid_prev == NULL
+                || data == NULL
+                || data_prev == NULL
+                )
+        {
+            MPI_Abort(MPI_COMM_WORLD, MPI_ERR_NO_SPACE);
+
+        }
 
         // now we need to make sure that each of the pointers in grid point to the 
         // right place of the data.
@@ -202,8 +248,6 @@ int main(int argc, char **argv){
             grid[0][j] = grid[my_rows + 1][j] = grid_prev[0][j]
                 = grid_prev[my_rows + 1][j] = DEAD;
         }
-
-        MPI_File fh;
 
         // HEADER INFO CALCULATION
 
@@ -226,32 +270,14 @@ int main(int argc, char **argv){
         // HERE IS A POSSIBILITY TO USE OPENMP
         for(int i = 1; i<my_rows+1; ++i){
             for(int j = 0; j<cols; ++j)
-                grid[i][j] = drand48() > 0.5 ? ALIVE : DEAD ;
+                grid_prev[i][j] = drand48() > 0.5 ? ALIVE : DEAD ;
                 // grid[i][j] = ALIVE;
         }
 
-        save_grid(fname, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data, my_rows, cols, fh);
-        // // Opening the file in MPI_MODE_WRITEONLY or MPI_MODE_CREATE_ONLY
-        // const int err = MPI_File_open(MPI_COMM_WORLD, fname, MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
-        //
-        // // Check that the file was opened correctly
-        // if(err != MPI_SUCCESS){
-        //     fprintf(stderr, "Error opening %s\n", fname);
-        //     MPI_Abort(MPI_COMM_WORLD, err);
-        // }
-        // 
-        // if(rank == 0){
-        //     MPI_File_write_at(fh, 0, header, header_size, MPI_CHAR, MPI_STATUS_IGNORE);
-        // }
-        //
-        // MPI_File_write_at_all(fh, my_total_file_offset, data + cols, my_rows*cols, MPI_CHAR, MPI_STATUS_IGNORE);
-        //
-        // MPI_File_close(&fh);
+        save_grid(fname, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data_prev, my_rows, cols);
 
     }
     else if (action == RUN){
-
-        MPI_File fh;
 
         // read file 
         // in general, we cannot assume we will use the same number 
@@ -260,13 +286,6 @@ int main(int argc, char **argv){
         // processes, distribute an area of the matrix for each process 
         // and read from the file
         
-        const int err = MPI_File_open(MPI_COMM_WORLD, fname, MPI_MODE_RDWR, MPI_INFO_NULL, &fh);
-
-        if(err != MPI_SUCCESS){
-            fprintf(stderr, "Error opening %s\n", fname);
-            MPI_Abort(MPI_COMM_WORLD, err);
-        }
-
         int opt_args[2] = {0,0};
 
         if(rank == 0){
@@ -278,10 +297,10 @@ int main(int argc, char **argv){
             if(fh_posix == NULL){
                 fprintf(stderr, "Error opening %s\n", fname);
                 MPI_Abort(MPI_COMM_WORLD, MPI_ERR_REQUEST);
-
             }
 
             fscanf(fh_posix, "P5 %d %d 255\n",opt_args, opt_args+1 );
+            fclose(fh_posix);
         }
 
         MPI_Bcast(opt_args, 2, MPI_INT, 0, MPI_COMM_WORLD);
@@ -289,13 +308,11 @@ int main(int argc, char **argv){
         rows = opt_args[0];
         cols = opt_args[1];
 
-        // printf("I am rank %d and I got %d rows and %d cols\n", rank, rows, cols);
-        
         const int my_rows = get_my_rows(rows, rank, size);
         const int my_row_offset = get_my_row_offset(rows, rank, size);
-        const MPI_Offset my_file_offset = my_row_offset * cols * sizeof(char);
-
         const int augmented_rows = my_rows + 2;
+
+        const MPI_Offset my_file_offset = my_row_offset * cols * sizeof(char);
 
         grid = (char **) malloc(augmented_rows * sizeof(char *));
         grid_prev = (char **) malloc(augmented_rows * sizeof(char *));
@@ -303,6 +320,17 @@ int main(int argc, char **argv){
         data = (char *) malloc( augmented_rows * cols * sizeof(char));
         data_prev = (char *) malloc( augmented_rows * cols * sizeof(char));
 
+        if(
+                grid == NULL
+                || grid_prev == NULL
+                || data == NULL
+                || data_prev == NULL
+                )
+        {
+            MPI_Abort(MPI_COMM_WORLD, MPI_ERR_NO_SPACE);
+
+        }
+        
         // now we need to make sure that each of the pointers in grid point to the 
         // right place of the data.
         for(int i = 0; i<augmented_rows; ++i){
@@ -322,19 +350,150 @@ int main(int argc, char **argv){
         const MPI_Offset header_offset = header_size * sizeof(char);
         const MPI_Offset my_total_file_offset = my_file_offset + header_offset;
 
-        MPI_File_read_at_all(fh, my_total_file_offset, data + cols, my_rows*cols, MPI_CHAR, MPI_STATUS_IGNORE);
+        MPI_File fh;
+
+        const int err = MPI_File_open(MPI_COMM_WORLD, fname, MPI_MODE_RDWR, MPI_INFO_NULL, &fh);
+
+        if(err != MPI_SUCCESS){
+            fprintf(stderr, "Error opening %s\n", fname);
+            MPI_Abort(MPI_COMM_WORLD, err);
+        }
+
+        MPI_File_read_at_all(fh, my_total_file_offset, data_prev + cols, my_rows*cols, MPI_CHAR, MPI_STATUS_IGNORE);
 
         MPI_File_close(&fh);
 
-        char * fname2 = "lala2.pgm";
+        // At this point, all the processes have read their portion of the 
+        // matrix. The halo regions have been set to zero, and we are ready 
+        // to start the game of life.
+        
+        // file name (it will always be the same length so we only need it once)
+        char * file_name = malloc(snprintf(NULL, 0, "snapshot_%05d.pgm", 0)+1);
+        if(file_name == NULL){
+            printf("Not enough space.");
+            MPI_Abort(MPI_COMM_WORLD, MPI_ERR_NO_SPACE);
+        }
 
-        save_grid(fname2, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data, my_rows, cols, fh);
+        MPI_Request prev_send_request, next_send_request;
+        MPI_Request prev_recv_request, next_recv_request;
 
+        const int prev_tag = 0; 
+        const int next_tag = 1;
+
+        char *tmp = NULL;
+
+        for(int t = 0; t < n; ++t){
+
+            // no longer needed since it is taken cafe of by MPI_Wait 
+            // and MPI_Request_free().
+            // prev_send_request = MPI_REQUEST_NULL;
+            // next_send_request = MPI_REQUEST_NULL;
+            //
+            // prev_recv_request = MPI_REQUEST_NULL;
+            // next_recv_request = MPI_REQUEST_NULL;
+
+            // Step 1. Start non blocking exchange of halo cells.
+
+            // we post send and recv requests for two halo regions.
+            // matrix: 
+            // ---------------------  row 0 (HALO)
+            // 010100011001100100100  row 1
+            // 010010000100101001111  row 2             --
+            // ...                                        | these rows dont need 
+            // 001010111110011000001  row my_rows - 1   __| halo regions
+            // 010010010000100101000  row my_rows
+            // ---------------------  row my_rows + 1 (HALO)
+            
+            // send row: 1 to the previous rank
+            MPI_Isend(data_prev + cols, cols, MPI_CHAR, prev, prev_tag, MPI_COMM_WORLD, &prev_send_request);
+            // send row: my_rows to next rank
+            MPI_Isend(data_prev + my_rows*cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request);
+
+            // receive from prev and put in row 0 (halo region)
+            MPI_Irecv(data_prev, cols, MPI_CHAR, prev, next_tag, MPI_COMM_WORLD, &prev_recv_request);
+            // receive from next and put in row my_rows + 1 (halo region)
+            MPI_Irecv(data_prev + cols*my_rows + cols, cols, MPI_CHAR, next, prev_tag, MPI_COMM_WORLD, &next_recv_request);
+
+            // Once the send and receive have completed, each process should 
+            // have the halo regions. So we can update the entire grid. 
+
+            // However, in the meantime, we can process all of the internal rows 
+            // which don't need halo regions. 
+            // This allows us to hide the latency which occurs in messagge 
+            // passing.
+            // These rows that dont need the halo regions are 
+            // rows 2 and my_rows - 1 (look at diagram above)
+
+            // Step 2. Process internal cells to hide latency
+
+            // POSSIBILITY TO PARARELLIZE WITH OMP
+            for(int row = 2; row < my_rows; ++row){
+                for(int col = 0; col < cols; ++cols){
+                    // watch for access pattern of memory. 
+                    // could be necessary to optimize and access differently
+                    upgrade_cell(grid_prev, grid, row, col);
+                }
+            }
+
+            // At this point, all internal cells have been processed
+            // and we can check if the recv operation has completed
+            
+            // Step 3. Check that recv has been completed.
+            // (theoretically, we could also use MPI_Test to see if its 
+            // completed and if it isnt, do some other things, but all that's 
+            // really left is the computation of the borders)
+            
+            // look at https://stackoverflow.com/questions/10882581/mpi-isend-request-parameter 
+            // and 
+            // https://stackoverflow.com/questions/22410827/mpi-reuse-mpi-request
+            // for more information on why this is necessary.
+            // However, the main idea is that these operations free the request 
+            // handles and set them to MPI_REQUEST_NULL which can then be reused.
+            MPI_Wait(&prev_recv_request, MPI_STATUS_IGNORE);
+            MPI_Wait(&next_recv_request, MPI_STATUS_IGNORE);
+            MPI_Request_free(&prev_send_request);
+            MPI_Request_free(&next_send_request);
+
+            // At this point, the halo has been received by all processes.
+            // So we need to update the 2 rows that require halo regions.
+            // These are row 1 and row my_rows
+
+            // Step 4. Update limiting rows (row 1 and row my_rows)
+            for(int col=0; col<cols; ++col){
+                upgrade_cell(grid_prev, grid, 1, col);
+                upgrade_cell(grid_prev, grid, my_rows, col);
+            }
+
+            // At this point, data_prev contains the data at t-1, 
+            // while data contains the data for time t.
+            // Now we need to check if we need to save
+
+            // Step 5. Check if need to save, and if we do, save grid to pgm
+            
+            if(t%s == 0){
+                sprintf(file_name, "snapshot_%05d", t);
+                save_grid(file_name, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data, my_rows, cols);
+            }
+
+            // Step 6. Swap data_prev and data 
+            tmp = data;
+            data = data_prev;
+            data_prev = tmp;
+            // it is good practice to avoid dangling pointers.
+            tmp = NULL;
+        }
     
+        free(file_name);
+    }
+    else{
+        printf("Unknown action. Abort");
+        MPI_Abort(MPI_COMM_WORLD, 0);
     }
 
-
-    // display_args(rank, size);
+    free(grid);
+    free(grid_prev);
+    free(data);
+    free(data_prev);
 
     if ( fname != NULL )
       free ( fname );
