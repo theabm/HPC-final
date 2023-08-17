@@ -11,16 +11,22 @@
 #include <string.h>
 #include <getopt.h>
 #include <mpi.h>
+#include <unistd.h>
 
 #define INIT 1
 #define RUN  2
 
-// for pgm files, 0 is black and 255(MAXVAL) is white
+// for pgm files, 0 is black and MAXVAL is white.
 // since we want black squares to denote alive, we define 
-// alive to be 0 (black) and dead to be 255 (white)
-#define DEAD 255
+// alive to be 0 (black) and dead to be 1 (white)
+// this means that the conditions of GOF translate as such:
+// A cell becomes alive if 2 or 3 neighbors are alive
+// or equivalently, 5 or 6 neighbors are dead. 
+// a cells becomes dead if less than 2 or more than 3 neighbors are alive or 
+// equivalently, if more than 6 or less than 5 are dead.
+#define DEAD 1
 #define ALIVE 0
-#define MAX_VAL 255
+#define MAX_VAL 1
 
 #define K_DFLT 100
 
@@ -128,7 +134,7 @@ int get_my_row_offset(int total_rows, int rank, int size)
 
     return my_offset;
 }
-void save_grid(char * fname, MPI_Comm comm, int rank, char * header, int header_size, MPI_Offset offset, char * data, int my_rows, int cols)
+void save_grid(unsigned char * fname, MPI_Comm comm, int rank, unsigned char * header, int header_size, MPI_Offset offset, unsigned char * data, int my_rows, int cols)
 {
 
     MPI_File fh;
@@ -151,16 +157,21 @@ void save_grid(char * fname, MPI_Comm comm, int rank, char * header, int header_
     MPI_File_close(&fh);
 }
 
-void upgrade_cell(char ** grid_prev, char** grid, int i, int j)
+void upgrade_cell(unsigned char ** grid_prev, unsigned char** grid, int i, int j)
 {
 
-    // by construction, the index for rows will work as is, since we take 
-    // care of halo cells explicitly.
-    // However, we need to deal with the fact that a column may be out of bounds
-    int jm1 = (j-1)%(int)cols + cols*(j-1<0);
-    int jp1 = (j+1)%(int)cols + cols*(j+1<0);
+    // this makes the column index periodic (without branches) 
+    // for example, if j = 0, j-1 = -1, and -1%cols = -1. The last term 
+    // is true, so we obtain cols - 1 
+    // if j = col - 1 then j+1 = col (out of bounds). col%col = 0 and the 
+    // second term is 0 so we obtain that the new coordinate is 0.
+    int jm1 = (j-1)%(int)cols + cols*((j-1)<0);
+    int jp1 = (j+1)%(int)cols + cols*((j+1)<0);
 
-    char n_alive_cells = grid_prev[i-1][jm1]
+    // note that the periodicity of the row index is handled by the message 
+    // passing
+
+    unsigned char n_dead_cells = grid_prev[i-1][jm1]
         + grid_prev[i-1][j]
         + grid_prev[i-1][jp1]
         + grid_prev[i][jm1]
@@ -169,11 +180,47 @@ void upgrade_cell(char ** grid_prev, char** grid, int i, int j)
         + grid_prev[i+1][j]
         + grid_prev[i+1][jp1];
     
-    if (n_alive_cells >= 2 && n_alive_cells <=3){
+    if (n_dead_cells >= 5 && n_dead_cells <= 6){
         grid[i][j] = ALIVE;
     }
     else{
         grid[i][j] = DEAD;
+    }
+}
+
+void display_grid(int rank, int my_rows, int cols, unsigned char ** grid_prev)
+{
+    // for debug
+    // ordered printing
+    sleep(rank*5);
+    printf("I am rank %d\n", rank);
+    for(int i = 0; i < my_rows + 2; ++i){
+        for(int j = 0; j<cols; ++j){
+            printf("%d\t", grid_prev[i][j]);
+        }
+        printf("\n");
+    }
+}
+void display_both_grids(int rank, int my_rows, int cols, unsigned char ** grid, unsigned char ** grid_prev)
+{
+    // for debug
+    // ordered printing
+    sleep(rank*20);
+    printf("I am rank %d and I am printing grid\n", rank);
+    for(int i = 0; i < my_rows + 2; ++i){
+        for(int j = 0; j<cols; ++j){
+            printf("%d\t", grid[i][j]);
+
+        }
+        printf("\n");
+    }
+    printf("Now printing grid_prev\n");
+    for(int i = 0; i < my_rows + 2; ++i){
+        for(int j = 0; j<cols; ++j){
+            printf("%d\t", grid_prev[i][j]);
+
+        }
+        printf("\n");
     }
 }
 
@@ -185,8 +232,8 @@ int main(int argc, char **argv){
     int rank;
     int size;
 
-    char ** grid, ** grid_prev;
-    char * data, * data_prev;
+    unsigned char ** grid, ** grid_prev;
+    unsigned char * data, * data_prev;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -217,13 +264,13 @@ int main(int argc, char **argv){
         const int my_row_offset = get_my_row_offset(rows, rank, size);
         const int augmented_rows = my_rows + 2;
 
-        const MPI_Offset my_file_offset = my_row_offset * cols * sizeof(char);
+        const MPI_Offset my_file_offset = my_row_offset * cols * sizeof(unsigned char);
 
-        grid = (char **) malloc(augmented_rows * sizeof(char *));
-        grid_prev = (char **) malloc(augmented_rows * sizeof(char *));
+        grid = (unsigned char **) malloc(augmented_rows * sizeof(unsigned char *));
+        grid_prev = (unsigned char **) malloc(augmented_rows * sizeof(unsigned char *));
 
-        data = (char *) malloc( augmented_rows * cols * sizeof(char));
-        data_prev = (char *) malloc( augmented_rows * cols * sizeof(char));
+        data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
+        data_prev = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
 
         if(
                 grid == NULL
@@ -263,7 +310,7 @@ int main(int argc, char **argv){
         
         // for reproducible results. If we want truly random then we also 
         // need to include some changing information such as time
-        srand48(1*rank); 
+        srand48(10*rank); 
 
         // possibility to optimize loop here by exploiting 
         // ILP
@@ -273,6 +320,8 @@ int main(int argc, char **argv){
                 grid_prev[i][j] = drand48() > 0.5 ? ALIVE : DEAD ;
                 // grid[i][j] = ALIVE;
         }
+
+        display_grid(rank, my_rows, cols, grid_prev);
 
         save_grid(fname, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data_prev, my_rows, cols);
 
@@ -314,11 +363,11 @@ int main(int argc, char **argv){
 
         const MPI_Offset my_file_offset = my_row_offset * cols * sizeof(char);
 
-        grid = (char **) malloc(augmented_rows * sizeof(char *));
-        grid_prev = (char **) malloc(augmented_rows * sizeof(char *));
+        grid = (unsigned char **) malloc(augmented_rows * sizeof(unsigned char *));
+        grid_prev = (unsigned char **) malloc(augmented_rows * sizeof(unsigned char *));
 
-        data = (char *) malloc( augmented_rows * cols * sizeof(char));
-        data_prev = (char *) malloc( augmented_rows * cols * sizeof(char));
+        data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
+        data_prev = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
 
         if(
                 grid == NULL
@@ -363,6 +412,9 @@ int main(int argc, char **argv){
 
         MPI_File_close(&fh);
 
+        printf("Initial matrix\n");
+        display_grid(rank, my_rows, cols, grid_prev);
+
         // At this point, all the processes have read their portion of the 
         // matrix. The halo regions have been set to zero, and we are ready 
         // to start the game of life.
@@ -380,9 +432,11 @@ int main(int argc, char **argv){
         const int prev_tag = 0; 
         const int next_tag = 1;
 
-        char *tmp = NULL;
+        unsigned char *tmp_data = NULL;
+        unsigned char ** tmp_grid = NULL;
+        
 
-        for(int t = 0; t < n; ++t){
+        for(int t = 1; t < n+1; ++t){
 
             // no longer needed since it is taken cafe of by MPI_Wait 
             // and MPI_Request_free().
@@ -428,7 +482,7 @@ int main(int argc, char **argv){
 
             // POSSIBILITY TO PARARELLIZE WITH OMP
             for(int row = 2; row < my_rows; ++row){
-                for(int col = 0; col < cols; ++cols){
+                for(int col = 0; col < cols; ++col){
                     // watch for access pattern of memory. 
                     // could be necessary to optimize and access differently
                     upgrade_cell(grid_prev, grid, row, col);
@@ -471,16 +525,24 @@ int main(int argc, char **argv){
             // Step 5. Check if need to save, and if we do, save grid to pgm
             
             if(t%s == 0){
-                sprintf(file_name, "snapshot_%05d", t);
+                sprintf(file_name, "snapshot_%05d.pgm", t);
                 save_grid(file_name, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data, my_rows, cols);
             }
 
+            printf("time step %d\n", t);
+            display_both_grids(rank, my_rows, cols, grid, grid_prev);
+
             // Step 6. Swap data_prev and data 
-            tmp = data;
+            tmp_data = data;
             data = data_prev;
-            data_prev = tmp;
-            // it is good practice to avoid dangling pointers.
-            tmp = NULL;
+            data_prev = tmp_data;
+            tmp_data = NULL;
+
+            // Step 7. Swap grid and grid_prev
+            tmp_grid = grid;
+            grid = grid_prev;
+            grid_prev = tmp_grid;
+            tmp_grid = NULL;
         }
     
         free(file_name);
