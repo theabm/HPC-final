@@ -315,7 +315,7 @@ int main(int argc, char **argv){
                 // grid[i][j] = ALIVE;
         }
 
-        display_grid(rank, my_rows, cols, grid_prev);
+        // display_grid(rank, my_rows, cols, grid_prev);
 
         save_grid(fname, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data_prev, my_rows, cols);
 
@@ -406,8 +406,8 @@ int main(int argc, char **argv){
 
         MPI_File_close(&fh);
 
-        printf("Initial matrix\n");
-        display_grid(rank, my_rows, cols, grid_prev);
+        // printf("Initial matrix\n");
+        // display_grid(rank, my_rows, cols, grid_prev);
 
         // At this point, all the processes have read their portion of the 
         // matrix. The halo regions have been set to zero, and we are ready 
@@ -523,8 +523,8 @@ int main(int argc, char **argv){
                 save_grid(file_name, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data, my_rows, cols);
             }
 
-            printf("time step %d\n", t);
-            display_both_grids(rank, my_rows, cols, grid, grid_prev);
+            // printf("time step %d\n", t);
+            // display_both_grids(rank, my_rows, cols, grid, grid_prev);
 
             // Step 6. Swap data_prev and data 
             tmp_data = data;
