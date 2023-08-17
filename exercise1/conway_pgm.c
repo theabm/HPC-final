@@ -17,15 +17,9 @@
 #define RUN  2
 
 // for pgm files, 0 is black and MAXVAL is white.
-// since we want black squares to denote alive, we define 
-// alive to be 0 (black) and dead to be 1 (white)
-// this means that the conditions of GOF translate as such:
-// A cell becomes alive if 2 or 3 neighbors are alive
-// or equivalently, 5 or 6 neighbors are dead. 
-// a cells becomes dead if less than 2 or more than 3 neighbors are alive or 
-// equivalently, if more than 6 or less than 5 are dead.
-#define DEAD 1
-#define ALIVE 0
+// So dead is 0 and alive is 1
+#define DEAD 0
+#define ALIVE 1
 #define MAX_VAL 1
 
 #define K_DFLT 100
@@ -171,7 +165,7 @@ void upgrade_cell(unsigned char ** grid_prev, unsigned char** grid, int i, int j
     // note that the periodicity of the row index is handled by the message 
     // passing
 
-    unsigned char n_dead_cells = grid_prev[i-1][jm1]
+    unsigned char n_alive_cells = grid_prev[i-1][jm1]
         + grid_prev[i-1][j]
         + grid_prev[i-1][jp1]
         + grid_prev[i][jm1]
@@ -180,7 +174,7 @@ void upgrade_cell(unsigned char ** grid_prev, unsigned char** grid, int i, int j
         + grid_prev[i+1][j]
         + grid_prev[i+1][jp1];
     
-    if (n_dead_cells >= 5 && n_dead_cells <= 6){
+    if (n_alive_cells >= 2 && n_alive_cells <= 3){
         grid[i][j] = ALIVE;
     }
     else{
