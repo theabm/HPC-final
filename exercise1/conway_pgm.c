@@ -123,7 +123,7 @@ int get_my_row_offset(int total_rows, int rank, int size)
     // whole remainder.
     
     int my_offset = nrows*rank
-        + rank*(rank < remainder) 
+        + rank*(rank <= remainder) 
         + remainder*(rank > remainder);
 
     return my_offset;
@@ -257,6 +257,8 @@ int main(int argc, char **argv){
         const int my_rows = get_my_rows(rows, rank, size);
         const int my_row_offset = get_my_row_offset(rows, rank, size);
         const int augmented_rows = my_rows + 2;
+
+        printf("I am rank %d and I am getting %d rows at offset %d\n", rank, my_rows, my_row_offset);
 
         const MPI_Offset my_file_offset = my_row_offset * cols * sizeof(unsigned char);
 
