@@ -173,13 +173,32 @@ void upgrade_cell(unsigned char ** grid_prev, unsigned char** grid, int i, int j
         + grid_prev[i+1][jm1]
         + grid_prev[i+1][j]
         + grid_prev[i+1][jp1];
-    
-    if (n_alive_cells >= 2 && n_alive_cells <= 3){
-        grid[i][j] = ALIVE;
+
+
+    // correct rules - need to optimize branches
+    if(grid_prev[i][j]){
+        if(n_alive_cells >= 2 && n_alive_cells <= 3){
+            grid[i][j] = ALIVE;
+        }
+        else{
+            grid[i][j] = DEAD;
+        }
     }
     else{
-        grid[i][j] = DEAD;
+        if(n_alive_cells==3){
+            grid[i][j] = ALIVE;
+        }
+        else{
+            grid[i][j] = DEAD;
+        }
     }
+    
+    // if (n_alive_cells >= 2 && n_alive_cells <= 3){
+    //     grid[i][j] = ALIVE;
+    // }
+    // else{
+    //     grid[i][j] = DEAD;
+    // }
 }
 
 void display_grid(int rank, int my_rows, int cols, unsigned char ** grid_prev)
