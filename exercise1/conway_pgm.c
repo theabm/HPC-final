@@ -16,6 +16,8 @@
 #define INIT 1
 #define RUN  2
 
+#define 
+
 // for pgm files, 0 is black and MAXVAL is white.
 // So dead is 0 and alive is 1
 #define DEAD 0
@@ -35,8 +37,8 @@ char fname_deflt[] = "game_of_life.pgm";
 
 int   action = 0;
 int   k      = K_DFLT;
-int   rows   = 0;
-int   cols   = 0;
+int   rows   = K_DFLT;
+int   cols   = K_DFLT;
 int   e      = ORDERED;
 int   n      = 10000;
 int   s      = 1;
@@ -59,7 +61,7 @@ void get_args( int argc, char **argv )
                 action = RUN; break;
 
             case 'k':
-                k = atoi(optarg); rows = k; cols = k; break;
+                k = atoi(optarg); rows = cols = k; break;
 
             case 'e':
                 e = atoi(optarg); break;
@@ -165,14 +167,16 @@ void upgrade_cell(unsigned char ** grid_prev, unsigned char** grid, int i, int j
     // note that the periodicity of the row index is handled by the message 
     // passing
 
-    unsigned char n_alive_cells = grid_prev[i-1][jm1]
-        + grid_prev[i-1][j]
-        + grid_prev[i-1][jp1]
-        + grid_prev[i][jm1]
-        + grid_prev[i][jp1]
-        + grid_prev[i+1][jm1]
-        + grid_prev[i+1][j]
-        + grid_prev[i+1][jp1];
+    unsigned char n_alive_cells = 0;
+
+    n_alive_cells+=grid_prev[i-1][jm1];
+    n_alive_cells+=grid_prev[i-1][j];
+    n_alive_cells+=grid_prev[i-1][jp1];
+    n_alive_cells+=grid_prev[i][jm1];
+    n_alive_cells+=grid_prev[i][jp1];
+    n_alive_cells+=grid_prev[i+1][jm1];
+    n_alive_cells+=grid_prev[i+1][j];
+    n_alive_cells+=grid_prev[i+1][jp1];
 
 
     // correct rules - need to optimize branches
@@ -363,17 +367,27 @@ int main(int argc, char **argv){
                 MPI_Abort(MPI_COMM_WORLD, MPI_ERR_REQUEST);
             }
 
-            fscanf(fh_posix, "P5 %d %d 255\n",opt_args, opt_args+1 );
+            fscanf(fh_posix, "P5 %d %d 1\n",opt_args, opt_args+1 );
             fclose(fh_posix);
+            printf("I am rank 0 and I have received %d rows %d cols\n", *opt_args, *(opt_args+1));
         }
 
+        MPI_Barrier(MPI_COMM_WORLD);
+        // this is blocking (maybe use non blocking later)
         MPI_Bcast(opt_args, 2, MPI_INT, 0, MPI_COMM_WORLD);
+        printf("I am rank %d and I have received %d rows %d cols\n", rank, *opt_args, *(opt_args+1));
 
         rows = opt_args[0];
         cols = opt_args[1];
 
         const int my_rows = get_my_rows(rows, rank, size);
         const int my_row_offset = get_my_row_offset(rows, rank, size);
+        MPI_Barrier(MPI_COMM_WORLD);
+
+        printf("I am rank %d and I am getting %d rows at offset %d\n", rank, my_rows, my_row_offset);
+
+        // since we need to deal with halos we need to allocate two more 
+        // rows than what I need.
         const int augmented_rows = my_rows + 2;
 
         const MPI_Offset my_file_offset = my_row_offset * cols * sizeof(char);
