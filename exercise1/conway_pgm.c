@@ -16,8 +16,6 @@
 #define INIT 1
 #define RUN  2
 
-#define 
-
 // for pgm files, 0 is black and MAXVAL is white.
 // So dead is 0 and alive is 1
 #define DEAD 0
