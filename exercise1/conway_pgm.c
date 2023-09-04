@@ -16,6 +16,9 @@
 #define INIT 1
 #define RUN  2
 
+#define DATA(i,j) (data[(i)*cols + (j)])
+#define DATA_PREV(i,j) (data_prev[(i)*cols + (j)])
+
 // for pgm files, 0 is black and MAXVAL is white.
 // So dead is 0 and alive is 1
 #define DEAD 0
@@ -151,7 +154,7 @@ void save_grid(unsigned char * fname, MPI_Comm comm, int rank, unsigned char * h
     MPI_File_close(&fh);
 }
 
-void upgrade_cell(unsigned char ** grid_prev, unsigned char** grid, int i, int j)
+void upgrade_cell(unsigned char * data_prev, unsigned char * data, int i, int j)
 {
 
     // this makes the column index periodic (without branches) 
@@ -167,31 +170,31 @@ void upgrade_cell(unsigned char ** grid_prev, unsigned char** grid, int i, int j
 
     unsigned char n_alive_cells = 0;
 
-    n_alive_cells+=grid_prev[i-1][jm1];
-    n_alive_cells+=grid_prev[i-1][j];
-    n_alive_cells+=grid_prev[i-1][jp1];
-    n_alive_cells+=grid_prev[i][jm1];
-    n_alive_cells+=grid_prev[i][jp1];
-    n_alive_cells+=grid_prev[i+1][jm1];
-    n_alive_cells+=grid_prev[i+1][j];
-    n_alive_cells+=grid_prev[i+1][jp1];
+    n_alive_cells+=DATA_PREV(i-1,jm1);
+    n_alive_cells+=DATA_PREV(i-1,j);
+    n_alive_cells+=DATA_PREV(i-1,jp1);
+    n_alive_cells+=DATA_PREV(i,jm1);
+    n_alive_cells+=DATA_PREV(i,jp1);
+    n_alive_cells+=DATA_PREV(i+1,jm1);
+    n_alive_cells+=DATA_PREV(i+1,j);
+    n_alive_cells+=DATA_PREV(i+1,jp1);
 
 
     // correct rules - need to optimize branches
-    if(grid_prev[i][j]){
+    if(DATA_PREV(i,j)){
         if(n_alive_cells >= 2 && n_alive_cells <= 3){
-            grid[i][j] = ALIVE;
+            DATA(i,j) = ALIVE;
         }
         else{
-            grid[i][j] = DEAD;
+            DATA(i,j) = DEAD;
         }
     }
     else{
         if(n_alive_cells==3){
-            grid[i][j] = ALIVE;
+            DATA(i,j) = ALIVE;
         }
         else{
-            grid[i][j] = DEAD;
+            DATA(i,j) = DEAD;
         }
     }
     
@@ -309,8 +312,8 @@ int main(int argc, char **argv){
 
         // initialize the halo regions to being DEAD
         for(int j = 0; j<cols; ++j){
-            grid[0][j] = grid[my_rows + 1][j] = grid_prev[0][j]
-                = grid_prev[my_rows + 1][j] = DEAD;
+            DATA(0,j) = DATA(my_rows + 1,j) = DATA_PREV(0,j)
+                = DATA_PREV(my_rows + 1,j) = DEAD;
         }
 
         // HEADER INFO CALCULATION
@@ -334,8 +337,7 @@ int main(int argc, char **argv){
         // HERE IS A POSSIBILITY TO USE OPENMP
         for(int i = 1; i<my_rows+1; ++i){
             for(int j = 0; j<cols; ++j)
-                grid_prev[i][j] = drand48() > 0.5 ? ALIVE : DEAD ;
-                // grid[i][j] = ALIVE;
+                DATA_PREV(i,j) = drand48() > 0.5 ? ALIVE : DEAD ;
         }
 
         // display_grid(rank, my_rows, cols, grid_prev);
@@ -416,8 +418,8 @@ int main(int argc, char **argv){
 
         // initialize the halo regions to being DEAD
         for(int j = 0; j<cols; ++j){
-            grid[0][j] = grid[my_rows + 1][j] = grid_prev[0][j]
-                = grid_prev[my_rows + 1][j] = DEAD;
+            DATA(0,j) = DATA(my_rows + 1,j) = DATA_PREV(0,j)
+                = DATA_PREV(my_rows + 1,j) = DEAD;
         }
 
         int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
@@ -512,7 +514,7 @@ int main(int argc, char **argv){
                 for(int col = 0; col < cols; ++col){
                     // watch for access pattern of memory. 
                     // could be necessary to optimize and access differently
-                    upgrade_cell(grid_prev, grid, row, col);
+                    upgrade_cell(data_prev, data, row, col);
                 }
             }
 
@@ -541,8 +543,8 @@ int main(int argc, char **argv){
 
             // Step 4. Update limiting rows (row 1 and row my_rows)
             for(int col=0; col<cols; ++col){
-                upgrade_cell(grid_prev, grid, 1, col);
-                upgrade_cell(grid_prev, grid, my_rows, col);
+                upgrade_cell(data_prev, data, 1, col);
+                upgrade_cell(data_prev, data, my_rows, col);
             }
 
             // At this point, data_prev contains the data at t-1, 
