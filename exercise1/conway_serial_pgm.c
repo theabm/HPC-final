@@ -1,0 +1,283 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <getopt.h>
+#include <unistd.h>
+#include <omp.h>
+
+#define INIT 1
+#define RUN  2
+
+#define DATA(i,j) (data[(i)*cols + (j)])
+#define DATA_PREV(i,j) (data_prev[(i)*cols + (j)])
+
+// for pgm files, 0 is black and MAXVAL is white.
+// So dead is 0 and alive is 1
+#define DEAD 0
+#define ALIVE 1
+#define MAX_VAL 1
+
+#define K_DFLT 100
+
+#define ORDERED 0
+#define STATIC  1
+
+#define HEADER_FORMAT_STRING "P5 %d %d %d\n"
+
+
+// DEFAULT VALUES
+char fname_deflt[] = "game_of_life.pgm";
+
+int   action = 0;
+int   k      = K_DFLT;
+int   rows   = K_DFLT;
+int   cols   = K_DFLT;
+int   e      = ORDERED;
+int   n      = 10000;
+int   s      = 1;
+char *fname  = NULL;
+char *f_prefix = ".pgm";
+
+
+void get_args( int argc, char **argv )
+{
+    char *optstring = "irk:e:f:n:s:";
+
+    int c;
+    while ((c = getopt(argc, argv, optstring)) != -1) {
+        switch(c) {
+
+            case 'i':
+                action = INIT; break;
+
+            case 'r':
+                action = RUN; break;
+
+            case 'k':
+                k = atoi(optarg); rows = cols = k; break;
+
+            case 'e':
+                e = atoi(optarg); break;
+
+            case 'f':
+                fname = (char*)malloc(sizeof(optarg)+sizeof(f_prefix)+1 );
+                sprintf(fname, "%s%s", optarg, f_prefix);
+                break;
+
+            case 'n':
+                n = atoi(optarg); break;
+
+            case 's':
+                s = atoi(optarg); break;
+
+            default :
+                printf("argument -%c not known\n", c ); break;
+
+        }
+    }
+}
+
+void display_args(int rank, int size){
+    printf("I am rank %d of %d.\naction (i : 1\tr : 2) -- %d\nk (size) -- %d\ne (0 : ORDERED\t1 : STATIC) -- %d\nf (filename) -- %s\nn (steps) -- %d\ns (save frequency) -- %d\n", rank, size, action, k, e, fname, n, s );
+}
+
+void save_grid(unsigned char * fname, unsigned char * header, int header_size, unsigned char * data, int rows, int cols)
+{
+
+    FILE * fh = fopen(fname, "wb");
+
+    if(fh == NULL){
+        fprintf(stderr, "Error opening %s\n", fname);
+        exit(0);
+    }
+
+    fwrite(header,1,header_size,fh);
+    
+    fwrite(data+cols, sizeof(unsigned char), rows*cols,fh);
+
+    fclose(fh);
+
+}
+
+void upgrade_cell(unsigned char * data_prev, unsigned char * data, int i, int j)
+{
+
+    // this makes the column index periodic (without branches) 
+    // for example, if j = 0, j-1 = -1, and -1%cols = -1. The last term 
+    // is true, so we obtain cols - 1 
+    // if j = col - 1 then j+1 = col (out of bounds). col%col = 0 and the 
+    // second term is 0 so we obtain that the new coordinate is 0.
+    int jm1 = (j-1)%(int)cols + cols*((j-1)<0);
+    int jp1 = (j+1)%(int)cols + cols*((j+1)<0);
+
+    unsigned char n_alive_cells = 0;
+
+    n_alive_cells+=DATA_PREV(i-1,jm1);
+    n_alive_cells+=DATA_PREV(i-1,j);
+    n_alive_cells+=DATA_PREV(i-1,jp1);
+    n_alive_cells+=DATA_PREV(i,jm1);
+    n_alive_cells+=DATA_PREV(i,jp1);
+    n_alive_cells+=DATA_PREV(i+1,jm1);
+    n_alive_cells+=DATA_PREV(i+1,j);
+    n_alive_cells+=DATA_PREV(i+1,jp1);
+
+    if(n_alive_cells == 3){
+        DATA(i,j) = ALIVE;
+    }
+    else if(n_alive_cells == 2){
+        DATA(i,j) = DATA_PREV(i,j);
+    }
+    else{
+        DATA(i,j) = DEAD;
+    }
+
+}
+
+int main(int argc, char **argv){
+
+    unsigned char * data, * data_prev;
+
+    get_args(argc, argv);
+
+    if(action == INIT){
+
+        // we add two rows for halo regions
+        const int augmented_rows = rows + 2;
+
+        data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
+        data_prev = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
+
+        if(
+                data == NULL
+                || data_prev == NULL
+                )
+        {
+            exit(0);
+        }
+
+        // initialize the halo regions to being DEAD
+        for(int j = 0; j<cols; ++j){
+            DATA(0,j) = DATA(rows + 1,j) = DATA_PREV(0,j)
+                = DATA_PREV(rows + 1,j) = DEAD;
+        }
+
+        // HEADER INFO CALCULATION
+
+        // intuition: https://stackoverflow.com/questions/3919995/determining-sprintf-buffer-size-whats-the-standard
+        int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
+        char * header = malloc(header_size + 1);
+        sprintf(header, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
+
+        srand48(10); 
+
+        for(int i = 1; i<rows+1; ++i){
+            for(int j = 0; j<cols; ++j)
+                DATA_PREV(i,j) = drand48() > 0.5 ? ALIVE : DEAD ;
+        }
+
+        save_grid(fname, header, header_size, data_prev, rows, cols);
+
+    }
+    else if (action == RUN){
+
+        int opt_args[2] = {0,0};
+
+
+        FILE * fh_posix = fopen(fname, "r");
+
+        // we know that the magic number is P5 so we set the offset as the  
+        // length of P5 * sizeof(char)
+        if(fh_posix == NULL){
+            fprintf(stderr, "Error opening %s\n", fname);
+            exit(0);
+        }
+
+        fscanf(fh_posix, "P5 %d %d 1\n",opt_args, opt_args+1 );
+        fclose(fh_posix);
+
+        rows = opt_args[0];
+        cols = opt_args[1];
+
+        printf("%d rows, %d cols\n", rows, cols);
+
+        const int augmented_rows = rows + 2;
+
+        data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
+        data_prev = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
+
+        if(
+                data == NULL
+                || data_prev == NULL
+                )
+        {
+            exit(0);
+        }
+        
+        // initialize the halo regions to being DEAD
+        for(int j = 0; j<cols; ++j){
+            DATA(0,j) = DATA(rows + 1,j) = DATA_PREV(0,j)
+                = DATA_PREV(rows + 1,j) = DEAD;
+        }
+
+        int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
+        char * header = malloc(header_size + 1);
+        sprintf(header, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
+
+        FILE * fh = fopen(fname, "rb");
+
+        if(fh== NULL){
+            fprintf(stderr, "Error opening %s\n", fname);
+            exit(0);
+        }
+
+        fseek(fh, header_size, 1);
+        fread(data_prev+cols, sizeof(unsigned char), rows*cols, fh);
+
+        char * file_name = malloc(snprintf(NULL, 0, "snapshot_%05d.pgm", 0)+1);
+        if(file_name == NULL){
+            printf("Not enough space.");
+            exit(0);
+        }
+
+        unsigned char *tmp_data = NULL;
+
+        for(int t = 1; t < n+1; ++t){
+
+            for(int col=0; col<cols;++col){
+                DATA_PREV(0,col) = DATA_PREV(rows,col);
+                DATA_PREV(rows+1,col) = DATA_PREV(1,col);
+            }
+
+            for(int row = 1; row < rows+1; ++row){
+                for(int col = 0; col < cols; ++col){
+                    upgrade_cell(data_prev, data, row, col);
+                }
+            }
+
+            if(t%s == 0){
+                sprintf(file_name, "snapshot_%05d.pgm", t);
+                save_grid(file_name, header, header_size, data, rows, cols);
+            }
+
+            tmp_data = data;
+            data = data_prev;
+            data_prev = tmp_data;
+            tmp_data = NULL;
+        }
+    
+        free(file_name);
+    }
+    else{
+        printf("Unknown action. Abort");
+        exit(0);
+    }
+
+    free(data);
+    free(data_prev);
+
+    if ( fname != NULL )
+      free ( fname );
+
+    return 0;
+}
+

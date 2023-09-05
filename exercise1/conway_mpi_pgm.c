@@ -167,7 +167,6 @@ void upgrade_cell(unsigned char * data_prev, unsigned char * data, int i, int j)
 
     // note that the periodicity of the row index is handled by the message 
     // passing
-
     unsigned char n_alive_cells = 0;
 
     n_alive_cells+=DATA_PREV(i-1,jm1);
@@ -179,70 +178,19 @@ void upgrade_cell(unsigned char * data_prev, unsigned char * data, int i, int j)
     n_alive_cells+=DATA_PREV(i+1,j);
     n_alive_cells+=DATA_PREV(i+1,jp1);
 
-
-    // correct rules - need to optimize branches
-    if(DATA_PREV(i,j)){
-        if(n_alive_cells >= 2 && n_alive_cells <= 3){
-            DATA(i,j) = ALIVE;
-        }
-        else{
-            DATA(i,j) = DEAD;
-        }
+    if(n_alive_cells == 3){
+        DATA(i,j) = ALIVE;
+    }
+    else if(n_alive_cells == 2){
+        DATA(i,j) = DATA_PREV(i,j);
     }
     else{
-        if(n_alive_cells==3){
-            DATA(i,j) = ALIVE;
-        }
-        else{
-            DATA(i,j) = DEAD;
-        }
-    }
-    
-    // if (n_alive_cells >= 2 && n_alive_cells <= 3){
-    //     grid[i][j] = ALIVE;
-    // }
-    // else{
-    //     grid[i][j] = DEAD;
-    // }
-}
-
-void display_grid(int rank, int my_rows, int cols, unsigned char ** grid_prev)
-{
-    // for debug
-    // ordered printing
-    sleep(rank*5);
-    printf("I am rank %d\n", rank);
-    for(int i = 0; i < my_rows + 2; ++i){
-        for(int j = 0; j<cols; ++j){
-            printf("%d\t", grid_prev[i][j]);
-        }
-        printf("\n");
-    }
-}
-void display_both_grids(int rank, int my_rows, int cols, unsigned char ** grid, unsigned char ** grid_prev)
-{
-    // for debug
-    // ordered printing
-    sleep(rank*20);
-    printf("I am rank %d and I am printing grid\n", rank);
-    for(int i = 0; i < my_rows + 2; ++i){
-        for(int j = 0; j<cols; ++j){
-            printf("%d\t", grid[i][j]);
-
-        }
-        printf("\n");
-    }
-    printf("Now printing grid_prev\n");
-    for(int i = 0; i < my_rows + 2; ++i){
-        for(int j = 0; j<cols; ++j){
-            printf("%d\t", grid_prev[i][j]);
-
-        }
-        printf("\n");
+        DATA(i,j) = DEAD;
     }
 }
 
 int main(int argc, char **argv){
+
     // initialize MPI
     MPI_Init(&argc, &argv);
 
@@ -281,7 +229,7 @@ int main(int argc, char **argv){
         const int my_row_offset = get_my_row_offset(rows, rank, size);
         const int augmented_rows = my_rows + 2;
 
-        printf("I am rank %d and I am getting %d rows at offset %d\n", rank, my_rows, my_row_offset);
+        // printf("I am rank %d and I am getting %d rows at offset %d\n", rank, my_rows, my_row_offset);
 
         const MPI_Offset my_file_offset = my_row_offset * cols * sizeof(unsigned char);
 
@@ -319,15 +267,10 @@ int main(int argc, char **argv){
         // need to include some changing information such as time
         srand48(10*rank); 
 
-        // possibility to optimize loop here by exploiting 
-        // ILP
-        // HERE IS A POSSIBILITY TO USE OPENMP
         for(int i = 1; i<my_rows+1; ++i){
             for(int j = 0; j<cols; ++j)
                 DATA_PREV(i,j) = drand48() > 0.5 ? ALIVE : DEAD ;
         }
-
-        // display_grid(rank, my_rows, cols, grid_prev);
 
         save_grid(fname, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data_prev, my_rows, cols);
 
@@ -356,25 +299,27 @@ int main(int argc, char **argv){
 
             fscanf(fh_posix, "P5 %d %d 1\n",opt_args, opt_args+1 );
             fclose(fh_posix);
-            printf("I am rank 0 and I have received %d rows %d cols\n", *opt_args, *(opt_args+1));
+            // printf("I am rank 0 and I have received %d rows %d cols\n", *opt_args, *(opt_args+1));
         }
 
         MPI_Barrier(MPI_COMM_WORLD);
+
         // this is blocking (maybe use non blocking later)
         MPI_Bcast(opt_args, 2, MPI_INT, 0, MPI_COMM_WORLD);
-        printf("I am rank %d and I have received %d rows %d cols\n", rank, *opt_args, *(opt_args+1));
+
+        // printf("I am rank %d and I have received %d rows %d cols\n", rank, *opt_args, *(opt_args+1));
 
         rows = opt_args[0];
         cols = opt_args[1];
 
         const int my_rows = get_my_rows(rows, rank, size);
         const int my_row_offset = get_my_row_offset(rows, rank, size);
-        MPI_Barrier(MPI_COMM_WORLD);
 
-        printf("I am rank %d and I am getting %d rows at offset %d\n", rank, my_rows, my_row_offset);
+        // printf("I am rank %d and I am getting %d rows at offset %d\n", rank, my_rows, my_row_offset);
 
         // since we need to deal with halos we need to allocate two more 
         // rows than what I need.
+        
         const int augmented_rows = my_rows + 2;
 
         const MPI_Offset my_file_offset = my_row_offset * cols * sizeof(char);
@@ -416,9 +361,6 @@ int main(int argc, char **argv){
 
         MPI_File_close(&fh);
 
-        // printf("Initial matrix\n");
-        // display_grid(rank, my_rows, cols, grid_prev);
-
         // At this point, all the processes have read their portion of the 
         // matrix. The halo regions have been set to zero, and we are ready 
         // to start the game of life.
@@ -439,14 +381,6 @@ int main(int argc, char **argv){
         unsigned char *tmp_data = NULL;
 
         for(int t = 1; t < n+1; ++t){
-
-            // no longer needed since it is taken cafe of by MPI_Wait 
-            // and MPI_Request_free().
-            // prev_send_request = MPI_REQUEST_NULL;
-            // next_send_request = MPI_REQUEST_NULL;
-            //
-            // prev_recv_request = MPI_REQUEST_NULL;
-            // next_recv_request = MPI_REQUEST_NULL;
 
             // Step 1. Start non blocking exchange of halo cells.
 
@@ -482,11 +416,8 @@ int main(int argc, char **argv){
 
             // Step 2. Process internal cells to hide latency
 
-            // POSSIBILITY TO PARARELLIZE WITH OMP
             for(int row = 2; row < my_rows; ++row){
                 for(int col = 0; col < cols; ++col){
-                    // watch for access pattern of memory. 
-                    // could be necessary to optimize and access differently
                     upgrade_cell(data_prev, data, row, col);
                 }
             }
