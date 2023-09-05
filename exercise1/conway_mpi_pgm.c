@@ -44,8 +44,6 @@ int   e      = ORDERED;
 int   n      = 10000;
 int   s      = 1;
 char *fname  = NULL;
-char *f_prefix = ".pgm";
-
 
 void get_args( int argc, char **argv )
 {
@@ -68,8 +66,9 @@ void get_args( int argc, char **argv )
                 e = atoi(optarg); break;
 
             case 'f':
-                fname = (char*)malloc(sizeof(optarg)+sizeof(f_prefix)+1 );
-                sprintf(fname, "%s%s", optarg, f_prefix);
+                size_t str_len = strlen(optarg) + 1;
+                fname = (char*)malloc(str_len * sizeof(char));
+                sprintf(fname, "%s", optarg);
                 break;
 
             case 'n':
@@ -131,7 +130,7 @@ int get_my_row_offset(int total_rows, int rank, int size)
 
     return my_offset;
 }
-void save_grid(unsigned char * fname, MPI_Comm comm, int rank, unsigned char * header, int header_size, MPI_Offset offset, unsigned char * data, int my_rows, int cols)
+void save_grid(char * fname, MPI_Comm comm, int rank, char * header, int header_size, MPI_Offset offset, unsigned char * data, int my_rows, int cols)
 {
 
     MPI_File fh;
@@ -237,10 +236,11 @@ int main(int argc, char **argv){
         data_prev = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
 
         if(
-                data == NULL
-                || data_prev == NULL
+                !data
+                || !data_prev
                 )
         {
+            printf("Allocation failed.");
             MPI_Abort(MPI_COMM_WORLD, MPI_ERR_NO_SPACE);
 
         }
@@ -256,6 +256,14 @@ int main(int argc, char **argv){
         // intuition: https://stackoverflow.com/questions/3919995/determining-sprintf-buffer-size-whats-the-standard
         int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
         char * header = malloc(header_size + 1);
+
+        if(!header){
+
+            printf("Allocation failed.");
+            MPI_Abort(MPI_COMM_WORLD, MPI_ERR_NO_SPACE);
+
+        }
+
         sprintf(header, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
         const MPI_Offset header_offset = header_size * sizeof(char);
         const MPI_Offset my_total_file_offset = my_file_offset + header_offset;
@@ -273,6 +281,9 @@ int main(int argc, char **argv){
         }
 
         save_grid(fname, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data_prev, my_rows, cols);
+        free(header);
+        free(data);
+        free(data_prev);
 
     }
     else if (action == RUN){
@@ -297,7 +308,12 @@ int main(int argc, char **argv){
                 MPI_Abort(MPI_COMM_WORLD, MPI_ERR_REQUEST);
             }
 
-            fscanf(fh_posix, "P5 %d %d 1\n",opt_args, opt_args+1 );
+            int args_scanned = fscanf(fh_posix, "P5 %d %d 1\n",opt_args, opt_args+1 );
+            if(args_scanned != 2){
+                printf("fscanf failed.");
+                MPI_Abort(MPI_COMM_WORLD, MPI_ERR_REQUEST);
+            }
+
             fclose(fh_posix);
             // printf("I am rank 0 and I have received %d rows %d cols\n", *opt_args, *(opt_args+1));
         }
@@ -332,6 +348,7 @@ int main(int argc, char **argv){
                 || data_prev == NULL
                 )
         {
+            printf("Allocation failed.");
             MPI_Abort(MPI_COMM_WORLD, MPI_ERR_NO_SPACE);
 
         }
@@ -344,6 +361,14 @@ int main(int argc, char **argv){
 
         int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
         char * header = malloc(header_size + 1);
+
+        if(!header){
+
+            printf("Allocation failed.");
+            MPI_Abort(MPI_COMM_WORLD, MPI_ERR_NO_SPACE);
+
+        }
+
         sprintf(header, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
         const MPI_Offset header_offset = header_size * sizeof(char);
         const MPI_Offset my_total_file_offset = my_file_offset + header_offset;
@@ -366,8 +391,8 @@ int main(int argc, char **argv){
         // to start the game of life.
         
         // file name (it will always be the same length so we only need it once)
-        char * file_name = malloc(snprintf(NULL, 0, "snapshot_%05d.pgm", 0)+1);
-        if(file_name == NULL){
+        char * snapshot_name = malloc(snprintf(NULL, 0, "snapshot_%05d", 0)+1);
+        if(snapshot_name == NULL){
             printf("Not enough space.");
             MPI_Abort(MPI_COMM_WORLD, MPI_ERR_NO_SPACE);
         }
@@ -458,8 +483,8 @@ int main(int argc, char **argv){
             // Step 5. Check if need to save, and if we do, save grid to pgm
             
             if(t%s == 0){
-                sprintf(file_name, "snapshot_%05d.pgm", t);
-                save_grid(file_name, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data, my_rows, cols);
+                sprintf(snapshot_name, "snapshot_%05d", t);
+                save_grid(snapshot_name, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data, my_rows, cols);
             }
 
             // printf("time step %d\n", t);
@@ -472,15 +497,15 @@ int main(int argc, char **argv){
             tmp_data = NULL;
         }
     
-        free(file_name);
+        free(snapshot_name);
+        free(header);
+        free(data);
+        free(data_prev);
     }
     else{
         printf("Unknown action. Abort");
         MPI_Abort(MPI_COMM_WORLD, 0);
     }
-
-    free(data);
-    free(data_prev);
 
     if ( fname != NULL )
       free ( fname );

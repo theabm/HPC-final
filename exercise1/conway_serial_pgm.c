@@ -36,8 +36,6 @@ int   e      = ORDERED;
 int   n      = 10000;
 int   s      = 1;
 char *fname  = NULL;
-char *f_prefix = ".pgm";
-
 
 void get_args( int argc, char **argv )
 {
@@ -60,8 +58,9 @@ void get_args( int argc, char **argv )
                 e = atoi(optarg); break;
 
             case 'f':
-                fname = (char*)malloc(sizeof(optarg)+sizeof(f_prefix)+1 );
-                sprintf(fname, "%s%s", optarg, f_prefix);
+                size_t str_len = strlen(optarg) + 1;
+                fname = (char*)malloc(str_len * sizeof(char));
+                sprintf(fname, "%s", optarg);
                 break;
 
             case 'n':
@@ -81,7 +80,7 @@ void display_args(int rank, int size){
     printf("I am rank %d of %d.\naction (i : 1\tr : 2) -- %d\nk (size) -- %d\ne (0 : ORDERED\t1 : STATIC) -- %d\nf (filename) -- %s\nn (steps) -- %d\ns (save frequency) -- %d\n", rank, size, action, k, e, fname, n, s );
 }
 
-void save_grid(unsigned char * fname, unsigned char * header, int header_size, unsigned char * data, int rows, int cols)
+void save_grid(char * fname, char * header, int header_size, unsigned char * data, int rows, int cols)
 {
 
     FILE * fh = fopen(fname, "wb");
@@ -148,10 +147,11 @@ int main(int argc, char **argv){
         data_prev = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
 
         if(
-                data == NULL
-                || data_prev == NULL
+                !data
+                || !data_prev
                 )
         {
+            printf("Allocation failed.");
             exit(0);
         }
 
@@ -165,7 +165,15 @@ int main(int argc, char **argv){
 
         // intuition: https://stackoverflow.com/questions/3919995/determining-sprintf-buffer-size-whats-the-standard
         int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
-        char * header = malloc(header_size + 1);
+        char * header = (char *) malloc(header_size + 1);
+
+        if(!header){
+
+            printf("Allocation failed.");
+            exit(0);
+
+        }
+
         sprintf(header, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
 
         srand48(10); 
@@ -176,7 +184,9 @@ int main(int argc, char **argv){
         }
 
         save_grid(fname, header, header_size, data_prev, rows, cols);
-
+        free(header);
+        free(data);
+        free(data_prev);
     }
     else if (action == RUN){
 
@@ -192,7 +202,12 @@ int main(int argc, char **argv){
             exit(0);
         }
 
-        fscanf(fh_posix, "P5 %d %d 1\n",opt_args, opt_args+1 );
+        int args_scanned = fscanf(fh_posix, "P5 %d %d 1\n",opt_args, opt_args+1 );
+        if(args_scanned != 2){
+            printf("fscanf failed.");
+            exit(0);
+        }
+
         fclose(fh_posix);
 
         rows = opt_args[0];
@@ -210,9 +225,10 @@ int main(int argc, char **argv){
                 || data_prev == NULL
                 )
         {
+            printf("Allocation failed.");
             exit(0);
         }
-        
+
         // initialize the halo regions to being DEAD
         for(int j = 0; j<cols; ++j){
             DATA(0,j) = DATA(rows + 1,j) = DATA_PREV(0,j)
@@ -221,20 +237,36 @@ int main(int argc, char **argv){
 
         int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
         char * header = malloc(header_size + 1);
+
+        if(!header){
+
+            printf("Allocation failed.");
+            exit(0);
+
+        }
+
         sprintf(header, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
 
         FILE * fh = fopen(fname, "rb");
 
-        if(fh== NULL){
+        if(fh == NULL){
             fprintf(stderr, "Error opening %s\n", fname);
             exit(0);
         }
 
         fseek(fh, header_size, 1);
-        fread(data_prev+cols, sizeof(unsigned char), rows*cols, fh);
 
-        char * file_name = malloc(snprintf(NULL, 0, "snapshot_%05d.pgm", 0)+1);
-        if(file_name == NULL){
+        size_t args_read = fread(data_prev+cols, sizeof(unsigned char), rows*cols, fh);
+
+        if(args_read != (size_t)rows*cols){
+            printf("fread failed.");
+            exit(0);
+        }
+
+        fclose(fh);
+
+        char * snapshot_name = malloc(snprintf(NULL, 0, "snapshot_%05d", 0)+1);
+        if(snapshot_name == NULL){
             printf("Not enough space.");
             exit(0);
         }
@@ -255,8 +287,8 @@ int main(int argc, char **argv){
             }
 
             if(t%s == 0){
-                sprintf(file_name, "snapshot_%05d.pgm", t);
-                save_grid(file_name, header, header_size, data, rows, cols);
+                sprintf(snapshot_name, "snapshot_%05d", t);
+                save_grid(snapshot_name, header, header_size, data, rows, cols);
             }
 
             tmp_data = data;
@@ -265,17 +297,17 @@ int main(int argc, char **argv){
             tmp_data = NULL;
         }
     
-        free(file_name);
+        free(snapshot_name);
+        free(header);
+        free(data);
+        free(data_prev);
     }
     else{
         printf("Unknown action. Abort");
         exit(0);
     }
 
-    free(data);
-    free(data_prev);
-
-    if ( fname != NULL )
+    if (fname != NULL )
       free ( fname );
 
     return 0;
