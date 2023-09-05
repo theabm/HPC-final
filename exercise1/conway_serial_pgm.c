@@ -98,7 +98,7 @@ void save_grid(char * fname, char * header, int header_size, unsigned char * dat
 
 }
 
-void upgrade_cell(unsigned char * data_prev, unsigned char * data, int i, int j)
+void upgrade_cell(unsigned char * restrict data_prev, unsigned char * restrict data, int i, int j)
 {
 
     // this makes the column index periodic (without branches) 
