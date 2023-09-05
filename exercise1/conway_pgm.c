@@ -250,7 +250,6 @@ int main(int argc, char **argv){
     int rank;
     int size;
 
-    unsigned char ** grid, ** grid_prev;
     unsigned char * data, * data_prev;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -286,28 +285,16 @@ int main(int argc, char **argv){
 
         const MPI_Offset my_file_offset = my_row_offset * cols * sizeof(unsigned char);
 
-        grid = (unsigned char **) malloc(augmented_rows * sizeof(unsigned char *));
-        grid_prev = (unsigned char **) malloc(augmented_rows * sizeof(unsigned char *));
-
         data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
         data_prev = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
 
         if(
-                grid == NULL
-                || grid_prev == NULL
-                || data == NULL
+                data == NULL
                 || data_prev == NULL
                 )
         {
             MPI_Abort(MPI_COMM_WORLD, MPI_ERR_NO_SPACE);
 
-        }
-
-        // now we need to make sure that each of the pointers in grid point to the 
-        // right place of the data.
-        for(int i = 0; i<augmented_rows; ++i){
-            grid[i] = data + i*cols;
-            grid_prev[i] = data_prev + i*cols;
         }
 
         // initialize the halo regions to being DEAD
@@ -392,16 +379,11 @@ int main(int argc, char **argv){
 
         const MPI_Offset my_file_offset = my_row_offset * cols * sizeof(char);
 
-        grid = (unsigned char **) malloc(augmented_rows * sizeof(unsigned char *));
-        grid_prev = (unsigned char **) malloc(augmented_rows * sizeof(unsigned char *));
-
         data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
         data_prev = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
 
         if(
-                grid == NULL
-                || grid_prev == NULL
-                || data == NULL
+                data == NULL
                 || data_prev == NULL
                 )
         {
@@ -409,13 +391,6 @@ int main(int argc, char **argv){
 
         }
         
-        // now we need to make sure that each of the pointers in grid point to the 
-        // right place of the data.
-        for(int i = 0; i<augmented_rows; ++i){
-            grid[i] = data + i*cols;
-            grid_prev[i] = data_prev + i*cols;
-        }
-
         // initialize the halo regions to being DEAD
         for(int j = 0; j<cols; ++j){
             DATA(0,j) = DATA(my_rows + 1,j) = DATA_PREV(0,j)
@@ -462,8 +437,6 @@ int main(int argc, char **argv){
         const int next_tag = 1;
 
         unsigned char *tmp_data = NULL;
-        unsigned char ** tmp_grid = NULL;
-        
 
         for(int t = 1; t < n+1; ++t){
 
@@ -566,12 +539,6 @@ int main(int argc, char **argv){
             data = data_prev;
             data_prev = tmp_data;
             tmp_data = NULL;
-
-            // Step 7. Swap grid and grid_prev
-            tmp_grid = grid;
-            grid = grid_prev;
-            grid_prev = tmp_grid;
-            tmp_grid = NULL;
         }
     
         free(file_name);
@@ -581,8 +548,6 @@ int main(int argc, char **argv){
         MPI_Abort(MPI_COMM_WORLD, 0);
     }
 
-    free(grid);
-    free(grid_prev);
     free(data);
     free(data_prev);
 
