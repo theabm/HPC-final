@@ -1,6 +1,6 @@
-all : conway_serial_pgm.v1.out conway_omp_pgm.out conway_mpi_pgm.out
+all : conway_serial_pgm.v1.out conway_omp_pgm.out conway_mpi_pgm.out conway_hybrid_pgm.out
 
-conway_serial_pgm.v1.out : conway_serial_pgm.c
+conway_serial_pgm.v1.out : conway_serial_pgm.v1.c
 	gcc -S -O3 -march=native -Wall -Wextra $^ -o conway_serial_pgm.v1.s
 	gcc -O3 -march=native -Wall -Werror -Wextra $^ -o $@
 
@@ -9,6 +9,9 @@ conway_omp_pgm.out : conway_omp_pgm.c
 
 conway_mpi_pgm.out : conway_mpi_pgm.c
 	mpicc -O3 -march=native -Wall -Werror -Wextra $^ -o $@
+
+conway_hybrid_pgm.out : conway_mpi_pgm.c
+	mpicc -fopenmp -O3 -march=native -Wall -Werror -Wextra $^ -o $@
 
 clean : 
 	rm *.out

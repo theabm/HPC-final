@@ -108,12 +108,41 @@ void upgrade_cell(unsigned char * restrict data_prev, unsigned char * restrict d
     register int im1 = i-1;
     register int ip1 = i+1;
 
+    // since we are processing elements sequentially, apart from boundary cells, 
+    // the indexes with j - 1 are in potentially loaded caches already since 
+    // we processed (i, j-1) previously. 
+    // So we have two options
+    // 1. (i, j-1) are in the same line as (i,j). In this case, all the elements 
+    // with j-1 are already in cache (a cache is surely longer than 2 bytes)
+    // So accessing these elements before is beneficial.
+    // This is the best case scenario. If we assume a cache line is 64 bytes, 
+    // then, we load 64 cells in a line. For 62 cells, the access pattern is HHHHHHHH = 100%. 
+    // while for the first cell, the access pattern is MMMHHHHH = 62%
+    // 2. (i, j-1) and (i, j) are in different cache lines. Then, since (i, j-1) 
+    // was processed previously, we are sure that (i-1, j-1), (i, j-1), and (i+1, j-1)
+    // are in the cache. So, in case the cache is full, and we need to flush these 
+    // lines out, we access them before.
+    // This is the worst case scenario.
+    // The access pattern is HHHMMHMH which is 5/8 = 62%
+    //
+    // So, every 64 bytes, we (62*100% + 2*62%)/64 = 98% on average.
+    //
+    //
+    // Unfortunately, corner cases and boundary cells bring this number down.
+    // 
+    // In the four corners, the access pattern is MMHMMMMH = 25%. 
+    // In the border cases, the situation is similar as explained above. 
+    // i.e either 100% or 62%.
+    
     unsigned char tmp0=DATA_PREV(im1, jm1);
+    unsigned char tmp3=DATA_PREV(i,jm1);
+    unsigned char tmp5=DATA_PREV(ip1,jm1);
+
     unsigned char tmp1=DATA_PREV(im1,j);
     unsigned char tmp2=DATA_PREV(im1,jp1);
-    unsigned char tmp3=DATA_PREV(i,jm1);
+
     unsigned char tmp4=DATA_PREV(i,jp1);
-    unsigned char tmp5=DATA_PREV(ip1,jm1);
+
     unsigned char tmp6=DATA_PREV(ip1,j);
     unsigned char tmp7=DATA_PREV(ip1,jp1);
 
@@ -220,6 +249,12 @@ int main(int argc, char **argv){
             exit(0);
         }
 
+        // initialize the halo regions to being DEAD
+        for(int j = 0; j<cols; ++j){
+            DATA(0,j) = DATA(rows + 1,j) = DATA_PREV(0,j)
+                = DATA_PREV(rows + 1,j) = DEAD;
+        }
+
         int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
         char * header = malloc(header_size + 1);
 
@@ -260,15 +295,12 @@ int main(int argc, char **argv){
 
         for(int t = 1; t < n+1; ++t){
 
-            // copy two halo rows 
             for(int col=0; col<cols;++col){
                 DATA_PREV(0,col) = DATA_PREV(rows,col);
                 DATA_PREV(rows+1,col) = DATA_PREV(1,col);
             }
 
-            #pragma omp parallel for schedule(static)
             for(int row = 1; row < rows+1; ++row){
-                #pragma omp parallel for schedule(static)
                 for(int col = 0; col < cols; ++col){
                     upgrade_cell(data_prev, data, row, col);
                 }

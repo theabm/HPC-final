@@ -12,6 +12,7 @@
 #include <getopt.h>
 #include <mpi.h>
 #include <unistd.h>
+#include <omp.h>
 
 #define INIT 1
 #define RUN  2
@@ -449,7 +450,9 @@ int main(int argc, char **argv){
 
             // Step 2. Process internal cells to hide latency
 
+            #pragma omp parallel for schedule(static)
             for(int row = 2; row < my_rows; ++row){
+                #pragma omp parallel for schedule(static)
                 for(int col = 0; col < cols; ++col){
                     upgrade_cell(data_prev, data, row, col);
                 }
@@ -479,6 +482,7 @@ int main(int argc, char **argv){
             // These are row 1 and row my_rows
 
             // Step 4. Update limiting rows (row 1 and row my_rows)
+            #pragma omp parallel for schedule(static)
             for(int col=0; col<cols; ++col){
                 upgrade_cell(data_prev, data, 1, col);
                 upgrade_cell(data_prev, data, my_rows, col);
