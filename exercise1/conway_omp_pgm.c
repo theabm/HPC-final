@@ -76,11 +76,7 @@ void get_args( int argc, char **argv )
     }
 }
 
-void display_args(int rank, int size){
-    printf("I am rank %d of %d.\naction (i : 1\tr : 2) -- %d\nk (size) -- %d\ne (0 : ORDERED\t1 : STATIC) -- %d\nf (filename) -- %s\nn (steps) -- %d\ns (save frequency) -- %d\n", rank, size, action, k, e, fname, n, s );
-}
-
-void save_grid(char * fname, char * header, int header_size, unsigned char * data, int rows, int cols)
+void save_grid(char * restrict fname, char * restrict header, int header_size, unsigned char * restrict data, int rows, int cols)
 {
 
     FILE * fh = fopen(fname, "wb");
@@ -98,37 +94,34 @@ void save_grid(char * fname, char * header, int header_size, unsigned char * dat
 
 }
 
-void upgrade_cell(unsigned char * data_prev, unsigned char * data, int i, int j)
+void upgrade_cell(unsigned char * restrict data_prev, unsigned char * restrict data, int i, int j)
 {
+    DATA(i,j) = DEAD;
 
     // this makes the column index periodic (without branches) 
     // for example, if j = 0, j-1 = -1, and -1%cols = -1. The last term 
     // is true, so we obtain cols - 1 
     // if j = col - 1 then j+1 = col (out of bounds). col%col = 0 and the 
     // second term is 0 so we obtain that the new coordinate is 0.
-    int jm1 = (j-1)%(int)cols + cols*((j-1)<0);
-    int jp1 = (j+1)%(int)cols + cols*((j+1)<0);
+    register int jm1 = (j-1)%(int)cols + cols*((j-1)<0);
+    register int jp1 = (j+1)%(int)cols + cols*((j+1)<0);
+    register int im1 = i-1;
+    register int ip1 = i+1;
 
-    unsigned char n_alive_cells = 0;
+    unsigned char tmp0=DATA_PREV(im1, jm1);
+    unsigned char tmp1=DATA_PREV(im1,j);
+    unsigned char tmp2=DATA_PREV(im1,jp1);
+    unsigned char tmp3=DATA_PREV(i,jm1);
+    unsigned char tmp4=DATA_PREV(i,jp1);
+    unsigned char tmp5=DATA_PREV(ip1,jm1);
+    unsigned char tmp6=DATA_PREV(ip1,j);
+    unsigned char tmp7=DATA_PREV(ip1,jp1);
 
-    n_alive_cells+=DATA_PREV(i-1,jm1);
-    n_alive_cells+=DATA_PREV(i-1,j);
-    n_alive_cells+=DATA_PREV(i-1,jp1);
-    n_alive_cells+=DATA_PREV(i,jm1);
-    n_alive_cells+=DATA_PREV(i,jp1);
-    n_alive_cells+=DATA_PREV(i+1,jm1);
-    n_alive_cells+=DATA_PREV(i+1,j);
-    n_alive_cells+=DATA_PREV(i+1,jp1);
+    register unsigned char n_alive_cells = tmp0+tmp1+tmp2+tmp3+tmp4+tmp5+tmp6+tmp7;
 
-    if(n_alive_cells == 3){
-        DATA(i,j) = ALIVE;
-    }
-    else if(n_alive_cells == 2){
-        DATA(i,j) = DATA_PREV(i,j);
-    }
-    else{
-        DATA(i,j) = DEAD;
-    }
+    // the majority of cells will be dead and will stay dead 
+    // so by reordering the conditions, we enhance branch prediction
+    DATA(i,j) = ALIVE*(n_alive_cells==3) + DATA_PREV(i,j)*(n_alive_cells==2);
 
 }
 
@@ -212,8 +205,6 @@ int main(int argc, char **argv){
 
         rows = opt_args[0];
         cols = opt_args[1];
-
-        printf("%d rows, %d cols\n", rows, cols);
 
         const int augmented_rows = rows + 2;
 
