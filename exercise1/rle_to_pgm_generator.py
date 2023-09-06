@@ -11,25 +11,15 @@ pgm_patterns = {
 
 # Create a blank PGM image
 img = Image.new("L", (grid_size, grid_size))
-PAD = 4
 
 # Function to convert RLE format to a grid of 0s and 1s
 def rle_to_grid(rle):
     grid = []
-    mod_grid_size = grid_size + 2*PAD
-
-    for i in range(PAD):
-        row = []
-        row.extend([0]*mod_grid_size)
-        grid.append(row)
-
     count_rows = len(rle.split('$'))
-
     for line in rle.split('$'):
         row = []
         repeat = ""
         count = grid_size
-        row.extend([0]*PAD)
         for token in line:
             if token.isnumeric():
                 repeat = repeat + token
@@ -50,8 +40,8 @@ def rle_to_grid(rle):
                 continue
 
         row.extend([0]*count)
-        row.extend([0]*PAD)
-        if len(row) != mod_grid_size:
+
+        if len(row) != grid_size:
             print("problem")
 
         grid.append(row)
@@ -63,12 +53,7 @@ def rle_to_grid(rle):
         row.extend([0]*grid_size)
         grid.append(row)
 
-    for i in range(PAD):
-        row = []
-        row.extend([0]*mod_grid_size)
-        grid.append(row)
-
-    if np.shape(grid) != (mod_grid_size,mod_grid_size):
+    if np.shape(grid) != (grid_size,grid_size):
         print("problem")
 
     return grid
