@@ -130,7 +130,7 @@ int get_my_row_offset(int total_rows, int rank, int size)
 
     return my_offset;
 }
-void save_grid(char * fname, MPI_Comm comm, int rank, char * header, int header_size, MPI_Offset offset, unsigned char * data, int my_rows, int cols)
+void save_grid(char * restrict fname, MPI_Comm comm, int rank, char * restrict header, int header_size, MPI_Offset offset, unsigned char * restrict data, int my_rows, int cols)
 {
 
     MPI_File fh;
@@ -153,7 +153,7 @@ void save_grid(char * fname, MPI_Comm comm, int rank, char * header, int header_
     MPI_File_close(&fh);
 }
 
-void upgrade_cell(unsigned char * data_prev, unsigned char * data, int i, int j)
+void upgrade_cell(unsigned char * restrict data_prev, unsigned char * restrict data, int i, int j)
 {
 
     // this makes the column index periodic (without branches) 
@@ -161,30 +161,35 @@ void upgrade_cell(unsigned char * data_prev, unsigned char * data, int i, int j)
     // is true, so we obtain cols - 1 
     // if j = col - 1 then j+1 = col (out of bounds). col%col = 0 and the 
     // second term is 0 so we obtain that the new coordinate is 0.
-    int jm1 = (j-1)%(int)cols + cols*((j-1)<0);
-    int jp1 = (j+1)%(int)cols + cols*((j+1)<0);
+    register int jm1 = (j-1)%(int)cols + cols*((j-1)<0);
+    register int jp1 = (j+1)%(int)cols + cols*((j+1)<0);
+    register int im1 = i-1;
+    register int ip1 = i+1;
 
     // note that the periodicity of the row index is handled by the message 
     // passing
-    unsigned char n_alive_cells = 0;
 
-    n_alive_cells+=DATA_PREV(i-1,jm1);
-    n_alive_cells+=DATA_PREV(i-1,j);
-    n_alive_cells+=DATA_PREV(i-1,jp1);
-    n_alive_cells+=DATA_PREV(i,jm1);
-    n_alive_cells+=DATA_PREV(i,jp1);
-    n_alive_cells+=DATA_PREV(i+1,jm1);
-    n_alive_cells+=DATA_PREV(i+1,j);
-    n_alive_cells+=DATA_PREV(i+1,jp1);
+    unsigned char tmp0=DATA_PREV(im1, jm1);
+    unsigned char tmp1=DATA_PREV(im1,j);
+    unsigned char tmp2=DATA_PREV(im1,jp1);
+    unsigned char tmp3=DATA_PREV(i,jm1);
+    unsigned char tmp4=DATA_PREV(i,jp1);
+    unsigned char tmp5=DATA_PREV(ip1,jm1);
+    unsigned char tmp6=DATA_PREV(ip1,j);
+    unsigned char tmp7=DATA_PREV(ip1,jp1);
 
-    if(n_alive_cells == 3){
+    register unsigned char n_alive_cells = tmp0+tmp1+tmp2+tmp3+tmp4+tmp5+tmp6+tmp7;
+
+    // the majority of cells will be dead and will stay dead 
+    // so by reordering the conditions, we enhance branch prediction
+    if(n_alive_cells < 2 || n_alive_cells > 3){
+        DATA(i,j) = DEAD;
+    }
+    else if(n_alive_cells == 3){
         DATA(i,j) = ALIVE;
     }
     else if(n_alive_cells == 2){
         DATA(i,j) = DATA_PREV(i,j);
-    }
-    else{
-        DATA(i,j) = DEAD;
     }
 }
 

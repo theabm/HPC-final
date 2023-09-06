@@ -12,7 +12,7 @@ conway_mpi_pgm.out : conway_mpi_pgm.c
 
 clean : 
 	rm *.out
-	rm snapshot* a1.mpg
+	rm snapshot_* a1.*
 #
 # sr : 
 # 	cp pattern_pgm/gosper_glider_gun.pgm .
