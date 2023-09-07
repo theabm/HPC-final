@@ -5,8 +5,6 @@
 #include <unistd.h>
 #include <omp.h>
 
-#define INIT 1
-#define RUN  2
 
 #define DATA(i,j) (data[(i)*cols + (j)])
 #define DATA_PREV(i,j) (data_prev[(i)*cols + (j)])
@@ -18,6 +16,9 @@
 #define MAX_VAL 1
 
 #define K_DFLT 100
+
+#define INIT 1
+#define RUN  2
 
 #define ORDERED 0
 #define STATIC  1
@@ -32,7 +33,7 @@ int   action = 0;
 int   k      = K_DFLT;
 int   rows   = K_DFLT;
 int   cols   = K_DFLT;
-int   e      = ORDERED;
+int   e      = STATIC;
 int   n      = 10000;
 int   s      = 1;
 char *fname  = NULL;
@@ -94,8 +95,9 @@ void save_grid(char * restrict fname, char * restrict header, int header_size, u
 
 }
 
-void upgrade_cell(unsigned char * restrict data_prev, unsigned char * restrict data, int i, int j)
+void upgrade_cell_static(unsigned char * restrict data_prev, unsigned char * restrict data, int i, int j)
 {
+    // suggest prefetching
     DATA(i,j) = DEAD;
 
     // this makes the column index periodic (without branches) 
@@ -154,12 +156,40 @@ void upgrade_cell(unsigned char * restrict data_prev, unsigned char * restrict d
 
 }
 
+void upgrade_cell_ordered(unsigned char * data, int i, int j)
+{
+    register int jm1 = (j-1)%(int)cols + cols*((j-1)<0);
+    register int jp1 = (j+1)%(int)cols + cols*((j+1)<0);
+    register int im1 = i-1;
+    register int ip1 = i+1;
+
+    unsigned char tmp0=DATA(im1, jm1);
+    unsigned char tmp3=DATA(i,jm1);
+    unsigned char tmp5=DATA(ip1,jm1);
+
+    unsigned char tmp1=DATA(im1,j);
+    unsigned char tmp2=DATA(im1,jp1);
+
+    unsigned char tmp4=DATA(i,jp1);
+
+    unsigned char tmp6=DATA(ip1,j);
+    unsigned char tmp7=DATA(ip1,jp1);
+
+    register unsigned char n_alive_cells = tmp0+tmp1+tmp2+tmp3+tmp4+tmp5+tmp6+tmp7;
+
+    DATA(i,j) = ALIVE*(n_alive_cells==3) + DATA(i,j)*(n_alive_cells==2);
+}
+
+void display_args(){
+    printf("action (i : 1\tr : 2) -- %d\nk (size) -- %d\ne (0 : ORDERED\t1 : STATIC) -- %d\nf (filename) -- %s\nn (steps) -- %d\ns (save frequency) -- %d\n", action, k, e, fname, n, s );
+}
+
 int main(int argc, char **argv){
 
     unsigned char * data, * data_prev;
 
     get_args(argc, argv);
-
+    
     if(action == INIT){
 
         // we add two rows for halo regions
@@ -210,7 +240,7 @@ int main(int argc, char **argv){
         free(data);
         free(data_prev);
     }
-    else if (action == RUN){
+    else if (e == STATIC && action == RUN){
 
         int opt_args[2] = {0,0};
 
@@ -302,7 +332,7 @@ int main(int argc, char **argv){
 
             for(int row = 1; row < rows+1; ++row){
                 for(int col = 0; col < cols; ++col){
-                    upgrade_cell(data_prev, data, row, col);
+                    upgrade_cell_static(data_prev, data, row, col);
                 }
             }
 
@@ -322,7 +352,123 @@ int main(int argc, char **argv){
         free(data);
         free(data_prev);
     }
-    else{
+    else if(e == ORDERED && action == RUN){
+
+        int opt_args[2] = {0,0};
+
+
+        FILE * fh_posix = fopen(fname, "r");
+
+        // we know that the magic number is P5 so we set the offset as the  
+        // length of P5 * sizeof(char)
+        if(fh_posix == NULL){
+            fprintf(stderr, "Error opening %s\n", fname);
+            exit(0);
+        }
+
+        int args_scanned = fscanf(fh_posix, "P5 %d %d 1\n",opt_args, opt_args+1 );
+        if(args_scanned != 2){
+            printf("fscanf failed.");
+            exit(0);
+        }
+
+        fclose(fh_posix);
+
+        rows = opt_args[0];
+        cols = opt_args[1];
+
+        const int augmented_rows = rows + 2;
+
+        data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
+
+        if(
+                data == NULL
+                )
+        {
+            printf("Allocation failed.");
+            exit(0);
+        }
+
+        // initialize the halo regions to being DEAD
+        for(int j = 0; j<cols; ++j){
+            DATA(0,j) = DATA(rows + 1,j) = DEAD;
+        }
+
+        int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
+        char * header = malloc(header_size + 1);
+
+        if(!header){
+
+            printf("Allocation failed.");
+            exit(0);
+
+        }
+
+        sprintf(header, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
+
+        FILE * fh = fopen(fname, "rb");
+
+        if(fh == NULL){
+            fprintf(stderr, "Error opening %s\n", fname);
+            exit(0);
+        }
+
+        fseek(fh, header_size, 1);
+
+        size_t args_read = fread(data+cols, sizeof(unsigned char), rows*cols, fh);
+
+        if(args_read != (size_t)rows*cols){
+            printf("fread failed.");
+            exit(0);
+        }
+
+        fclose(fh);
+
+        char * snapshot_name = malloc(snprintf(NULL, 0, "snapshot_%05d", 0)+1);
+        if(snapshot_name == NULL){
+            printf("Not enough space.");
+            exit(0);
+        }
+
+        for(int t = 1; t < n+1; ++t){
+
+            // first we copy the bottom row into the top halo cell
+            for(int col=0; col<cols;++col){
+                DATA(0,col) = DATA(rows,col);
+            }
+
+            // then we process all cells starting from row 1 to row 
+            // rows - 1. 
+            // We cant process row rows because we need to copy the updated 
+            // row 1 into the bottom halo.
+            for(int row = 1; row < rows; ++row){
+                for(int col = 0; col < cols; ++col){
+                    upgrade_cell_ordered(data, row, col);
+                }
+            }
+
+            // we copy row 1 into the bottom halo
+            for(int col=0; col<cols;++col){
+                DATA(rows+1,col) = DATA(1,col);
+            }
+
+            // we update the last row now that we have the updated information.
+            for(int col = 0; col < cols; ++col){
+                upgrade_cell_ordered(data, rows, col);
+            }
+
+            if(t%s == 0){
+                sprintf(snapshot_name, "snapshot_%05d", t);
+                save_grid(snapshot_name, header, header_size, data, rows, cols);
+            }
+
+        }
+    
+        free(snapshot_name);
+        free(header);
+        free(data);
+    }
+    else {
         printf("Unknown action. Abort");
         exit(0);
     }
