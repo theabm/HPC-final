@@ -298,9 +298,8 @@ int main(int argc, char **argv){
                 DATA_PREV(rows+1,col) = DATA_PREV(1,col);
             }
 
-            #pragma omp parallel for schedule(static)
+            #pragma omp parallel for schedule(static) collapse(2)
             for(int row = 1; row < rows+1; ++row){
-                #pragma omp parallel for schedule(static)
                 for(int col = 0; col < cols; ++col){
                     upgrade_cell_static(data_prev, data, row, col);
                 }
