@@ -169,11 +169,9 @@ int main(int argc, char **argv){
         const int augmented_rows = rows + 2;
 
         data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
-        data_prev = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
 
         if(
                 !data
-                || !data_prev
                 )
         {
             printf("Allocation failed.");
@@ -182,8 +180,7 @@ int main(int argc, char **argv){
 
         // initialize the halo regions to being DEAD
         for(int j = 0; j<cols; ++j){
-            DATA(0,j) = DATA(rows + 1,j) = DATA_PREV(0,j)
-                = DATA_PREV(rows + 1,j) = DEAD;
+            DATA(0,j) = DATA(rows + 1,j) = DEAD;
         }
 
         // HEADER INFO CALCULATION
@@ -205,13 +202,12 @@ int main(int argc, char **argv){
 
         for(int i = 1; i<rows+1; ++i){
             for(int j = 0; j<cols; ++j)
-                DATA_PREV(i,j) = drand48() > 0.5 ? ALIVE : DEAD ;
+                DATA(i,j) = drand48() > 0.5 ? ALIVE : DEAD ;
         }
 
-        save_grid(fname, header, header_size, data_prev, rows, cols);
+        save_grid(fname, header, header_size, data, rows, cols);
         free(header);
         free(data);
-        free(data_prev);
     }
     else if (e == STATIC && action == RUN){
 
@@ -298,7 +294,7 @@ int main(int argc, char **argv){
                 DATA_PREV(rows+1,col) = DATA_PREV(1,col);
             }
 
-            #pragma omp parallel for schedule(static) collapse(2)
+            #pragma omp parallel for schedule(static)
             for(int row = 1; row < rows+1; ++row){
                 for(int col = 0; col < cols; ++col){
                     upgrade_cell_static(data_prev, data, row, col);

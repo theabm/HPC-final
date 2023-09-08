@@ -1,3 +1,39 @@
+// this version improves upon the other one in an algorithmic sense. 
+// before, we were using one byte to store data for one single cell. 
+// And for each cell, we would do 8 updates. Naturally, we spend the most 
+// time calling the function upgrade_cell. 
+//
+// However, it is worth noting, that the likelyhood of a cell surviving, or 
+// becoming alive, is much lower than the likelihood of it being dead. 
+// Suppose we look at a living cell:
+// We have 2^8 combinations of alive and dead for its neighbors. 
+// Out of those, only 8 choose 3 + 8 choose 2 combinations keep the cell alive. 
+// 8!/(3! * 5!) + 8!/(2! * 6!) = 84 / 2^8 = 32.8% chance of survival.
+// 
+// For a dead cell to come to life instead, we need 3 live neighbors, which is 
+// 56/2^8 = 21.8% 
+//
+// With an initial uniform distribution, a cell is alive or dead with 50% 
+// probability. 
+// So the probability of becoming/staying alive is .5*.32 + .5*.21 = 26%. 
+//
+// This means that on average, most cells will be dead and have dead neighbors, 
+// so their status wont change! which means, that if we encode information better, 
+// we can avoid making repeated calls to upgrade_cell for cells that dont change.
+//
+// This idea (taken from : source) is as follows:
+// use a byte to encode a cell state, however, 
+// the last bit will encode if the cells is alive of dead 
+// the 4 bits before that will encode the sum of the neighbors (it can only 
+// go up to 8 so we only need 4 bits), and the first 3 bits will be empty.
+//
+// In this way, by looking at the three bytes, we can already tell the situation 
+// of the neighbors of the cell, and we need only to scan for non zero bytes. 
+// of course, once we change the status of a cell, we have to change all of its 
+// 8 neighbors (the counts). However, as said before, we will likely not do this 
+// for all cells, so its still a win.
+//
+//
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -191,6 +227,7 @@ int main(int argc, char **argv){
     get_args(argc, argv);
     
     if(action == INIT){
+        // init is done in the same way since we need to save a pgm file
 
         // we add two rows for halo regions
         const int augmented_rows = rows + 2;
@@ -237,6 +274,7 @@ int main(int argc, char **argv){
         free(data);
     }
     else if (e == STATIC && action == RUN){
+        // reading is done in the same way.
 
         int opt_args[2] = {0,0};
 
@@ -311,6 +349,57 @@ int main(int argc, char **argv){
 
         fclose(fh);
 
+
+        // at this point, we have read the matrix, however, we need to do 
+        // some preprocessing to get into the format we described. 
+        // As is the case with most optimizations, there is a price to pay, 
+        // i.e there is no free lunch.
+        
+        // step one is to copy the halo rows
+        for(int col=0; col<cols;++col){
+            DATA_PREV(0,col) = DATA_PREV(rows,col);
+            DATA_PREV(rows+1,col) = DATA_PREV(1,col);
+        }
+
+        // at the moment, for each cell we have to count the 8 neighbors 
+        // encode them in bits, and then do some masking.
+        register int jm1, jp1, im1, ip1;
+        unsigned char tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
+        unsigned char n_alive_cells;
+        for(int i = 1; i < rows+1; ++i){
+            for(int j = 0; j < cols; ++j){
+                jm1 = (j-1)%(int)cols + cols*((j-1)<0);
+                jp1 = (j+1)%(int)cols + cols*((j+1)<0);
+                im1 = i-1;
+                ip1 = i+1;
+                tmp0=DATA_PREV(im1, jm1);
+                tmp3=DATA_PREV(i,jm1);
+                tmp5=DATA_PREV(ip1,jm1);
+
+                tmp1=DATA_PREV(im1,j);
+                tmp2=DATA_PREV(im1,jp1);
+
+                tmp4=DATA_PREV(i,jp1);
+
+                tmp6=DATA_PREV(ip1,j);
+                tmp7=DATA_PREV(ip1,jp1);
+
+                // this will be a number between 8 and 0
+                n_alive_cells = tmp0+tmp1+tmp2+tmp3+tmp4+tmp5+tmp6+tmp7;
+
+                // so now I need to shift everything left by one
+                n_alive_cells = n_alive_cells<<1;
+                
+                // lastly, if the cell is dead, we leave the last bit as is 
+                // so we do nothing, 
+                // and if the cell is alive, we need to set the last bit to 1
+                // keeping everything else the same. 
+                // to do this, we need to do bitwise OR with DATA_PREV
+                DATA_PREV(i,j) |= n_alive_cells;
+            }
+        }
+
+        // now we have preprocessed the grid to our desired format.
         char * snapshot_name = malloc(snprintf(NULL, 0, "snapshot_%05d", 0)+1);
         if(snapshot_name == NULL){
             printf("Not enough space.");
@@ -318,25 +407,237 @@ int main(int argc, char **argv){
         }
 
         unsigned char *tmp_data = NULL;
+        unsigned char *cell_ptr = NULL;
+
+
+        unsigned char count_of_neighbors = 0;
+
+        register unsigned char val;
+        register unsigned char count; 
 
         for(int t = 1; t < n+1; ++t){
+            
+            // I have done this already in preprocessing phase
+            //
+            // for(int col=0; col<cols;++col){
+            //     DATA_PREV(0,col) = DATA_PREV(rows,col);
+            //     DATA_PREV(rows+1,col) = DATA_PREV(1,col);
+            // }
+            //
+            memcpy(data, data_prev, cols*augmented_rows*sizeof(unsigned char));
+            
+            cell_ptr = data;
 
-            for(int col=0; col<cols;++col){
-                DATA_PREV(0,col) = DATA_PREV(rows,col);
-                DATA_PREV(rows+1,col) = DATA_PREV(1,col);
-            }
+            for(int i = 1; i < rows+1; ++i)
+            {
+                for(int j = 0; j < cols; ++j)
+                {
+                    if(*cell_ptr==0)
+                    {
+                        continue;
+                    }
+                    // if we get here we have non zero element
+                    // we only need to keep track of events that 
+                    // change the status of the cell 
+                    // i.e births and deaths
+                    
+                    count_of_neighbors = *cell_ptr >> 1;
+                    
 
-            for(int row = 1; row < rows+1; ++row){
-                for(int col = 0; col < cols; ++col){
-                    upgrade_cell_static(data_prev, data, row, col);
+                    // we first deal with deaths, however, we need 
+                    // to make sure that we only update in the case 
+                    // that the cell was alive and died 
+                    if(count_of_neighbors!=3 && count_of_neighbors!=2 && *cell_ptr & 0x01)
+                    {
+
+                        // to set cell to dead we need to
+                        // 1. set cell of data to contents of neighbor count 
+                        // with last bit set to zero
+                        *cell_ptr = count_of_neighbors<<1; 
+
+                        // 2. get neighbors and decrease the neighbor count 
+                        // of each one. We need to be careful, because some 
+                        // values have already been copied in the array.
+                        
+                        jm1 = (j-1)%(int)cols + cols*((j-1)<0);
+                        jp1 = (j+1)%(int)cols + cols*((j+1)<0);
+                        im1 = i-1;
+                        ip1 = i+1;
+
+                        tmp0=DATA(im1, jm1);
+
+                        // we need the state of the last bit.
+                        // to get this, we do bit wise and with 0x01
+                        val = tmp0 & 0x01;
+                        // we then need to decrease neighbor count by one
+                        // so we shift the contents right, subtract one, 
+                        // and reshift the result one bit left
+                        count = ((tmp0>>1) - 0x01)<<1;
+                        // finally, we need to join the results. This is done by 
+                        // bitwise OR
+                        DATA(im1, jm1) = count | val;
+
+                        tmp1=DATA(im1,j);
+
+                        val = tmp1 & 0x01;
+                        count = ((tmp1>>1) - 0x01)<<1;
+                        DATA(im1, j) = count | val;
+
+                        tmp2=DATA(im1,jp1);
+
+                        val = tmp2 & 0x01;
+                        count = ((tmp2>>1) - 0x01)<<1;
+                        DATA(im1, jp1) = count | val;
+
+                        tmp3=DATA(i,jm1);
+
+                        val = tmp3 & 0x01;
+                        count = ((tmp3>>1) - 0x01)<<1;
+                        DATA(i, jm1) = count | val;
+
+                        tmp4=DATA(i,jp1);
+
+                        val = tmp4 & 0x01;
+                        count = ((tmp4>>1) - 0x01)<<1;
+                        DATA(i, jp1) = count | val;
+
+                        tmp5=DATA(ip1,jm1);
+
+                        val = tmp5 & 0x01;
+                        count = ((tmp5>>1) - 0x01)<<1;
+                        DATA(ip1, jm1) = count | val;
+
+                        tmp6=DATA(ip1,j);
+
+                        val = tmp6 & 0x01;
+                        count = ((tmp6>>1) - 0x01)<<1;
+                        DATA(ip1, j) = count | val;
+
+                        tmp7=DATA(ip1,jp1);
+
+                        val = tmp7 & 0x01;
+                        count = ((tmp7>>1) - 0x01)<<1;
+                        DATA(ip1, jp1) = count | val;
+                    }
+                    else if(count_of_neighbors == 3 && !(*cell_ptr & 0x01) )
+                    {
+                        // set to alive
+
+                        // First, we need to set the state of the cell in 
+                        // data to alive and have the correct neighbors
+                        // this can be done with bitwise or between the 
+                        // previous state, and 0x01
+                        *cell_ptr |= 0x01; 
+
+                        // 2. get neighbors and increase the neighbor count 
+                        // of each one. 
+
+                        jm1 = (j-1)%(int)cols + cols*((j-1)<0);
+                        jp1 = (j+1)%(int)cols + cols*((j+1)<0);
+                        im1 = i-1;
+                        ip1 = i+1;
+
+                        tmp0=DATA(im1, jm1);
+
+                        val = tmp0 & 0x01;
+                        count = ((tmp0>>1) + 0x01)<<1;
+                        DATA(im1, jm1) = count | val;
+
+                        tmp1=DATA(im1,j);
+
+                        val = tmp1 & 0x01;
+                        count = ((tmp1>>1) + 0x01)<<1;
+                        DATA(im1, j) = count | val;
+
+                        tmp2=DATA(im1,jp1);
+
+                        val = tmp2 & 0x01;
+                        count = ((tmp2>>1) + 0x01)<<1;
+                        DATA(im1, jp1) = count | val;
+
+                        tmp3=DATA(i,jm1);
+
+                        val = tmp3 & 0x01;
+                        count = ((tmp3>>1) + 0x01)<<1;
+                        DATA(i, jm1) = count | val;
+
+                        tmp4=DATA(i,jp1);
+
+                        val = tmp4 & 0x01;
+                        count = ((tmp4>>1) + 0x01)<<1;
+                        DATA(i, jp1) = count | val;
+
+                        tmp5=DATA(ip1,jm1);
+
+                        val = tmp5 & 0x01;
+                        count = ((tmp5>>1) + 0x01)<<1;
+                        DATA(ip1, jm1) = count | val;
+
+                        tmp6=DATA(ip1,j);
+
+                        val = tmp6 & 0x01;
+                        count = ((tmp6>>1) + 0x01)<<1;
+                        DATA(ip1, j) = count | val;
+
+                        tmp7=DATA(ip1,jp1);
+
+                        val = tmp7 & 0x01;
+                        count = ((tmp7>>1) + 0x01)<<1;
+                        DATA(ip1, jp1) = count | val;
+                        
+                    }
+
                 }
+                cell_ptr++;
             }
+
+            // at the end of this, data contains the new generation.
+            // except for the halo rows, which are from the old generation.
+            
+            // now comes the (ugly) of writing to file.
+            
+            // To do this, we will need to copy all the contents of 
+            // data into data_prev
+
 
             if(t%s == 0){
+                memcpy(data_prev + cols, data + cols, cols*rows*sizeof(unsigned char));
+
+                // now we can exploit vectorization to do bit AND with 0x01 to 
+                // get only last bit.
+
+                // we create an alias of data_prev with vectorized data type 
+                // __m256 is a 256 long bit register, aka it holds 32 chars (cells)
+                // __m256 *d_p = (__m256*)data_prev
+                // const __m256 bits = _mm256_set_epi8(0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01)
+
+                // const int n = (rows*cols)/vector_length;
+                // const int remainder = (rows*cols)%vector_length;
+
+                for(int k=0; k<rows*cols; ++k){
+                    *(data_prev+k) &= 0x01;
+                }
+                // at this point we have extracted the info of the cells and 
+                // we are now ready to print as usual.
+
                 sprintf(snapshot_name, "snapshot_%05d", t);
                 save_grid(snapshot_name, header, header_size, data, rows, cols);
             }
 
+            // finally, after printing (or not) the state is as follows: 
+            // data has updated new generation (except halo cells), 
+            // data_prev is in an unknown state (either prev gen or has gotten 
+            // bit wise AND'ed).
+            //
+            // so we swap halos (to get ready for the next generation). 
+
+
+            for(int col=0; col<cols;++col){
+                DATA(0,col) = DATA(rows,col);
+                DATA(rows+1,col) = DATA(1,col);
+            }
+            // now data has all the new halos, and is ready for a new generation. 
+            // first, we need to swap data and data prev
             tmp_data = data;
             data = data_prev;
             data_prev = tmp_data;

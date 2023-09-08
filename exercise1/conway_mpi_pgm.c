@@ -225,6 +225,11 @@ int main(int argc, char **argv){
     // broadcast the arguments. However, for now this is ok.
     get_args(argc, argv);
 
+    if(size > rows){
+        printf("This program cannot handle more processes than rows. Make sure P <= R");
+        MPI_Abort(MPI_COMM_WORLD, MPI_ERR_REQUEST);
+    }
+
     // setting up neighbors for 1D splitting
     // Note that with 1D splitting, we have a limitation on how many processes 
     // this program will work with. 
@@ -250,11 +255,9 @@ int main(int argc, char **argv){
         const MPI_Offset my_file_offset = my_row_offset * cols * sizeof(unsigned char);
 
         data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
-        data_prev = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
 
         if(
                 !data
-                || !data_prev
                 )
         {
             printf("Allocation failed.");
@@ -264,8 +267,7 @@ int main(int argc, char **argv){
 
         // initialize the halo regions to being DEAD
         for(int j = 0; j<cols; ++j){
-            DATA(0,j) = DATA(my_rows + 1,j) = DATA_PREV(0,j)
-                = DATA_PREV(my_rows + 1,j) = DEAD;
+            DATA(0,j) = DATA(my_rows + 1,j) = DEAD;
         }
 
         // HEADER INFO CALCULATION
@@ -294,13 +296,12 @@ int main(int argc, char **argv){
 
         for(int i = 1; i<my_rows+1; ++i){
             for(int j = 0; j<cols; ++j)
-                DATA_PREV(i,j) = drand48() > 0.5 ? ALIVE : DEAD ;
+                DATA(i,j) = drand48() > 0.5 ? ALIVE : DEAD ;
         }
 
-        save_grid(fname, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data_prev, my_rows, cols);
+        save_grid(fname, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data, my_rows, cols);
         free(header);
         free(data);
-        free(data_prev);
 
     }
     else if (e == STATIC && action == RUN){
