@@ -278,7 +278,7 @@ void upgrade_cell_ordered(unsigned char * data, int i, int j)
     }
 }
 
-void vectorized_multiply(unsigned char * data_prev, int rows, int cols){
+void vectorized_bitwise_and(unsigned char * data_prev, int rows, int cols){
     // we create an alias of data_prev with vectorized data type 
     // __m256 is a 256 long bit register, aka it holds 32 chars (cells)
     unsigned char * start = data_prev+cols;
@@ -306,6 +306,14 @@ void vectorized_multiply(unsigned char * data_prev, int rows, int cols){
     }
 }
 
+void bitwise_and(unsigned char * data_prev, int start, int end)
+{
+    for(int k=start; k<end; ++k)
+    {
+        *(data_prev+k) &= 0x01;
+    }
+}
+
 void display_args(){
     printf("action (i : 1\tr : 2) -- %d\nk (size) -- %d\ne (0 : ORDERED\t1 : STATIC) -- %d\nf (filename) -- %s\nn (steps) -- %d\ns (save frequency) -- %d\n", action, k, e, fname, n, s );
 }
@@ -316,7 +324,8 @@ int main(int argc, char **argv){
 
     get_args(argc, argv);
     
-    if(action == INIT){
+    if(action == INIT)
+    {
         // init is done in the same way since we need to save a pgm file
 
         // we add two rows for halo regions
@@ -333,7 +342,8 @@ int main(int argc, char **argv){
         }
 
         // initialize the halo regions to being DEAD
-        for(int j = 0; j<cols; ++j){
+        for(int j = 0; j<cols; ++j)
+        {
             DATA(0,j) = DATA(rows + 1,j) = DEAD;
         }
 
@@ -343,7 +353,8 @@ int main(int argc, char **argv){
         int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
         char * header = (char *) malloc(header_size + 1);
 
-        if(!header){
+        if(!header)
+        {
 
             printf("Allocation failed.");
             exit(0);
@@ -354,16 +365,20 @@ int main(int argc, char **argv){
 
         srand48(10); 
 
-        for(int i = 1; i<rows+1; ++i){
+        for(int i = 1; i<rows+1; ++i)
+        {
             for(int j = 0; j<cols; ++j)
+            {
                 DATA(i,j) = drand48() > 0.5 ? ALIVE : DEAD ;
+            }
         }
 
         save_grid(fname, header, header_size, data, rows, cols);
         free(header);
         free(data);
     }
-    else if (e == STATIC && action == RUN){
+    else if (e == STATIC && action == RUN)
+    {
         // reading is done in the same way.
 
         int opt_args[2] = {0,0};
@@ -373,13 +388,15 @@ int main(int argc, char **argv){
 
         // we know that the magic number is P5 so we set the offset as the  
         // length of P5 * sizeof(char)
-        if(fh_posix == NULL){
+        if(fh_posix == NULL)
+        {
             fprintf(stderr, "Error opening %s\n", fname);
             exit(0);
         }
 
         int args_scanned = fscanf(fh_posix, "P5 %d %d 1\n",opt_args, opt_args+1 );
-        if(args_scanned != 2){
+        if(args_scanned != 2)
+        {
             printf("fscanf failed.");
             exit(0);
         }
@@ -389,6 +406,7 @@ int main(int argc, char **argv){
         rows = opt_args[0];
         cols = opt_args[1];
 
+        const int end = (rows+1)*cols;
         const int augmented_rows = rows + 2;
 
         data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
@@ -404,7 +422,8 @@ int main(int argc, char **argv){
         }
 
         // initialize the halo regions to being DEAD
-        for(int j = 0; j<cols; ++j){
+        for(int j = 0; j<cols; ++j)
+        {
             DATA(0,j) = DATA(rows + 1,j) = DATA_PREV(0,j)
                 = DATA_PREV(rows + 1,j) = DEAD;
         }
@@ -412,7 +431,8 @@ int main(int argc, char **argv){
         int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
         char * header = malloc(header_size + 1);
 
-        if(!header){
+        if(!header)
+        {
 
             printf("Allocation failed.");
             exit(0);
@@ -423,7 +443,8 @@ int main(int argc, char **argv){
 
         FILE * fh = fopen(fname, "rb");
 
-        if(fh == NULL){
+        if(fh == NULL)
+        {
             fprintf(stderr, "Error opening %s\n", fname);
             exit(0);
         }
@@ -432,7 +453,8 @@ int main(int argc, char **argv){
 
         size_t args_read = fread(data_prev+cols, sizeof(unsigned char), rows*cols, fh);
 
-        if(args_read != (size_t)rows*cols){
+        if(args_read != (size_t)rows*cols)
+        {
             printf("fread failed.");
             exit(0);
         }
@@ -459,8 +481,10 @@ int main(int argc, char **argv){
             unsigned char tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
             unsigned char n_alive_cells;
 
-            for(int i = 1; i < rows+1; ++i){
-                for(int j = 0; j < cols; ++j){
+            for(int i = 1; i < rows+1; ++i)
+            {
+                for(int j = 0; j < cols; ++j)
+                {
                     // calculate j+1, j-1 with wrapping
                     jm1 = (j-1)%(int)cols + cols*((j-1)<0);
                     jp1 = (j+1)%(int)cols + cols*((j+1)<0);
@@ -505,14 +529,16 @@ int main(int argc, char **argv){
 
         // now we have preprocessed the grid to our desired format.
         char * snapshot_name = malloc(snprintf(NULL, 0, "snapshot_%05d", 0)+1);
-        if(snapshot_name == NULL){
+        if(snapshot_name == NULL)
+        {
             printf("Not enough space.");
             exit(0);
         }
 
         unsigned char *tmp_data = NULL;
 
-        for(int t = 1; t < n+1; ++t){
+        for(int t = 1; t < n+1; ++t)
+        {
             
             // As before, we need to swap the two halo cells
             memcpy(data_prev, data_prev + rows*cols, cols*sizeof(unsigned char));
@@ -575,13 +601,12 @@ int main(int argc, char **argv){
             // region at the moment), then, we will do bitwise AND with 0x01 
             // with each cell to extract the last bit. Finally, we write data_prev
             
-            if(t%s == 0){
+            if(t%s == 0)
+            {
                 memcpy(data_prev + cols, data + cols, cols*rows*sizeof(unsigned char));
 
-                int end = (rows+1)*cols;
-                for(int k=cols; k<end; ++k){
-                    *(data_prev+k) &= 0x01;
-                }
+                bitwise_and(data_prev, cols, end);
+
                 // at this point we have extracted the info of the cells and 
                 // we are now ready to print as usual.
 
@@ -605,7 +630,8 @@ int main(int argc, char **argv){
         free(data);
         free(data_prev);
     }
-    else if(e == ORDERED && action == RUN){
+    else if(e == ORDERED && action == RUN)
+    {
         // the ordered version is virtually the same as the above, 
         // except we directly operate on data directly. 
 
@@ -616,13 +642,15 @@ int main(int argc, char **argv){
 
         // we know that the magic number is P5 so we set the offset as the  
         // length of P5 * sizeof(char)
-        if(fh_posix == NULL){
+        if(fh_posix == NULL)
+        {
             fprintf(stderr, "Error opening %s\n", fname);
             exit(0);
         }
 
         int args_scanned = fscanf(fh_posix, "P5 %d %d 1\n",opt_args, opt_args+1 );
-        if(args_scanned != 2){
+        if(args_scanned != 2)
+        {
             printf("fscanf failed.");
             exit(0);
         }
@@ -632,6 +660,7 @@ int main(int argc, char **argv){
         rows = opt_args[0];
         cols = opt_args[1];
 
+        const int end = (rows+1)*cols;
         const int augmented_rows = rows + 2;
 
         data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
@@ -647,14 +676,16 @@ int main(int argc, char **argv){
         }
 
         // initialize the halo regions to being DEAD
-        for(int j = 0; j<cols; ++j){
+        for(int j = 0; j<cols; ++j)
+        {
             DATA(0,j) = DATA(rows + 1,j) = DEAD;
         }
 
         int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
         char * header = malloc(header_size + 1);
 
-        if(!header){
+        if(!header)
+        {
 
             printf("Allocation failed.");
             exit(0);
@@ -665,7 +696,8 @@ int main(int argc, char **argv){
 
         FILE * fh = fopen(fname, "rb");
 
-        if(fh == NULL){
+        if(fh == NULL)
+        {
             fprintf(stderr, "Error opening %s\n", fname);
             exit(0);
         }
@@ -674,7 +706,8 @@ int main(int argc, char **argv){
 
         size_t args_read = fread(data+cols, sizeof(unsigned char), rows*cols, fh);
 
-        if(args_read != (size_t)rows*cols){
+        if(args_read != (size_t)rows*cols)
+        {
             printf("fread failed.");
             exit(0);
         }
@@ -700,8 +733,10 @@ int main(int argc, char **argv){
             unsigned char tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
             unsigned char n_alive_cells;
 
-            for(int i = 1; i < rows+1; ++i){
-                for(int j = 0; j < cols; ++j){
+            for(int i = 1; i < rows+1; ++i)
+            {
+                for(int j = 0; j < cols; ++j)
+                {
                     // calculate j+1, j-1 with wrapping
                     jm1 = (j-1)%(int)cols + cols*((j-1)<0);
                     jp1 = (j+1)%(int)cols + cols*((j+1)<0);
@@ -746,12 +781,14 @@ int main(int argc, char **argv){
 
         // now we have preprocessed the grid to our desired format.
         char * snapshot_name = malloc(snprintf(NULL, 0, "snapshot_%05d", 0)+1);
-        if(snapshot_name == NULL){
+        if(snapshot_name == NULL)
+        {
             printf("Not enough space.");
             exit(0);
         }
 
-        for(int t = 1; t < n+1; ++t){
+        for(int t = 1; t < n+1; ++t)
+        {
             
             // We copy the bottom row into the top halo cell. 
             memcpy(data, data + rows*cols, cols*sizeof(unsigned char));
@@ -811,13 +848,12 @@ int main(int argc, char **argv){
             // so once we are done, we have to copy this back into the first row
             memcpy(data + cols, data+rows*cols+cols, cols*sizeof(unsigned char));
 
-            if(t%s == 0){
+            if(t%s == 0)
+            {
                 memcpy(data_prev + cols, data + cols, cols*rows*sizeof(unsigned char));
 
-                int end = (rows+1)*cols;
-                for(int k=cols; k<end; ++k){
-                    *(data_prev+k) &= 0x01;
-                }
+                bitwise_and(data_prev, cols, end);
+
                 // at this point we have extracted the info of the cells and 
                 // we are now ready to print as usual.
 
@@ -835,13 +871,14 @@ int main(int argc, char **argv){
         free(data);
         free(data_prev);
     }
-    else {
+    else
+    {
         printf("Unknown action. Abort");
         exit(0);
     }
 
     if (fname != NULL )
-      free ( fname );
+      free(fname);
 
     return 0;
 }
