@@ -40,6 +40,7 @@
 #include <getopt.h>
 #include <unistd.h>
 #include <omp.h>
+#include <immintrin.h>
 
 
 #define DATA(i,j) (data[(i)*cols + (j)])
@@ -274,6 +275,34 @@ void upgrade_cell_ordered(unsigned char * data, int i, int j)
             DATA(ip1,j)+=0x02;
             DATA(ip1,jp1)+=0x02;
         }
+    }
+}
+
+void vectorized_multiply(unsigned char * data_prev, int rows, int cols){
+    // we create an alias of data_prev with vectorized data type 
+    // __m256 is a 256 long bit register, aka it holds 32 chars (cells)
+    unsigned char * start = data_prev+cols;
+
+    __m256i * d_p = (__m256i*)start;
+
+    __m256i result;
+
+    __m256i bits = _mm256_set1_epi8(0x01);
+
+    const int n = (rows*cols)/32;
+    const int remainder = (rows*cols)%32;
+
+    for(int k = 0; k<n; ++k){
+        result = _mm256_and_si256(d_p[k], bits);
+        _mm256_storeu_si256(d_p+k, result);
+    }
+
+    // we need to find the last address that was processed 
+    // so at the end, I have processed 32*n elements of the array.
+    const int ofs = n*32;
+
+    for(int k=0; k<remainder; ++k){
+        *(data_prev+ofs+k) &= 0x01;
     }
 }
 
@@ -548,17 +577,6 @@ int main(int argc, char **argv){
             
             if(t%s == 0){
                 memcpy(data_prev + cols, data + cols, cols*rows*sizeof(unsigned char));
-
-                // now we can exploit vectorization to do bit AND with 0x01 to 
-                // get only last bit.
-
-                // we create an alias of data_prev with vectorized data type 
-                // __m256 is a 256 long bit register, aka it holds 32 chars (cells)
-                // __m256 *d_p = (__m256*)data_prev
-                // const __m256 bits = _mm256_set_epi8(0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01)
-
-                // const int n = (rows*cols)/vector_length;
-                // const int remainder = (rows*cols)%vector_length;
 
                 int end = (rows+1)*cols;
                 for(int k=cols; k<end; ++k){
