@@ -39,7 +39,6 @@
 #include <string.h>
 #include <getopt.h>
 #include <unistd.h>
-#include <omp.h>
 #include <immintrin.h>
 
 
