@@ -133,87 +133,148 @@ void save_grid(char * restrict fname, char * restrict header, int header_size, u
 
 void upgrade_cell_static(unsigned char * restrict data_prev, unsigned char * restrict data, int i, int j)
 {
-    // suggest prefetching
-    DATA(i,j) = DEAD;
+    unsigned char count_of_neighbors;
 
-    // this makes the column index periodic (without branches) 
-    // for example, if j = 0, j-1 = -1, and -1%cols = -1. The last term 
-    // is true, so we obtain cols - 1 
-    // if j = col - 1 then j+1 = col (out of bounds). col%col = 0 and the 
-    // second term is 0 so we obtain that the new coordinate is 0.
     register int jm1 = (j-1)%(int)cols + cols*((j-1)<0);
     register int jp1 = (j+1)%(int)cols + cols*((j+1)<0);
     register int im1 = i-1;
     register int ip1 = i+1;
-
-    // since we are processing elements sequentially, apart from boundary cells, 
-    // the indexes with j - 1 are in potentially loaded caches already since 
-    // we processed (i, j-1) previously. 
-    // So we have two options
-    // 1. (i, j-1) are in the same line as (i,j). In this case, all the elements 
-    // with j-1 are already in cache (a cache is surely longer than 2 bytes)
-    // So accessing these elements before is beneficial.
-    // This is the best case scenario. If we assume a cache line is 64 bytes, 
-    // then, we load 64 cells in a line. For 62 cells, the access pattern is HHHHHHHH = 100%. 
-    // while for the first cell, the access pattern is MMMHHHHH = 62%
-    // 2. (i, j-1) and (i, j) are in different cache lines. Then, since (i, j-1) 
-    // was processed previously, we are sure that (i-1, j-1), (i, j-1), and (i+1, j-1)
-    // are in the cache. So, in case the cache is full, and we need to flush these 
-    // lines out, we access them before.
-    // This is the worst case scenario.
-    // The access pattern is HHHMMHMH which is 5/8 = 62%
-    //
-    // So, every 64 bytes, we (62*100% + 2*62%)/64 = 98% on average.
-    //
-    //
-    // Unfortunately, corner cases and boundary cells bring this number down.
-    // 
-    // In the four corners, the access pattern is MMHMMMMH = 25%. 
-    // In the border cases, the situation is similar as explained above. 
-    // i.e either 100% or 62%.
     
-    unsigned char tmp0=DATA_PREV(im1, jm1);
-    unsigned char tmp3=DATA_PREV(i,jm1);
-    unsigned char tmp5=DATA_PREV(ip1,jm1);
+    // if we get here we have non zero element
+    // so it is either 
+    // 1. a cell with some neighbors 
+    // 2. a live cell 
+    // 3. both
+    //
+    // However, since we already copied the contents 
+    // of data prev, we only need to keep track of 
+    // events that *change* the status of the cell 
+    // i.e births and deaths
+    
+    count_of_neighbors = DATA_PREV(i,j) >> 1;
 
-    unsigned char tmp1=DATA_PREV(im1,j);
-    unsigned char tmp2=DATA_PREV(im1,jp1);
+    // we first deal with deaths, however, we need 
+    // to make sure that we only update in the case 
+    // that the cell was alive and died 
 
-    unsigned char tmp4=DATA_PREV(i,jp1);
+    // cell was alive, so last bit is 1
+    if(DATA_PREV(i,j) & 0x01)
+    {
+        // if greater than 3 or less than 2, we kill it. 
+        // otherwise we dont do anything.
+        if( count_of_neighbors>3 || count_of_neighbors<2 )
+        {
 
-    unsigned char tmp6=DATA_PREV(ip1,j);
-    unsigned char tmp7=DATA_PREV(ip1,jp1);
+            // to set cell to dead we need to
+            // 1. flip its last bit. We can do this by doing 
+            // a bit wise and with ~0x01. i.e 11111110
+            // since 1 & 0 = 0 and 1 & 1 = 1, the first 7 bits 
+            // remain unchanged. while the last one is turned to 
+            // zero.
+            
+            DATA(i,j) &= ~0x01;
 
-    register unsigned char n_alive_cells = tmp0+tmp1+tmp2+tmp3+tmp4+tmp5+tmp6+tmp7;
+            // 2. get neighbors and decrease the neighbor count 
+            // of each one. 
+            // This can be achieved by subtracting 00000010 (or 0x02)
+            // from each cell.
+            // lets check possible limiting cases: 
+            // 1. will it ever be negative? We need a value smaller 
+            // than 0x02 for this to happen, namely 0x01.
+            // However, by construction, this neighbors had at least 
+            // one live "on" cell (the one we are killing right now) 
+            // So the smallest possible value for any neighboring cell 
+            // is 0x02 (i.e 00000010).
+            // So we will never obtain a negative value causing 
+            // strange behavior. Thats good.
+            //
+            // 2. will the subtraction ever change the state of the 
+            // cell? No, because we are guaranteed in this way that 
+            // the last bit will remain the same
+            
+            DATA(im1, jm1)-=0x02;
+            DATA(im1,j)-=0x02;
+            DATA(im1,jp1)-=0x02;
+            DATA(i,jm1)-=0x02;
+            DATA(i,jp1)-=0x02;
+            DATA(ip1,jm1)-=0x02;
+            DATA(ip1,j)-=0x02;
+            DATA(ip1,jp1)-=0x02;
+        }   
+    }
+    else
+    { 
+        // the cell is dead.
+        if(count_of_neighbors == 3) 
+        {
 
-    // the majority of cells will be dead and will stay dead 
-    // so by reordering the conditions, we enhance branch prediction
-    DATA(i,j) = ALIVE*(n_alive_cells==3) + DATA_PREV(i,j)*(n_alive_cells==2);
+            // set to living and increase counter of neighbors
+
+            // we set the last bit to 1 with a bit wise or
+            DATA(i,j) |= 0x01; 
+
+            // 2. get neighbors and increase the neighbor count 
+            // of each one. 
+            // To do this, we need to sum 0x02
+
+            DATA(im1, jm1)+=0x02;
+            DATA(im1,j)+=0x02;
+            DATA(im1,jp1)+=0x02;
+            DATA(i,jm1)+=0x02;
+            DATA(i,jp1)+=0x02;
+            DATA(ip1,jm1)+=0x02;
+            DATA(ip1,j)+=0x02;
+            DATA(ip1,jp1)+=0x02;
+        }
+    }
 
 }
 
 void upgrade_cell_ordered(unsigned char * data, int i, int j)
 {
+    unsigned char count_of_neighbors;
+
     register int jm1 = (j-1)%(int)cols + cols*((j-1)<0);
     register int jp1 = (j+1)%(int)cols + cols*((j+1)<0);
     register int im1 = i-1;
     register int ip1 = i+1;
 
-    unsigned char tmp0=DATA(im1, jm1);
-    unsigned char tmp3=DATA(i,jm1);
-    unsigned char tmp5=DATA(ip1,jm1);
+    count_of_neighbors = DATA(i,j) >> 1;
 
-    unsigned char tmp1=DATA(im1,j);
-    unsigned char tmp2=DATA(im1,jp1);
+    if(DATA(i,j) & 0x01)
+    {
+        if( count_of_neighbors>3 || count_of_neighbors<2 )
+        {
+            
+            DATA(i,j) &= ~0x01;
+            
+            DATA(im1, jm1)-=0x02;
+            DATA(im1,j)-=0x02;
+            DATA(im1,jp1)-=0x02;
+            DATA(i,jm1)-=0x02;
+            DATA(i,jp1)-=0x02;
+            DATA(ip1,jm1)-=0x02;
+            DATA(ip1,j)-=0x02;
+            DATA(ip1,jp1)-=0x02;
+        }   
+    }
+    else
+    { 
+        if(count_of_neighbors == 3) 
+        {
 
-    unsigned char tmp4=DATA(i,jp1);
+            DATA(i,j) |= 0x01; 
 
-    unsigned char tmp6=DATA(ip1,j);
-    unsigned char tmp7=DATA(ip1,jp1);
-
-    register unsigned char n_alive_cells = tmp0+tmp1+tmp2+tmp3+tmp4+tmp5+tmp6+tmp7;
-
-    DATA(i,j) = ALIVE*(n_alive_cells==3) + DATA(i,j)*(n_alive_cells==2);
+            DATA(im1, jm1)+=0x02;
+            DATA(im1,j)+=0x02;
+            DATA(im1,jp1)+=0x02;
+            DATA(i,jm1)+=0x02;
+            DATA(i,jp1)+=0x02;
+            DATA(ip1,jm1)+=0x02;
+            DATA(ip1,j)+=0x02;
+            DATA(ip1,jp1)+=0x02;
+        }
+    }
 }
 
 void display_args(){
@@ -340,7 +401,7 @@ int main(int argc, char **argv){
 
         fseek(fh, header_size, 1);
 
-        size_t args_read = fread(data+cols, sizeof(unsigned char), rows*cols, fh);
+        size_t args_read = fread(data_prev+cols, sizeof(unsigned char), rows*cols, fh);
 
         if(args_read != (size_t)rows*cols){
             printf("fread failed.");
@@ -356,15 +417,16 @@ int main(int argc, char **argv){
         // i.e there is no free lunch.
         
         // step one is to swap the halo rows
-        memcpy(data, data + rows*cols, cols*sizeof(char));
-        memcpy(data+rows*cols+cols, data+cols, cols*sizeof(char));
 
-        register int jm1, jp1, im1, ip1;
+        memcpy(data_prev, data_prev + rows*cols, cols*sizeof(char));
+        memcpy(data_prev+rows*cols+cols, data_prev+cols, cols*sizeof(char));
+
         {
         // put in namespace to avoid pollution 
         
             // for each cell we have to count the 8 neighbors 
             // encode them in bits, and then do some masking.
+            register int jm1, jp1, im1, ip1;
             unsigned char tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
             unsigned char n_alive_cells;
 
@@ -376,17 +438,17 @@ int main(int argc, char **argv){
                     im1 = i-1;
                     ip1 = i+1;
                     // get neighbors
-                    tmp0=DATA(im1, jm1);
-                    tmp3=DATA(i,jm1);
-                    tmp5=DATA(ip1,jm1);
+                    tmp0=DATA_PREV(im1, jm1) & 0x01;
+                    tmp3=DATA_PREV(i,jm1) & 0x01;
+                    tmp5=DATA_PREV(ip1,jm1) & 0x01;
 
-                    tmp1=DATA(im1,j);
-                    tmp2=DATA(im1,jp1);
+                    tmp1=DATA_PREV(im1,j) & 0x01;
+                    tmp2=DATA_PREV(im1,jp1) & 0x01;
 
-                    tmp4=DATA(i,jp1);
+                    tmp4=DATA_PREV(i,jp1) & 0x01;
 
-                    tmp6=DATA(ip1,j);
-                    tmp7=DATA(ip1,jp1);
+                    tmp6=DATA_PREV(ip1,j) & 0x01;
+                    tmp7=DATA_PREV(ip1,jp1) & 0x01;
 
                     // this will be a number between 8 and 0
                     n_alive_cells = tmp0+tmp1+tmp2+tmp3+tmp4+tmp5+tmp6+tmp7;
@@ -405,13 +467,12 @@ int main(int argc, char **argv){
                     // and we OR with        000xxxx0
                     // we obtain             000xxxx1
                     // to do this, we need to do bitwise OR with DATA
-                    DATA_PREV(i,j) = DATA(i,j) | n_alive_cells;
+                    DATA_PREV(i,j) |= n_alive_cells;
                 }
             }
         }
-        // so now, data_prev contains our cells in the desired format.
-        // However, we are still missing the halo cells (they were only handled 
-        // for data)
+        // so now, data_prev contains our cells in the desired format. Apart 
+        // from the halo rows (which need to be swapped again in the new format)
 
         // now we have preprocessed the grid to our desired format.
         char * snapshot_name = malloc(snprintf(NULL, 0, "snapshot_%05d", 0)+1);
@@ -421,8 +482,6 @@ int main(int argc, char **argv){
         }
 
         unsigned char *tmp_data = NULL;
-
-        unsigned char count_of_neighbors = 0;
 
         for(int t = 1; t < n+1; ++t){
             
@@ -449,10 +508,10 @@ int main(int argc, char **argv){
 
             // note however, that we will LOOK at data_prev to UPDATE data. 
             // If we work on data and update as we go, we are introducing 
-            // a temporal dependence (similar to ordered) because we scan for non 
-            // zero cells, and when we find one, we can modify cells AFTER which 
-            // will therefore get treated differently when we get to them compared 
-            // to the unaltered version.
+            // a temporal dependence ( which is what we will do for the ordered 
+            // case) because we scan for non zero cells, and when we find one, 
+            // we can modify cells AFTER which will therefore get treated 
+            // differently when we get to them compared to the unaltered version.
             
             
             // we go through the array (the internal portion)
@@ -464,104 +523,9 @@ int main(int argc, char **argv){
                     {
                         continue;
                     }
-
-                    // if we get here we have non zero element
-                    // so it is either 
-                    // 1. a cell with some neighbors 
-                    // 2. a live cell 
-                    // 3. both
-                    //
-                    // However, since we already copied the contents 
-                    // of data prev, we only need to keep track of 
-                    // events that *change* the status of the cell 
-                    // i.e births and deaths
                     
-                    count_of_neighbors = DATA_PREV(i,j) >> 1;
+                    upgrade_cell_static(data_prev, data, i, j);
 
-                    // we first deal with deaths, however, we need 
-                    // to make sure that we only update in the case 
-                    // that the cell was alive and died 
-
-                    // cell was alive, so last bit is 1
-                    if(DATA_PREV(i,j) & 0x01)
-                    {
-                        // if greater than 3 or less than 2, we kill it. 
-                        // otherwise we dont do anything.
-                        if( count_of_neighbors>3 || count_of_neighbors<2 )
-                        {
-
-                            // to set cell to dead we need to
-                            // 1. flip its last bit. We can do this by doing 
-                            // a bit wise and with ~0x01. i.e 11111110
-                            // since 1 & 0 = 0 and 1 & 1 = 1, the first 7 bits 
-                            // remain unchanged. while the last one is turned to 
-                            // zero.
-                            
-                            DATA(i,j) &= ~0x01;
-
-                            // 2. get neighbors and decrease the neighbor count 
-                            // of each one. 
-                            // This can be achieved by subtracting 00000010 (or 0x02)
-                            // from each cell.
-                            // lets check possible limiting cases: 
-                            // 1. will it ever be negative? We need a value smaller 
-                            // than 0x02 for this to happen, namely 0x01.
-                            // However, by construction, this neighbors had at least 
-                            // one live "on" cell (the one we are killing right now) 
-                            // So the smallest possible value for any neighboring cell 
-                            // is 0x02 (i.e 00000010).
-                            // So we will never obtain a negative value causing 
-                            // strange behavior. Thats good.
-                            //
-                            // 2. will the subtraction ever change the state of the 
-                            // cell? No, because we are guaranteed in this way that 
-                            // the last bit will remain the same
-                            
-                            jm1 = (j-1)%(int)cols + cols*((j-1)<0);
-                            jp1 = (j+1)%(int)cols + cols*((j+1)<0);
-                            im1 = i-1;
-                            ip1 = i+1;
-
-                            DATA(im1, jm1)-=0x02;
-                            DATA(im1,j)-=0x02;
-                            DATA(im1,jp1)-=0x02;
-                            DATA(i,jm1)-=0x02;
-                            DATA(i,jp1)-=0x02;
-                            DATA(ip1,jm1)-=0x02;
-                            DATA(ip1,j)-=0x02;
-                            DATA(ip1,jp1)-=0x02;
-                        }   
-                    }
-                    else
-                    { 
-                        // the cell is dead.
-                        if(count_of_neighbors == 3) 
-                        {
-
-                            // set to living and increase counter of neighbors
-
-                            // we set the last bit to 1 with a bit wise or
-                            DATA(i,j) |= 0x01; 
-
-                            // 2. get neighbors and increase the neighbor count 
-                            // of each one. 
-                            // To do this, we need to sum 0x02
-
-                            jm1 = (j-1)%(int)cols + cols*((j-1)<0);
-                            jp1 = (j+1)%(int)cols + cols*((j+1)<0);
-                            im1 = i-1;
-                            ip1 = i+1;
-
-                            DATA(im1, jm1)+=0x02;
-                            DATA(im1,j)+=0x02;
-                            DATA(im1,jp1)+=0x02;
-                            DATA(i,jm1)+=0x02;
-                            DATA(i,jp1)+=0x02;
-                            DATA(ip1,jm1)+=0x02;
-                            DATA(ip1,j)+=0x02;
-                            DATA(ip1,jp1)+=0x02;
-                        }
-                    }
                 }
             }
 
@@ -624,6 +588,8 @@ int main(int argc, char **argv){
         free(data_prev);
     }
     else if(e == ORDERED && action == RUN){
+        // the ordered version is virtually the same as the above, 
+        // except we directly operate on data directly. 
 
         int opt_args[2] = {0,0};
 
@@ -651,9 +617,11 @@ int main(int argc, char **argv){
         const int augmented_rows = rows + 2;
 
         data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
+        data_prev = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
 
         if(
                 data == NULL
+                || data_prev == NULL
                 )
         {
             printf("Allocation failed.");
@@ -695,49 +663,141 @@ int main(int argc, char **argv){
 
         fclose(fh);
 
+
+        // at this point, we have read the matrix, however, we need to do 
+        // some preprocessing to get into the format we described. 
+        // As is the case with most optimizations, there is a price to pay, 
+        // i.e there is no free lunch.
+        
+        // step one is to swap the halo rows
+        memcpy(data, data + rows*cols, cols*sizeof(char));
+        memcpy(data+rows*cols+cols, data+cols, cols*sizeof(char));
+
+        register int jm1, jp1, im1, ip1;
+        {
+        // put in namespace to avoid pollution 
+        
+            // for each cell we have to count the 8 neighbors 
+            // encode them in bits, and then do some masking.
+            unsigned char tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
+            unsigned char n_alive_cells;
+
+            for(int i = 1; i < rows+1; ++i){
+                for(int j = 0; j < cols; ++j){
+                    // calculate j+1, j-1 with wrapping
+                    jm1 = (j-1)%(int)cols + cols*((j-1)<0);
+                    jp1 = (j+1)%(int)cols + cols*((j+1)<0);
+                    im1 = i-1;
+                    ip1 = i+1;
+                    // get neighbors
+                    tmp0=DATA(im1, jm1) & 0x01;
+                    tmp3=DATA(i,jm1) & 0x01;
+                    tmp5=DATA(ip1,jm1) & 0x01;
+
+                    tmp1=DATA(im1,j) & 0x01;
+                    tmp2=DATA(im1,jp1) & 0x01;
+
+                    tmp4=DATA(i,jp1) & 0x01;
+
+                    tmp6=DATA(ip1,j) & 0x01;
+                    tmp7=DATA(ip1,jp1) & 0x01;
+
+                    // this will be a number between 8 and 0
+                    n_alive_cells = tmp0+tmp1+tmp2+tmp3+tmp4+tmp5+tmp6+tmp7;
+
+                    // so now I need to shift everything left by one
+                    n_alive_cells = n_alive_cells<<1;
+                    
+                    // lastly, if the cell is dead, we leave the last bit as is 
+                    // and if the cell is alive, we need to set the last bit to 1
+                    // keeping everything else the same. 
+                    // so if cells is dead we have                      00000000
+                    // and we have if we do bitwise or with nalivecells 000xxxx0 
+                    // (x denotes any possible values)
+                    // we obtain the again n_alive_cells
+                    // if the cells is alive 00000001
+                    // and we OR with        000xxxx0
+                    // we obtain             000xxxx1
+                    // to do this, we need to do bitwise OR with DATA
+                    DATA(i,j) |= n_alive_cells;
+                }
+            }
+        }
+        // so now, data_prev contains our cells in the desired format. Apart 
+        // from the halo rows (which need to be swapped again in the new format)
+
+        // now we have preprocessed the grid to our desired format.
         char * snapshot_name = malloc(snprintf(NULL, 0, "snapshot_%05d", 0)+1);
         if(snapshot_name == NULL){
             printf("Not enough space.");
             exit(0);
         }
 
+        unsigned char *tmp_data = NULL;
+
         for(int t = 1; t < n+1; ++t){
+            
+            // We copy the bottom row into the top halo cell. 
+            memcpy(data, data + rows*cols, cols*sizeof(unsigned char));
 
-            // first we copy the bottom row into the top halo cell
-            for(int col=0; col<cols;++col){
-                DATA(0,col) = DATA(rows,col);
-            }
-
-            // then we process all cells starting from row 1 to row 
-            // rows - 1. 
-            // We cant process row rows because we need to copy the updated 
-            // row 1 into the bottom halo.
-            for(int row = 1; row < rows; ++row){
-                for(int col = 0; col < cols; ++col){
-                    upgrade_cell_ordered(data, row, col);
+            // we go through the array (the internal portion)
+            // except last row since we first need to update the 
+            // first row
+            for(int i = 1; i < rows; ++i)
+            {
+                for(int j = 0; j < cols; ++j)
+                {
+                    if(DATA(i,j)==0)
+                    {
+                        continue;
+                    }
+                    upgrade_cell_ordered(data, i, j);
                 }
             }
 
-            // we copy row 1 into the bottom halo
-            for(int col=0; col<cols;++col){
-                DATA(rows+1,col) = DATA(1,col);
-            }
+            // then we copy the first row into the last halo cell
+            memcpy(data+rows*cols+cols, data_prev+cols, cols*sizeof(unsigned char));
 
             // we update the last row now that we have the updated information.
-            for(int col = 0; col < cols; ++col){
-                upgrade_cell_ordered(data, rows, col);
+            
+            for(int j = 0; j < cols; ++j)
+            {
+                if(DATA(rows,j)==0)
+                {
+                    continue;
+                }
+                upgrade_cell_ordered(data, rows, j);
             }
 
             if(t%s == 0){
+                memcpy(data_prev + cols, data + cols, cols*rows*sizeof(unsigned char));
+
+                int end = (rows+1)*cols;
+                for(int k=cols; k<end; ++k){
+                    *(data_prev+k) &= 0x01;
+                }
+                // at this point we have extracted the info of the cells and 
+                // we are now ready to print as usual.
+
                 sprintf(snapshot_name, "snapshot_%05d", t);
-                save_grid(snapshot_name, header, header_size, data, rows, cols);
+                save_grid(snapshot_name, header, header_size, data_prev, rows, cols);
             }
 
+            // Finally, we need to swap data and data_prev.
+            tmp_data = data;
+            data = data_prev;
+            data_prev = tmp_data;
+            tmp_data = NULL;
+
+            // data_prev will contain the updated cells (ready for a new 
+            // generation) and will begin the next iteration in the for loop 
+            // by swapping the halo cells
         }
     
         free(snapshot_name);
         free(header);
         free(data);
+        free(data_prev);
     }
     else {
         printf("Unknown action. Abort");
