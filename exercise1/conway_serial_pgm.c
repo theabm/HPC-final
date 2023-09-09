@@ -190,7 +190,8 @@ int main(int argc, char **argv){
 
     get_args(argc, argv);
     
-    if(action == INIT){
+    if(action == INIT)
+    {
 
         // we add two rows for halo regions
         const int augmented_rows = rows + 2;
@@ -236,7 +237,8 @@ int main(int argc, char **argv){
         free(header);
         free(data);
     }
-    else if (e == STATIC && action == RUN){
+    else if (e == STATIC && action == RUN)
+    {
 
         int opt_args[2] = {0,0};
 
@@ -319,7 +321,8 @@ int main(int argc, char **argv){
 
         unsigned char *tmp_data = NULL;
 
-        for(int t = 1; t < n+1; ++t){
+        for(int t = 1; t < n+1; ++t)
+        {
 
             for(int col=0; col<cols;++col){
                 DATA_PREV(0,col) = DATA_PREV(rows,col);
@@ -470,7 +473,7 @@ int main(int argc, char **argv){
     }
 
     if (fname != NULL )
-      free ( fname );
+      free(fname);
 
     return 0;
 }

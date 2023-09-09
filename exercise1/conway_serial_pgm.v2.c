@@ -751,17 +751,38 @@ int main(int argc, char **argv){
             exit(0);
         }
 
-        unsigned char *tmp_data = NULL;
-
         for(int t = 1; t < n+1; ++t){
             
             // We copy the bottom row into the top halo cell. 
             memcpy(data, data + rows*cols, cols*sizeof(unsigned char));
 
-            // we go through the array (the internal portion)
-            // except last row since we first need to update the 
-            // first row
-            for(int i = 1; i < rows; ++i)
+            // we can't do the same thing that we did in v1 where we process 
+            // the whole internal portion except the last row, and then copy 
+            // the first row into the bottom halo, and process the last row. 
+            // Why? Because when we process the first row, it might happen that 
+            // it changes the results of the halo cells above it (i.e. the last 
+            // row). If we proceed to update all the rows, when we process row 
+            // n-1, that row may influence row n. So then we have to merge 
+            // the results for the top halo and row n. And then process row n.
+            // To avoid this complication, we first process row 1, we copy the 
+            // top halo back into row n, and then we proceed as usual. (i.e 
+            // row 2 to n-1, swap, and row n)
+            
+            // process row 1
+            for(int j = 0; j < cols; ++j)
+            {
+                if(DATA(1,j)==0)
+                {
+                    continue;
+                }
+                upgrade_cell_ordered(data, 1, j);
+            }
+
+            // copy top halo (possibly modified) back into last row
+            memcpy(data + rows*cols, data, cols*sizeof(unsigned char));
+
+            // proceed with rows 2 until n-1
+            for(int i = 2; i < rows; ++i)
             {
                 for(int j = 0; j < cols; ++j)
                 {
@@ -774,10 +795,9 @@ int main(int argc, char **argv){
             }
 
             // then we copy the first row into the last halo cell
-            memcpy(data+rows*cols+cols, data_prev+cols, cols*sizeof(unsigned char));
+            memcpy(data+rows*cols+cols, data+cols, cols*sizeof(unsigned char));
 
             // we update the last row now that we have the updated information.
-            
             for(int j = 0; j < cols; ++j)
             {
                 if(DATA(rows,j)==0)
@@ -786,6 +806,10 @@ int main(int argc, char **argv){
                 }
                 upgrade_cell_ordered(data, rows, j);
             }
+
+            // also, processing the last row may have affected the bottom halo 
+            // so once we are done, we have to copy this back into the first row
+            memcpy(data + cols, data+rows*cols+cols, cols*sizeof(unsigned char));
 
             if(t%s == 0){
                 memcpy(data_prev + cols, data + cols, cols*rows*sizeof(unsigned char));
@@ -800,12 +824,6 @@ int main(int argc, char **argv){
                 sprintf(snapshot_name, "snapshot_%05d", t);
                 save_grid(snapshot_name, header, header_size, data_prev, rows, cols);
             }
-
-            // Finally, we need to swap data and data_prev.
-            tmp_data = data;
-            data = data_prev;
-            data_prev = tmp_data;
-            tmp_data = NULL;
 
             // data_prev will contain the updated cells (ready for a new 
             // generation) and will begin the next iteration in the for loop 
