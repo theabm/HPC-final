@@ -5,8 +5,6 @@
 #include <unistd.h>
 #include <omp.h>
 
-#define INIT 1
-#define RUN  2
 
 #define DATA(i,j) (data[(i)*cols + (j)])
 #define DATA_PREV(i,j) (data_prev[(i)*cols + (j)])
@@ -18,6 +16,9 @@
 #define MAX_VAL 1
 
 #define K_DFLT 100
+
+#define INIT 1
+#define RUN  2
 
 #define ORDERED 0
 #define STATIC  1
@@ -163,7 +164,8 @@ int main(int argc, char **argv){
 
     get_args(argc, argv);
 
-    if(action == INIT){
+    if(action == INIT)
+    {
 
         // we add two rows for halo regions
         const int augmented_rows = rows + 2;
@@ -189,7 +191,8 @@ int main(int argc, char **argv){
         int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
         char * header = (char *) malloc(header_size + 1);
 
-        if(!header){
+        if(!header)
+        {
 
             printf("Allocation failed.");
             exit(0);
@@ -200,16 +203,20 @@ int main(int argc, char **argv){
 
         srand48(10); 
 
-        for(int i = 1; i<rows+1; ++i){
+        for(int i = 1; i<rows+1; ++i)
+        {
             for(int j = 0; j<cols; ++j)
+            {
                 DATA(i,j) = drand48() > 0.5 ? ALIVE : DEAD ;
+            }
         }
 
         save_grid(fname, header, header_size, data, rows, cols);
         free(header);
         free(data);
     }
-    else if (e == STATIC && action == RUN){
+    else if (e == STATIC && action == RUN)
+    {
 
         int opt_args[2] = {0,0};
 
@@ -218,13 +225,15 @@ int main(int argc, char **argv){
 
         // we know that the magic number is P5 so we set the offset as the  
         // length of P5 * sizeof(char)
-        if(fh_posix == NULL){
+        if(fh_posix == NULL)
+        {
             fprintf(stderr, "Error opening %s\n", fname);
             exit(0);
         }
 
         int args_scanned = fscanf(fh_posix, "P5 %d %d 1\n",opt_args, opt_args+1 );
-        if(args_scanned != 2){
+        if(args_scanned != 2)
+        {
             printf("fscanf failed.");
             exit(0);
         }
@@ -251,7 +260,8 @@ int main(int argc, char **argv){
         int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
         char * header = malloc(header_size + 1);
 
-        if(!header){
+        if(!header)
+        {
 
             printf("Allocation failed.");
             exit(0);
@@ -286,17 +296,20 @@ int main(int argc, char **argv){
 
         unsigned char *tmp_data = NULL;
 
-        for(int t = 1; t < n+1; ++t){
+        for(int t = 1; t < n+1; ++t)
+        {
 
-            // copy two halo rows 
-            for(int col=0; col<cols;++col){
+            for(int col=0; col<cols;++col)
+            {
                 DATA_PREV(0,col) = DATA_PREV(rows,col);
                 DATA_PREV(rows+1,col) = DATA_PREV(1,col);
             }
 
             #pragma omp parallel for schedule(static)
-            for(int row = 1; row < rows+1; ++row){
-                for(int col = 0; col < cols; ++col){
+            for(int row = 1; row < rows+1; ++row)
+            {
+                for(int col = 0; col < cols; ++col)
+                {
                     upgrade_cell_static(data_prev, data, row, col);
                 }
             }
@@ -317,7 +330,8 @@ int main(int argc, char **argv){
         free(data);
         free(data_prev);
     }
-    else if(e == ORDERED && action == RUN) {
+    else if(e == ORDERED && action == RUN)
+    {
 
         int opt_args[2] = {0,0};
 
@@ -433,13 +447,14 @@ int main(int argc, char **argv){
         free(header);
         free(data);
     }
-    else{
+    else
+    {
         printf("Unknown action. Abort");
         exit(0);
     }
 
     if (fname != NULL )
-      free ( fname );
+      free(fname);
 
     return 0;
 }
