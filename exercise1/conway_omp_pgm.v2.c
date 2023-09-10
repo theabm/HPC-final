@@ -501,21 +501,6 @@ int main(int argc, char **argv){
         }
 
         unsigned char *tmp_data = NULL;
-        const int MAX_THREADS = omp_get_max_threads();
-        const int rows_p_thread = rows/MAX_THREADS;
-
-        omp_lock_t * locks = (omp_lock_t*) malloc(augmented_rows*sizeof(omp_lock_t));
-
-        if(!locks)
-        {
-            printf("lock allocation failed.");
-            exit(0);
-        }
-
-        for(int i = 0; i<augmented_rows; ++i)
-        {
-            omp_init_lock(&locks[i]);
-        }
 
         for(int t = 1; t < n+1; ++t)
         {
@@ -572,7 +557,7 @@ int main(int argc, char **argv){
             // This may be a little worse for cache friendliness, but it is 
             // the easiest solution.
             
-            #pragma omp parallel for schedule(dynamic) if(rows_p_thread>2)
+            #pragma omp parallel for schedule(dynamic)
             for(int i = 1; i < rows+1; i+=3)
             {
                 for(int j = 0; j < cols; ++j)
@@ -587,7 +572,7 @@ int main(int argc, char **argv){
 
             }
 
-            #pragma omp parallel for schedule(dynamic) if(rows_p_thread>2)
+            #pragma omp parallel for schedule(dynamic)
             for(int i = 2; i < rows+1; i+=3)
             {
                 for(int j = 0; j < cols; ++j)
@@ -602,7 +587,7 @@ int main(int argc, char **argv){
 
             }
 
-            #pragma omp parallel for schedule(dynamic) if(rows_p_thread>2)
+            #pragma omp parallel for schedule(dynamic)
             for(int i = 3; i < rows+1; i+=3)
             {
                 for(int j = 0; j < cols; ++j)
@@ -617,24 +602,6 @@ int main(int argc, char **argv){
 
             }
 
-
-            // at the end of this, the internal rows of data contain the new
-            // generation. Except for the halo rows, which are from the old 
-            // generation. However, this is ok, because we always swap halo regions 
-            // at the beginning.
-            
-            // now comes the (ugly) of writing to file.
-            // While this process is faster because of the reasons cited above, 
-            // I/O becomes much more complicated. For each cell, we need to 
-            // extract the information contained in the last bit, and the write 
-            // it to file.
-
-            // there are surely numerous ways to do this, however, we choose the 
-            // simplest. Instead of allocating even more memory, we simply copy 
-            // all of the contents of data into data_prev (since its an unused 
-            // region at the moment), then, we will do bitwise AND with 0x01 
-            // with each cell to extract the last bit. Finally, we write data_prev
-            
             if(t%s == 0)
             {
                 memcpy(data_prev + cols, data + cols, cols*rows*sizeof(unsigned char));
@@ -659,16 +626,10 @@ int main(int argc, char **argv){
             // by swapping the halo cells
         }
 
-        for(int i = 0; i<augmented_rows; ++i)
-        {
-            omp_destroy_lock(&locks[i]);
-        }
-    
         free(snapshot_name);
         free(header);
         free(data);
         free(data_prev);
-        free(locks);
     }
     else if(e == ORDERED && action == RUN)
     {
