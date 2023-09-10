@@ -47,7 +47,7 @@ mv snapshot_00100 snapshot_00100.omp
 mpirun -np 2 conway_mpi_pgm.out -r -f snark_loop_01.pgm -n 100 -s 100 -e 0
 mv snapshot_00100 snapshot_00100.mpi
 
-mpirun -np 8 conway_hybrid_pgm.out -r -f snark_loop_01.pgm -n 100 -s 100 -e 1
+mpirun -np 8 conway_hybrid_pgm.out -r -f snark_loop_01.pgm -n 100 -s 100 -e 0
 mv snapshot_00100 snapshot_00100.hybrid
 
 echo "comparing serial and omp"

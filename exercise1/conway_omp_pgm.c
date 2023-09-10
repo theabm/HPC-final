@@ -296,6 +296,9 @@ int main(int argc, char **argv){
 
         unsigned char *tmp_data = NULL;
 
+        const int MAX_THREADS = omp_get_max_threads();
+        const int chunk = rows/MAX_THREADS;
+
         for(int t = 1; t < n+1; ++t)
         {
 
@@ -305,7 +308,7 @@ int main(int argc, char **argv){
                 DATA_PREV(rows+1,col) = DATA_PREV(1,col);
             }
 
-            #pragma omp parallel for schedule(static)
+            #pragma omp parallel for schedule(dynamic, chunk)
             for(int row = 1; row < rows+1; ++row)
             {
                 for(int col = 0; col < cols; ++col)

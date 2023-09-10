@@ -4,6 +4,7 @@
 #include <getopt.h>
 #include <mpi.h>
 #include <unistd.h>
+#include <omp.h>
 
 #define INIT 1
 #define RUN  2
@@ -423,6 +424,10 @@ int main(int argc, char **argv){
 
         unsigned char *tmp_data = NULL;
 
+        const int MAX_THREADS = omp_get_max_threads();
+        const int row_chunk = (my_rows-2)/MAX_THREADS;
+        const int col_chunk = (cols)/MAX_THREADS;
+
         for(int t = 1; t < n+1; ++t){
 
             // Step 1. Start non blocking exchange of halo cells.
@@ -459,7 +464,7 @@ int main(int argc, char **argv){
 
             // Step 2. Process internal cells to hide latency
 
-            #pragma omp parallel for schedule(static)
+            #pragma omp parallel for schedule(dynamic, row_chunk)
             for(int row = 2; row < my_rows; ++row){
                 for(int col = 0; col < cols; ++col){
                     upgrade_cell_static(data_prev, data, row, col);
@@ -490,7 +495,10 @@ int main(int argc, char **argv){
             // These are row 1 and row my_rows
 
             // Step 4. Update limiting rows (row 1 and row my_rows)
-            #pragma omp parallel for schedule(static)
+            
+            // we only process the columns in parallel if the load per thread 
+            // is greater than 8 (64 bytes) to avoid false sharing.
+            #pragma omp parallel for schedule(dynamic, col_chunk) if(col_chunk>=8)
             for(int col=0; col<cols; ++col){
                 upgrade_cell_static(data_prev, data, 1, col);
                 upgrade_cell_static(data_prev, data, my_rows, col);
