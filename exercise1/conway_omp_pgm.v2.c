@@ -503,10 +503,11 @@ int main(int argc, char **argv){
         {
             
             // As before, we need to swap the two halo cells
+            memcpy(data_prev, data_prev + rows*cols, cols*sizeof(unsigned char));
             memcpy(data_prev+rows*cols+cols, data_prev+cols, cols*sizeof(unsigned char));
 
             // we copy all the contents of data_prev into data
-            memcpy(data, data_prev, cols*augmented_rows*sizeof(unsigned char));
+            memcpy(data+cols, data_prev+cols, cols*rows*sizeof(unsigned char));
 
             // to parallelize here, we cannot simply put a #pragma omp parallel for 
             // as we did for v1. 
@@ -535,13 +536,8 @@ int main(int argc, char **argv){
             // Furthermore, note that this is also true for rows 5 and 7, since 
             // they both can modify row 6. 
             //
-            // So what can we do? There are two solutions
+            // So what can we do? One solution is:
             //
-            // Solution 1:
-            // We can use omp locks. However, this is a complicated paradigm 
-            // that introduces a lot of overhead.
-            //
-            // Solution 2: 
             // Since the issue is processing rows that concurrently write in 
             // the same place, we can simply put space between us. 
             //
