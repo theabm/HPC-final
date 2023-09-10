@@ -555,7 +555,7 @@ int main(int argc, char **argv){
             // so it is still an improvement over 8 operations per cell ALWAYS
 
             // we copy all the contents of data_prev into data
-            memcpy(data, data_prev, cols*augmented_rows*sizeof(unsigned char));
+            memcpy(data+cols, data_prev+cols, cols*rows*sizeof(unsigned char));
 
             // note however, that we will LOOK at data_prev to UPDATE data. 
             // If we work on data and update as we go, we are introducing 
