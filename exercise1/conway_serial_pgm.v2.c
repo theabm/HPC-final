@@ -317,6 +317,47 @@ void display_args(){
     printf("action (i : 1\tr : 2) -- %d\nk (size) -- %d\ne (0 : ORDERED\t1 : STATIC) -- %d\nf (filename) -- %s\nn (steps) -- %d\ns (save frequency) -- %d\n", action, k, e, fname, n, s );
 }
 
+void preprocess_cell(unsigned char * data_array, int i, int j, int cols)
+{
+    // calculate j+1, j-1 with wrapping
+    register int jm1 = (j-1)%(int)cols + cols*((j-1)<0);
+    register int jp1 = (j+1)%(int)cols + cols*((j+1)<0);
+    register int im1 = i-1;
+    register int ip1 = i+1;
+
+    // get neighbors state
+    unsigned char tmp0=data_array[im1*cols+jm1] & 0x01;
+    unsigned char tmp3=data_array[i*cols+jm1] & 0x01;
+    unsigned char tmp5=data_array[ip1*cols+jm1] & 0x01;
+
+    unsigned char tmp1=data_array[im1*cols+j] & 0x01;
+    unsigned char tmp2=data_array[im1*cols+jp1] & 0x01;
+
+    unsigned char tmp4=data_array[i*cols+jp1] & 0x01;
+
+    unsigned char tmp6=data_array[ip1*cols+j] & 0x01;
+    unsigned char tmp7=data_array[ip1*cols+jp1] & 0x01;
+
+    // this will be a number between 8 and 0
+    unsigned char n_alive_cells = tmp0+tmp1+tmp2+tmp3+tmp4+tmp5+tmp6+tmp7;
+
+    // so now I need to shift everything left by one
+    n_alive_cells = n_alive_cells<<1;
+
+    // lastly, if the cell is dead, we leave the last bit as is 
+    // and if the cell is alive, we need to set the last bit to 1
+    // keeping everything else the same. 
+    // so if cells is dead we have                      00000000
+    // and we have if we do bitwise or with nalivecells 000xxxx0 
+    // (x denotes any possible values)
+    // we obtain the again n_alive_cells
+    // if the cells is alive 00000001
+    // and we OR with        000xxxx0
+    // we obtain             000xxxx1
+    // to do this, we need to do bitwise OR with DATA
+    data_array[i*cols+j] |= n_alive_cells;
+}
+
 int main(int argc, char **argv){
 
     unsigned char * data, * data_prev;
@@ -471,58 +512,14 @@ int main(int argc, char **argv){
         memcpy(data_prev, data_prev + rows*cols, cols*sizeof(char));
         memcpy(data_prev+rows*cols+cols, data_prev+cols, cols*sizeof(char));
 
+        for(int i = 1; i < rows+1; ++i)
         {
-        // put in namespace to avoid pollution 
-        
-            // for each cell we have to count the 8 neighbors 
-            // encode them in bits, and then do some masking.
-            register int jm1, jp1, im1, ip1;
-            unsigned char tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
-            unsigned char n_alive_cells;
-
-            for(int i = 1; i < rows+1; ++i)
+            for(int j = 0; j < cols; ++j)
             {
-                for(int j = 0; j < cols; ++j)
-                {
-                    // calculate j+1, j-1 with wrapping
-                    jm1 = (j-1)%(int)cols + cols*((j-1)<0);
-                    jp1 = (j+1)%(int)cols + cols*((j+1)<0);
-                    im1 = i-1;
-                    ip1 = i+1;
-                    // get neighbors
-                    tmp0=DATA_PREV(im1, jm1) & 0x01;
-                    tmp3=DATA_PREV(i,jm1) & 0x01;
-                    tmp5=DATA_PREV(ip1,jm1) & 0x01;
-
-                    tmp1=DATA_PREV(im1,j) & 0x01;
-                    tmp2=DATA_PREV(im1,jp1) & 0x01;
-
-                    tmp4=DATA_PREV(i,jp1) & 0x01;
-
-                    tmp6=DATA_PREV(ip1,j) & 0x01;
-                    tmp7=DATA_PREV(ip1,jp1) & 0x01;
-
-                    // this will be a number between 8 and 0
-                    n_alive_cells = tmp0+tmp1+tmp2+tmp3+tmp4+tmp5+tmp6+tmp7;
-
-                    // so now I need to shift everything left by one
-                    n_alive_cells = n_alive_cells<<1;
-                    
-                    // lastly, if the cell is dead, we leave the last bit as is 
-                    // and if the cell is alive, we need to set the last bit to 1
-                    // keeping everything else the same. 
-                    // so if cells is dead we have                      00000000
-                    // and we have if we do bitwise or with nalivecells 000xxxx0 
-                    // (x denotes any possible values)
-                    // we obtain the again n_alive_cells
-                    // if the cells is alive 00000001
-                    // and we OR with        000xxxx0
-                    // we obtain             000xxxx1
-                    // to do this, we need to do bitwise OR with DATA
-                    DATA_PREV(i,j) |= n_alive_cells;
-                }
+                preprocess_cell(data_prev, i, j, cols);
             }
         }
+
         // so now, data_prev contains our cells in the desired format. Apart 
         // from the halo rows (which need to be swapped again in the new format)
 
@@ -723,56 +720,11 @@ int main(int argc, char **argv){
         memcpy(data, data + rows*cols, cols*sizeof(char));
         memcpy(data+rows*cols+cols, data+cols, cols*sizeof(char));
 
-        register int jm1, jp1, im1, ip1;
+        for(int i = 1; i < rows+1; ++i)
         {
-        // put in namespace to avoid pollution 
-        
-            // for each cell we have to count the 8 neighbors 
-            // encode them in bits, and then do some masking.
-            unsigned char tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
-            unsigned char n_alive_cells;
-
-            for(int i = 1; i < rows+1; ++i)
+            for(int j = 0; j < cols; ++j)
             {
-                for(int j = 0; j < cols; ++j)
-                {
-                    // calculate j+1, j-1 with wrapping
-                    jm1 = (j-1)%(int)cols + cols*((j-1)<0);
-                    jp1 = (j+1)%(int)cols + cols*((j+1)<0);
-                    im1 = i-1;
-                    ip1 = i+1;
-                    // get neighbors
-                    tmp0=DATA(im1, jm1) & 0x01;
-                    tmp3=DATA(i,jm1) & 0x01;
-                    tmp5=DATA(ip1,jm1) & 0x01;
-
-                    tmp1=DATA(im1,j) & 0x01;
-                    tmp2=DATA(im1,jp1) & 0x01;
-
-                    tmp4=DATA(i,jp1) & 0x01;
-
-                    tmp6=DATA(ip1,j) & 0x01;
-                    tmp7=DATA(ip1,jp1) & 0x01;
-
-                    // this will be a number between 8 and 0
-                    n_alive_cells = tmp0+tmp1+tmp2+tmp3+tmp4+tmp5+tmp6+tmp7;
-
-                    // so now I need to shift everything left by one
-                    n_alive_cells = n_alive_cells<<1;
-                    
-                    // lastly, if the cell is dead, we leave the last bit as is 
-                    // and if the cell is alive, we need to set the last bit to 1
-                    // keeping everything else the same. 
-                    // so if cells is dead we have                      00000000
-                    // and we have if we do bitwise or with nalivecells 000xxxx0 
-                    // (x denotes any possible values)
-                    // we obtain the again n_alive_cells
-                    // if the cells is alive 00000001
-                    // and we OR with        000xxxx0
-                    // we obtain             000xxxx1
-                    // to do this, we need to do bitwise OR with DATA
-                    DATA(i,j) |= n_alive_cells;
-                }
+                preprocess_cell(data, i, j, cols);
             }
         }
         // so now, data_prev contains our cells in the desired format. Apart 
