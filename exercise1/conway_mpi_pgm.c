@@ -42,8 +42,10 @@ void get_args( int argc, char **argv )
     char *optstring = "irk:e:f:n:s:";
 
     int c;
-    while ((c = getopt(argc, argv, optstring)) != -1) {
-        switch(c) {
+    while ((c = getopt(argc, argv, optstring)) != -1)
+    {
+        switch(c) 
+        {
 
             case 'i':
                 action = INIT; break;
@@ -76,7 +78,8 @@ void get_args( int argc, char **argv )
     }
 }
 
-void display_args(int rank, int size){
+void display_args(int rank, int size)
+{
     printf("I am rank %d of %d.\naction (i : 1\tr : 2) -- %d\nk (size) -- %d\ne (0 : ORDERED\t1 : STATIC) -- %d\nf (filename) -- %s\nn (steps) -- %d\ns (save frequency) -- %d\n", rank, size, action, k, e, fname, n, s );
 }
 
@@ -131,12 +134,14 @@ void save_grid(char * restrict fname, MPI_Comm comm, int rank, char * restrict h
     const int err = MPI_File_open(comm, fname, MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
 
     // Check that the file was opened correctly
-    if(err != MPI_SUCCESS){
+    if(err != MPI_SUCCESS)
+    {
         fprintf(stderr, "Error opening %s\n", fname);
         MPI_Abort(MPI_COMM_WORLD, err);
     }
     
-    if(rank == 0){
+    if(rank == 0)
+    {
         MPI_File_write_at(fh, 0, header, header_size, MPI_CHAR, MPI_STATUS_IGNORE);
     }
 
@@ -205,7 +210,8 @@ void upgrade_cell_ordered(unsigned char * data, int i, int j)
     DATA(i,j) = ALIVE*(n_alive_cells==3) + DATA(i,j)*(n_alive_cells==2);
 }
 
-int main(int argc, char **argv){
+int main(int argc, char **argv)
+{
 
     // initialize MPI
     MPI_Init(&argc, &argv);
@@ -225,9 +231,16 @@ int main(int argc, char **argv){
     // broadcast the arguments. However, for now this is ok.
     get_args(argc, argv);
 
-    if(size > rows){
-        printf("This program cannot handle more processes than rows. Make sure P <= R");
-        MPI_Abort(MPI_COMM_WORLD, MPI_ERR_REQUEST);
+    if(n>99999)
+    {
+        printf("n cannot be greater than 99999. Using this value");
+        n = 99999;
+    }
+
+    if(s>99999)
+    {
+        printf("n cannot be greater than 99999. Using this value");
+        s = 99999;
     }
 
     // setting up neighbors for 1D splitting
@@ -238,7 +251,8 @@ int main(int argc, char **argv){
     const int prev = (size - 1)*(rank==0) + (rank - 1)*!(rank==0);
     const int next = 0*(rank==(size-1)) + (rank + 1)*!(rank==(size-1));
 
-    if(action == INIT){
+    if(action == INIT)
+    {
 
         // for each rank, we want to determine how many rows it will need to 
         // handle.
@@ -256,17 +270,15 @@ int main(int argc, char **argv){
 
         data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
 
-        if(
-                !data
-                )
+        if(!data)
         {
             printf("Allocation failed.");
             MPI_Abort(MPI_COMM_WORLD, MPI_ERR_NO_SPACE);
-
         }
 
         // initialize the halo regions to being DEAD
-        for(int j = 0; j<cols; ++j){
+        for(int j = 0; j<cols; ++j)
+        {
             DATA(0,j) = DATA(my_rows + 1,j) = DEAD;
         }
 
@@ -276,11 +288,10 @@ int main(int argc, char **argv){
         int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
         char * header = malloc(header_size + 1);
 
-        if(!header){
-
+        if(!header)
+        {
             printf("Allocation failed.");
             MPI_Abort(MPI_COMM_WORLD, MPI_ERR_NO_SPACE);
-
         }
 
         sprintf(header, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
@@ -294,9 +305,12 @@ int main(int argc, char **argv){
         // need to include some changing information such as time
         srand48(10*rank); 
 
-        for(int i = 1; i<my_rows+1; ++i){
+        for(int i = 1; i<my_rows+1; ++i)
+        {
             for(int j = 0; j<cols; ++j)
+            {
                 DATA(i,j) = drand48() > 0.5 ? ALIVE : DEAD ;
+            }
         }
 
         save_grid(fname, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data, my_rows, cols);
@@ -304,7 +318,8 @@ int main(int argc, char **argv){
         free(data);
 
     }
-    else if (e == STATIC && action == RUN){
+    else if (e == STATIC && action == RUN)
+    {
 
         // read file 
         // in general, we cannot assume we will use the same number 
@@ -315,19 +330,22 @@ int main(int argc, char **argv){
         
         int opt_args[2] = {0,0};
 
-        if(rank == 0){
+        if(rank == 0)
+        {
 
             FILE * fh_posix = fopen(fname, "r");
 
             // we know that the magic number is P5 so we set the offset as the  
             // length of P5 * sizeof(char)
-            if(fh_posix == NULL){
+            if(!fh_posix)
+            {
                 fprintf(stderr, "Error opening %s\n", fname);
                 MPI_Abort(MPI_COMM_WORLD, MPI_ERR_REQUEST);
             }
 
             int args_scanned = fscanf(fh_posix, "P5 %d %d 1\n",opt_args, opt_args+1 );
-            if(args_scanned != 2){
+            if(args_scanned != 2)
+            {
                 printf("fscanf failed.");
                 MPI_Abort(MPI_COMM_WORLD, MPI_ERR_REQUEST);
             }
@@ -336,8 +354,6 @@ int main(int argc, char **argv){
             // printf("I am rank 0 and I have received %d rows %d cols\n", *opt_args, *(opt_args+1));
         }
 
-        MPI_Barrier(MPI_COMM_WORLD);
-
         // this is blocking (maybe use non blocking later)
         MPI_Bcast(opt_args, 2, MPI_INT, 0, MPI_COMM_WORLD);
 
@@ -345,6 +361,12 @@ int main(int argc, char **argv){
 
         rows = opt_args[0];
         cols = opt_args[1];
+
+        if(size > rows)
+        {
+            printf("This program cannot handle more processes than rows. Make sure P <= R");
+            MPI_Abort(MPI_COMM_WORLD, MPI_ERR_REQUEST);
+        }
 
         const int my_rows = get_my_rows(rows, rank, size);
         const int my_row_offset = get_my_row_offset(rows, rank, size);
@@ -361,18 +383,15 @@ int main(int argc, char **argv){
         data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
         data_prev = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
 
-        if(
-                data == NULL
-                || data_prev == NULL
-                )
+        if(!data || !data_prev)
         {
             printf("Allocation failed.");
             MPI_Abort(MPI_COMM_WORLD, MPI_ERR_NO_SPACE);
-
         }
         
         // initialize the halo regions to being DEAD
-        for(int j = 0; j<cols; ++j){
+        for(int j = 0; j<cols; ++j)
+        {
             DATA(0,j) = DATA(my_rows + 1,j) = DATA_PREV(0,j)
                 = DATA_PREV(my_rows + 1,j) = DEAD;
         }
@@ -380,11 +399,10 @@ int main(int argc, char **argv){
         int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
         char * header = malloc(header_size + 1);
 
-        if(!header){
-
+        if(!header)
+        {
             printf("Allocation failed.");
             MPI_Abort(MPI_COMM_WORLD, MPI_ERR_NO_SPACE);
-
         }
 
         sprintf(header, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
@@ -395,7 +413,8 @@ int main(int argc, char **argv){
 
         const int err = MPI_File_open(MPI_COMM_WORLD, fname, MPI_MODE_RDWR, MPI_INFO_NULL, &fh);
 
-        if(err != MPI_SUCCESS){
+        if(err != MPI_SUCCESS)
+        {
             fprintf(stderr, "Error opening %s\n", fname);
             MPI_Abort(MPI_COMM_WORLD, err);
         }
@@ -409,8 +428,9 @@ int main(int argc, char **argv){
         // to start the game of life.
         
         // file name (it will always be the same length so we only need it once)
-        char * snapshot_name = malloc(snprintf(NULL, 0, "snapshot_%05d", 0)+1);
-        if(snapshot_name == NULL){
+        char * snapshot_name = malloc(32);
+        if(!snapshot_name)
+        {
             printf("Not enough space.");
             MPI_Abort(MPI_COMM_WORLD, MPI_ERR_NO_SPACE);
         }
@@ -423,7 +443,8 @@ int main(int argc, char **argv){
 
         unsigned char *tmp_data = NULL;
 
-        for(int t = 1; t < n+1; ++t){
+        for(int t = 1; t < n+1; ++t)
+        {
 
             // Step 1. Start non blocking exchange of halo cells.
 
@@ -459,8 +480,10 @@ int main(int argc, char **argv){
 
             // Step 2. Process internal cells to hide latency
 
-            for(int row = 2; row < my_rows; ++row){
-                for(int col = 0; col < cols; ++col){
+            for(int row = 2; row < my_rows; ++row)
+            {
+                for(int col = 0; col < cols; ++col)
+                {
                     upgrade_cell_static(data_prev, data, row, col);
                 }
             }
@@ -489,7 +512,8 @@ int main(int argc, char **argv){
             // These are row 1 and row my_rows
 
             // Step 4. Update limiting rows (row 1 and row my_rows)
-            for(int col=0; col<cols; ++col){
+            for(int col=0; col<cols; ++col)
+            {
                 upgrade_cell_static(data_prev, data, 1, col);
                 upgrade_cell_static(data_prev, data, my_rows, col);
             }
@@ -500,7 +524,8 @@ int main(int argc, char **argv){
 
             // Step 5. Check if need to save, and if we do, save grid to pgm
             
-            if(t%s == 0){
+            if(t%s == 0)
+            {
                 sprintf(snapshot_name, "snapshot_%05d", t);
                 save_grid(snapshot_name, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data, my_rows, cols);
             }
@@ -520,21 +545,25 @@ int main(int argc, char **argv){
         free(data);
         free(data_prev);
     }
-    else if(e == ORDERED && action == RUN){
+    else if(e == ORDERED && action == RUN)
+    {
 
         int opt_args[2] = {0,0};
 
-        if(rank == 0){
+        if(rank == 0)
+        {
 
             FILE * fh_posix = fopen(fname, "r");
 
-            if(fh_posix == NULL){
+            if(!fh_posix)
+            {
                 fprintf(stderr, "Error opening %s\n", fname);
                 MPI_Abort(MPI_COMM_WORLD, MPI_ERR_REQUEST);
             }
 
             int args_scanned = fscanf(fh_posix, "P5 %d %d 1\n",opt_args, opt_args+1 );
-            if(args_scanned != 2){
+            if(args_scanned != 2)
+            {
                 printf("fscanf failed.");
                 MPI_Abort(MPI_COMM_WORLD, MPI_ERR_REQUEST);
             }
@@ -550,6 +579,12 @@ int main(int argc, char **argv){
         rows = opt_args[0];
         cols = opt_args[1];
 
+        if(size > rows)
+        {
+            printf("This program cannot handle more processes than rows. Make sure P <= R");
+            MPI_Abort(MPI_COMM_WORLD, MPI_ERR_REQUEST);
+        }
+
         const int my_rows = get_my_rows(rows, rank, size);
         const int my_row_offset = get_my_row_offset(rows, rank, size);
 
@@ -559,27 +594,24 @@ int main(int argc, char **argv){
 
         data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
 
-        if(
-                data == NULL
-                )
+        if(!data)
         {
             printf("Allocation failed.");
             MPI_Abort(MPI_COMM_WORLD, MPI_ERR_NO_SPACE);
-
         }
         
-        for(int j = 0; j<cols; ++j){
+        for(int j = 0; j<cols; ++j)
+        {
             DATA(0,j) = DATA(my_rows + 1,j) = DEAD;
         }
 
         int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
         char * header = malloc(header_size + 1);
 
-        if(!header){
-
+        if(!header)
+        {
             printf("Allocation failed.");
             MPI_Abort(MPI_COMM_WORLD, MPI_ERR_NO_SPACE);
-
         }
 
         sprintf(header, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
@@ -590,7 +622,8 @@ int main(int argc, char **argv){
 
         const int err = MPI_File_open(MPI_COMM_WORLD, fname, MPI_MODE_RDWR, MPI_INFO_NULL, &fh);
 
-        if(err != MPI_SUCCESS){
+        if(err != MPI_SUCCESS)
+        {
             fprintf(stderr, "Error opening %s\n", fname);
             MPI_Abort(MPI_COMM_WORLD, err);
         }
@@ -599,8 +632,9 @@ int main(int argc, char **argv){
 
         MPI_File_close(&fh);
 
-        char * snapshot_name = malloc(snprintf(NULL, 0, "snapshot_%05d", 0)+1);
-        if(snapshot_name == NULL){
+        char * snapshot_name = malloc(32);
+        if(!snapshot_name)
+        {
             printf("Not enough space.");
             MPI_Abort(MPI_COMM_WORLD, MPI_ERR_NO_SPACE);
         }
@@ -611,7 +645,8 @@ int main(int argc, char **argv){
         const int prev_tag = 0; 
         const int next_tag = 1;
 
-        for(int t = 1; t < n+1; ++t){
+        for(int t = 1; t < n+1; ++t)
+        {
             // for ordered evolution, we cannot parallelize, and each process 
             // must work on their part of the grid in serial order. 
             
@@ -632,7 +667,8 @@ int main(int argc, char **argv){
 
             // to get things started for rank 0, this is the first forward 
             // message of the top halo row.
-            if(rank == size-1){
+            if(rank == size-1)
+            {
                 MPI_Isend(data + my_rows*cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request);
             }
 
@@ -647,8 +683,10 @@ int main(int argc, char **argv){
             // data EXCEPT the last row, since we are not sure that we have 
             // received the bottom halo yet.
             // issue when my_rows = 1
-            for(int row = 1; row < my_rows; ++row){
-                for(int col = 0; col < cols; ++col){
+            for(int row = 1; row < my_rows; ++row)
+            {
+                for(int col = 0; col < cols; ++col)
+                {
                     upgrade_cell_ordered(data, row, col);
                 }
             }
@@ -664,7 +702,8 @@ int main(int argc, char **argv){
             MPI_Wait(&next_recv_request, MPI_STATUS_IGNORE);
 
             // process last row
-            for(int col=0; col<cols; ++col){
+            for(int col=0; col<cols; ++col)
+            {
                 upgrade_cell_ordered(data, my_rows, col);
             }
 
@@ -682,7 +721,8 @@ int main(int argc, char **argv){
             MPI_Request_free(&prev_send_request);
             MPI_Request_free(&next_send_request);
 
-            if(t%s == 0){
+            if(t%s == 0)
+            {
                 sprintf(snapshot_name, "snapshot_%05d", t);
                 save_grid(snapshot_name, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data, my_rows, cols);
             }
@@ -693,7 +733,8 @@ int main(int argc, char **argv){
         free(header);
         free(data);
     }
-    else{
+    else
+    {
         printf("Unknown action. Abort");
         MPI_Abort(MPI_COMM_WORLD, 0);
     }

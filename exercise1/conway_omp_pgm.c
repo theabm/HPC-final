@@ -43,8 +43,10 @@ void get_args( int argc, char **argv )
     char *optstring = "irk:e:f:n:s:";
 
     int c;
-    while ((c = getopt(argc, argv, optstring)) != -1) {
-        switch(c) {
+    while ((c = getopt(argc, argv, optstring)) != -1)
+    {
+        switch(c)
+        {
 
             case 'i':
                 action = INIT; break;
@@ -82,7 +84,8 @@ void save_grid(char * restrict fname, char * restrict header, int header_size, u
 
     FILE * fh = fopen(fname, "wb");
 
-    if(fh == NULL){
+    if(!fh)
+    {
         fprintf(stderr, "Error opening %s\n", fname);
         exit(0);
     }
@@ -154,15 +157,29 @@ void upgrade_cell_ordered(unsigned char * data, int i, int j)
     DATA(i,j) = ALIVE*(n_alive_cells==3) + DATA(i,j)*(n_alive_cells==2);
 }
 
-void display_args(){
+void display_args()
+{
     printf("action (i : 1\tr : 2) -- %d\nk (size) -- %d\ne (0 : ORDERED\t1 : STATIC) -- %d\nf (filename) -- %s\nn (steps) -- %d\ns (save frequency) -- %d\n", action, k, e, fname, n, s );
 }
 
-int main(int argc, char **argv){
+int main(int argc, char **argv)
+{
 
     unsigned char * data, * data_prev;
 
     get_args(argc, argv);
+
+    if(n>99999)
+    {
+        printf("n cannot be greater than 99999. Using this value");
+        n = 99999;
+    }
+
+    if(s>99999)
+    {
+        printf("n cannot be greater than 99999. Using this value");
+        s = 99999;
+    }
 
     if(action == INIT)
     {
@@ -172,16 +189,15 @@ int main(int argc, char **argv){
 
         data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
 
-        if(
-                !data
-                )
+        if(!data)
         {
             printf("Allocation failed.");
             exit(0);
         }
 
         // initialize the halo regions to being DEAD
-        for(int j = 0; j<cols; ++j){
+        for(int j = 0; j<cols; ++j)
+        {
             DATA(0,j) = DATA(rows + 1,j) = DEAD;
         }
 
@@ -225,7 +241,7 @@ int main(int argc, char **argv){
 
         // we know that the magic number is P5 so we set the offset as the  
         // length of P5 * sizeof(char)
-        if(fh_posix == NULL)
+        if(!fh_posix)
         {
             fprintf(stderr, "Error opening %s\n", fname);
             exit(0);
@@ -248,10 +264,7 @@ int main(int argc, char **argv){
         data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
         data_prev = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
 
-        if(
-                data == NULL
-                || data_prev == NULL
-                )
+        if(!data || !data_prev)
         {
             printf("Allocation failed.");
             exit(0);
@@ -272,7 +285,8 @@ int main(int argc, char **argv){
 
         FILE * fh = fopen(fname, "rb");
 
-        if(fh == NULL){
+        if(!fh)
+        {
             fprintf(stderr, "Error opening %s\n", fname);
             exit(0);
         }
@@ -281,15 +295,17 @@ int main(int argc, char **argv){
 
         size_t args_read = fread(data_prev+cols, sizeof(unsigned char), rows*cols, fh);
 
-        if(args_read != (size_t)rows*cols){
+        if(args_read != (size_t)rows*cols)
+        {
             printf("fread failed.");
             exit(0);
         }
 
         fclose(fh);
 
-        char * snapshot_name = malloc(snprintf(NULL, 0, "snapshot_%05d", 0)+1);
-        if(snapshot_name == NULL){
+        char * snapshot_name = malloc(32);
+        if(!snapshot_name)
+        {
             printf("Not enough space.");
             exit(0);
         }
@@ -320,7 +336,8 @@ int main(int argc, char **argv){
                 }
             }
 
-            if(t%s == 0){
+            if(t%s == 0)
+            {
                 sprintf(snapshot_name, "snapshot_%05d", t);
                 save_grid(snapshot_name, header, header_size, data, rows, cols);
             }
@@ -346,13 +363,15 @@ int main(int argc, char **argv){
 
         // we know that the magic number is P5 so we set the offset as the  
         // length of P5 * sizeof(char)
-        if(fh_posix == NULL){
+        if(!fh_posix)
+        {
             fprintf(stderr, "Error opening %s\n", fname);
             exit(0);
         }
 
         int args_scanned = fscanf(fh_posix, "P5 %d %d 1\n",opt_args, opt_args+1 );
-        if(args_scanned != 2){
+        if(args_scanned != 2)
+        {
             printf("fscanf failed.");
             exit(0);
         }
@@ -366,34 +385,33 @@ int main(int argc, char **argv){
 
         data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
 
-        if(
-                data == NULL
-                )
+        if(!data)
         {
             printf("Allocation failed.");
             exit(0);
         }
 
         // initialize the halo regions to being DEAD
-        for(int j = 0; j<cols; ++j){
+        for(int j = 0; j<cols; ++j)
+        {
             DATA(0,j) = DATA(rows + 1,j) = DEAD;
         }
 
         int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
         char * header = malloc(header_size + 1);
 
-        if(!header){
-
+        if(!header)
+        {
             printf("Allocation failed.");
             exit(0);
-
         }
 
         sprintf(header, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
 
         FILE * fh = fopen(fname, "rb");
 
-        if(fh == NULL){
+        if(!fh)
+        {
             fprintf(stderr, "Error opening %s\n", fname);
             exit(0);
         }
@@ -402,23 +420,27 @@ int main(int argc, char **argv){
 
         size_t args_read = fread(data+cols, sizeof(unsigned char), rows*cols, fh);
 
-        if(args_read != (size_t)rows*cols){
+        if(args_read != (size_t)rows*cols)
+        {
             printf("fread failed.");
             exit(0);
         }
 
         fclose(fh);
 
-        char * snapshot_name = malloc(snprintf(NULL, 0, "snapshot_%05d", 0)+1);
-        if(snapshot_name == NULL){
+        char * snapshot_name = malloc(32);
+        if(!snapshot_name)
+        {
             printf("Not enough space.");
             exit(0);
         }
 
-        for(int t = 1; t < n+1; ++t){
+        for(int t = 1; t < n+1; ++t)
+        {
 
             // first we copy the bottom row into the top halo cell
-            for(int col=0; col<cols;++col){
+            for(int col=0; col<cols;++col)
+            {
                 DATA(0,col) = DATA(rows,col);
             }
 
@@ -426,23 +448,28 @@ int main(int argc, char **argv){
             // rows - 1. 
             // We cant process row rows because we need to copy the updated 
             // row 1 into the bottom halo.
-            for(int row = 1; row < rows; ++row){
-                for(int col = 0; col < cols; ++col){
+            for(int row = 1; row < rows; ++row)
+            {
+                for(int col = 0; col < cols; ++col)
+                {
                     upgrade_cell_ordered(data, row, col);
                 }
             }
 
             // we copy row 1 into the bottom halo
-            for(int col=0; col<cols;++col){
+            for(int col=0; col<cols;++col)
+            {
                 DATA(rows+1,col) = DATA(1,col);
             }
 
             // we update the last row now that we have the updated information.
-            for(int col = 0; col < cols; ++col){
+            for(int col = 0; col < cols; ++col)
+            {
                 upgrade_cell_ordered(data, rows, col);
             }
 
-            if(t%s == 0){
+            if(t%s == 0)
+            {
                 sprintf(snapshot_name, "snapshot_%05d", t);
                 save_grid(snapshot_name, header, header_size, data, rows, cols);
             }
