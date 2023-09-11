@@ -354,7 +354,6 @@ int main(int argc, char **argv)
             // printf("I am rank 0 and I have received %d rows %d cols\n", *opt_args, *(opt_args+1));
         }
 
-        // this is blocking (maybe use non blocking later)
         MPI_Bcast(opt_args, 2, MPI_INT, 0, MPI_COMM_WORLD);
 
         // printf("I am rank %d and I have received %d rows %d cols\n", rank, *opt_args, *(opt_args+1));
@@ -571,10 +570,7 @@ int main(int argc, char **argv)
             fclose(fh_posix);
         }
 
-        MPI_Barrier(MPI_COMM_WORLD);
-
         MPI_Bcast(opt_args, 2, MPI_INT, 0, MPI_COMM_WORLD);
-
 
         rows = opt_args[0];
         cols = opt_args[1];
@@ -716,6 +712,8 @@ int main(int argc, char **argv)
             // next generation
             if(rank<(size-1)){ MPI_Isend(data + my_rows*cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request);}
 
+            // then we need a barrier otherwise rank 0 will keep going even 
+            // though we dont have the whole matrix
             MPI_Barrier(MPI_COMM_WORLD);
 
             MPI_Request_free(&prev_send_request);

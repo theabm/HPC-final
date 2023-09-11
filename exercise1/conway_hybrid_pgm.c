@@ -355,7 +355,6 @@ int main(int argc, char **argv)
             // printf("I am rank 0 and I have received %d rows %d cols\n", *opt_args, *(opt_args+1));
         }
 
-        // this is blocking (maybe use non blocking later)
         MPI_Bcast(opt_args, 2, MPI_INT, 0, MPI_COMM_WORLD);
 
         // printf("I am rank %d and I have received %d rows %d cols\n", rank, *opt_args, *(opt_args+1));
@@ -575,8 +574,6 @@ int main(int argc, char **argv)
 
             fclose(fh_posix);
         }
-
-        MPI_Barrier(MPI_COMM_WORLD);
 
         MPI_Bcast(opt_args, 2, MPI_INT, 0, MPI_COMM_WORLD);
 
