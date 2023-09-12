@@ -302,7 +302,7 @@ int main(int argc, char **argv)
         unsigned char *tmp_data = NULL;
 
         const int MAX_THREADS = omp_get_max_threads();
-        const int chunk = rows/MAX_THREADS;
+        const int chunk = rows*cols/MAX_THREADS;
         const int row_len_bytes = cols*sizeof(unsigned char);
 
         for(int t = 1; t < n+1; ++t)
@@ -311,12 +311,13 @@ int main(int argc, char **argv)
             memcpy(data_prev + rows*cols + cols, data_prev+cols, row_len_bytes);
 
             #pragma omp parallel for schedule(dynamic, chunk)
-            for(int row = 1; row < rows+1; ++row)
+            for(int cell = 8; cell < (rows+1)*cols; ++cell)
             {
-                for(int col = 0; col < cols; ++col)
-                {
-                    upgrade_cell_static(data_prev, data, row, col);
-                }
+                    int tmp1 = cell/cols;
+                    int i = tmp1 + 1;
+                    int tmp2 = -i*cols;
+                    int j = cell + tmp2;
+                    upgrade_cell_static(data_prev, data, i, j);
             }
 
             if(s>0 && t%s == 0 && t<100000)
