@@ -169,17 +169,17 @@ int main(int argc, char **argv)
 
     get_args(argc, argv);
 
-    if(n>99999)
-    {
-        printf("n cannot be greater than 99999. Using this value");
-        n = 99999;
-    }
-
-    if(s>99999)
-    {
-        printf("n cannot be greater than 99999. Using this value");
-        s = 99999;
-    }
+    // if(n>99999)
+    // {
+    //     printf("n cannot be greater than 99999. Using this value");
+    //     n = 99999;
+    // }
+    //
+    // if(s>99999)
+    // {
+    //     printf("n cannot be greater than 99999. Using this value");
+    //     s = 99999;
+    // }
 
     if(action == INIT)
     {
@@ -336,7 +336,7 @@ int main(int argc, char **argv)
                 }
             }
 
-            if(t%s == 0)
+            if(s>0 && t%s == 0 && t<100000)
             {
                 sprintf(snapshot_name, "snapshot_%05d", t);
                 save_grid(snapshot_name, header, header_size, data, rows, cols);
@@ -468,7 +468,7 @@ int main(int argc, char **argv)
                 upgrade_cell_ordered(data, rows, col);
             }
 
-            if(t%s == 0)
+            if(s>0 && t%s == 0 && t<100000)
             {
                 sprintf(snapshot_name, "snapshot_%05d", t);
                 save_grid(snapshot_name, header, header_size, data, rows, cols);

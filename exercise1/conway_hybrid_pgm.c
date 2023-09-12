@@ -232,17 +232,17 @@ int main(int argc, char **argv)
     // broadcast the arguments. However, for now this is ok.
     get_args(argc, argv);
 
-    if(n>99999)
-    {
-        printf("n cannot be greater than 99999. Using this value");
-        n = 99999;
-    }
-
-    if(s>99999)
-    {
-        printf("n cannot be greater than 99999. Using this value");
-        s = 99999;
-    }
+    // if(n>99999)
+    // {
+    //     printf("n cannot be greater than 99999. Using this value");
+    //     n = 99999;
+    // }
+    //
+    // if(s>99999)
+    // {
+    //     printf("n cannot be greater than 99999. Using this value");
+    //     s = 99999;
+    // }
 
     // setting up neighbors for 1D splitting
     // Note that with 1D splitting, we have a limitation on how many processes 
@@ -528,7 +528,7 @@ int main(int argc, char **argv)
 
             // Step 5. Check if need to save, and if we do, save grid to pgm
             
-            if(t%s == 0)
+            if(s>0 && t%s == 0 && t<100000)
             {
                 sprintf(snapshot_name, "snapshot_%05d", t);
                 save_grid(snapshot_name, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data, my_rows, cols);
@@ -723,7 +723,7 @@ int main(int argc, char **argv)
             MPI_Request_free(&prev_send_request);
             MPI_Request_free(&next_send_request);
 
-            if(t%s == 0)
+            if(s>0 && t%s == 0 && t<100000)
             {
                 sprintf(snapshot_name, "snapshot_%05d", t);
                 save_grid(snapshot_name, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data, my_rows, cols);
