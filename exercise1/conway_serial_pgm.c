@@ -102,13 +102,8 @@ void upgrade_cell_static(unsigned char * restrict data_prev, unsigned char * res
     // suggest prefetching
     DATA(i,j) = DEAD;
 
-    // this makes the column index periodic (without branches) 
-    // for example, if j = 0, j-1 = -1, and -1%cols = -1. The last term 
-    // is true, so we obtain cols - 1 
-    // if j = col - 1 then j+1 = col (out of bounds). col%col = 0 and the 
-    // second term is 0 so we obtain that the new coordinate is 0.
-    register int jm1 = (j-1)%(int)cols + cols*((j-1)<0);
-    register int jp1 = (j+1)%(int)cols + cols*((j+1)<0);
+    register int jm1 = j==0 ? cols-1 : j-1;
+    register int jp1 = j==(cols-1) ? 0 : j+1;
     register int im1 = i-1;
     register int ip1 = i+1;
 
@@ -160,8 +155,8 @@ void upgrade_cell_static(unsigned char * restrict data_prev, unsigned char * res
 
 void upgrade_cell_ordered(unsigned char * data, int i, int j)
 {
-    register int jm1 = (j-1)%(int)cols + cols*((j-1)<0);
-    register int jp1 = (j+1)%(int)cols + cols*((j+1)<0);
+    register int jm1 = j==0 ? cols-1 : j-1;
+    register int jp1 = j==(cols-1) ? 0 : j+1;
     register int im1 = i-1;
     register int ip1 = i+1;
 
@@ -344,11 +339,15 @@ int main(int argc, char **argv)
 
         unsigned char *tmp_data = NULL;
         const int row_len_bytes = cols*sizeof(unsigned char);
+        int save_counter = 0;
+        const unsigned int rows_x_cols = rows*cols;
+        const unsigned int rows_x_cols_p_cols = rows_x_cols + cols;
+        
 
         for(int t = 1; t < n+1; ++t)
         {
-            memcpy(data_prev, data_prev + rows*cols, row_len_bytes);
-            memcpy(data_prev + rows*cols + cols, data_prev+cols, row_len_bytes);
+            memcpy(data_prev, data_prev + rows_x_cols, row_len_bytes);
+            memcpy(data_prev + rows_x_cols_p_cols, data_prev+cols, row_len_bytes);
 
             for(int row = 1; row < rows+1; ++row)
             {
@@ -357,11 +356,13 @@ int main(int argc, char **argv)
                     upgrade_cell_static(data_prev, data, row, col);
                 }
             }
+            ++save_counter;
 
-            if(s>0 && t%s == 0 && t<100000)
+            if(s>0 && save_counter == s && t<100000)
             {
                 sprintf(snapshot_name, "snapshot_%05d", t);
                 save_grid(snapshot_name, header, header_size, data, rows, cols);
+                save_counter = 0;
             }
 
             tmp_data = data;
@@ -453,12 +454,15 @@ int main(int argc, char **argv)
         }
 
         const int row_len_bytes = cols*sizeof(unsigned char);
+        int save_counter = 0;
+        const unsigned int rows_x_cols = rows*cols;
+        const unsigned int rows_x_cols_p_cols = rows_x_cols + cols;
 
         for(int t = 1; t < n+1; ++t)
         {
 
             // first we copy the bottom row into the top halo cell
-            memcpy(data, data + rows*cols, row_len_bytes);
+            memcpy(data, data + rows_x_cols, row_len_bytes);
 
             // then we process all cells starting from row 1 to row 
             // rows - 1. 
@@ -473,18 +477,20 @@ int main(int argc, char **argv)
             }
 
             // we copy row 1 into the bottom halo
-            memcpy(data + rows*cols + cols, data+cols, row_len_bytes);
+            memcpy(data + rows_x_cols_p_cols, data+cols, row_len_bytes);
 
             // we update the last row now that we have the updated information.
             for(int col = 0; col < cols; ++col)
             {
                 upgrade_cell_ordered(data, rows, col);
             }
+            ++save_counter;
 
-            if(s>0 && t%s == 0 && t<100000)
+            if(s>0 && save_counter == s && t<100000)
             {
                 sprintf(snapshot_name, "snapshot_%05d", t);
                 save_grid(snapshot_name, header, header_size, data, rows, cols);
+                save_counter = 0;
             }
 
         }
