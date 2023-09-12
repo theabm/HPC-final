@@ -304,6 +304,9 @@ int main(int argc, char **argv)
         const int MAX_THREADS = omp_get_max_threads();
         const int chunk = (rows*cols)/MAX_THREADS;
         const int row_len_bytes = cols*sizeof(unsigned char);
+        int save_counter = 0;
+        const unsigned int rows_x_cols = rows*cols;
+        const unsigned int rows_x_cols_p_cols = rows_x_cols + cols;
 
         #pragma omp parallel
         {
@@ -311,10 +314,10 @@ int main(int argc, char **argv)
             {
                 // copy row n into row 0
                 #pragma omp single nowait
-                memcpy(data_prev, data_prev + rows*cols, row_len_bytes);
+                memcpy(data_prev, data_prev + rows_x_cols, row_len_bytes);
                 // copy row 1 into row n+1
                 #pragma omp single
-                memcpy(data_prev + rows*cols + cols, data_prev+cols, row_len_bytes);
+                memcpy(data_prev + rows_x_cols_p_cols, data_prev+cols, row_len_bytes);
 
                 #pragma omp for schedule(dynamic, chunk)
                 for(int cell = 8; cell < (rows+1)*cols; ++cell)
@@ -327,10 +330,12 @@ int main(int argc, char **argv)
 
                 #pragma omp single
                 {
-                    if(s>0 && t%s == 0 && t<100000)
+                    ++save_counter;
+                    if(s>0 && save_counter == s && t<100000)
                     {
                         sprintf(snapshot_name, "snapshot_%05d", t);
                         save_grid(snapshot_name, header, header_size, data, rows, cols);
+                        save_counter = 0;
                     }
 
                     tmp_data = data;
@@ -424,12 +429,15 @@ int main(int argc, char **argv)
         }
 
         const int row_len_bytes = cols*sizeof(unsigned char);
+        int save_counter = 0;
+        const unsigned int rows_x_cols = rows*cols;
+        const unsigned int rows_x_cols_p_cols = rows_x_cols + cols;
 
         for(int t = 1; t < n+1; ++t)
         {
 
             // first we copy the bottom row into the top halo cell
-            memcpy(data, data + rows*cols, row_len_bytes);
+            memcpy(data, data + rows_x_cols, row_len_bytes);
 
             // then we process all cells starting from row 1 to row 
             // rows - 1. 
@@ -444,18 +452,20 @@ int main(int argc, char **argv)
             }
 
             // we copy row 1 into the bottom halo
-            memcpy(data + rows*cols + cols, data+cols, row_len_bytes);
+            memcpy(data + rows_x_cols_p_cols, data+cols, row_len_bytes);
 
             // we update the last row now that we have the updated information.
             for(int col = 0; col < cols; ++col)
             {
                 upgrade_cell_ordered(data, rows, col);
             }
+            ++save_counter;
 
-            if(s>0 && t%s == 0 && t<100000)
+            if(s>0 && save_counter == s && t<100000)
             {
                 sprintf(snapshot_name, "snapshot_%05d", t);
                 save_grid(snapshot_name, header, header_size, data, rows, cols);
+                save_counter = 0;
             }
 
         }

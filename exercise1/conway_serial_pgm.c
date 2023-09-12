@@ -34,7 +34,7 @@ int   rows   = K_DFLT;
 int   cols   = K_DFLT;
 int   e      = STATIC;
 int   n      = 10000;
-int   s      = 10000;
+int   s      = 0;
 char *fname  = NULL;
 
 void get_args( int argc, char **argv )
@@ -308,11 +308,11 @@ int main(int argc, char **argv)
         }
 
         unsigned char *tmp_data = NULL;
+
         const int row_len_bytes = cols*sizeof(unsigned char);
         int save_counter = 0;
         const unsigned int rows_x_cols = rows*cols;
         const unsigned int rows_x_cols_p_cols = rows_x_cols + cols;
-        
 
         for(int t = 1; t < n+1; ++t)
         {
