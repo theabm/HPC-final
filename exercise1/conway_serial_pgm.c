@@ -99,39 +99,12 @@ void save_grid(char * restrict fname, char * restrict header, int header_size, u
 
 void upgrade_cell_static(unsigned char * restrict data_prev, unsigned char * restrict data, int i, int j)
 {
-    // suggest prefetching
     DATA(i,j) = DEAD;
 
     register int jm1 = j==0 ? cols-1 : j-1;
     register int jp1 = j==(cols-1) ? 0 : j+1;
     register int im1 = i-1;
     register int ip1 = i+1;
-
-    // since we are processing elements sequentially, apart from boundary cells, 
-    // the indexes with j - 1 are in potentially loaded caches already since 
-    // we processed (i, j-1) previously. 
-    // So we have two options
-    // 1. (i, j-1) are in the same line as (i,j). In this case, all the elements 
-    // with j-1 are already in cache (a cache is surely longer than 2 bytes)
-    // So accessing these elements before is beneficial.
-    // This is the best case scenario. If we assume a cache line is 64 bytes, 
-    // then, we load 64 cells in a line. For 62 cells, the access pattern is HHHHHHHH = 100%. 
-    // while for the first cell, the access pattern is MMMHHHHH = 62%
-    // 2. (i, j-1) and (i, j) are in different cache lines. Then, since (i, j-1) 
-    // was processed previously, we are sure that (i-1, j-1), (i, j-1), and (i+1, j-1)
-    // are in the cache. So, in case the cache is full, and we need to flush these 
-    // lines out, we access them before.
-    // This is the worst case scenario.
-    // The access pattern is HHHMMHMH which is 5/8 = 62%
-    //
-    // So, every 64 bytes, we (62*100% + 2*62%)/64 = 98% on average.
-    //
-    //
-    // Unfortunately, corner cases and boundary cells bring this number down.
-    // 
-    // In the four corners, the access pattern is MMHMMMMH = 25%. 
-    // In the border cases, the situation is similar as explained above. 
-    // i.e either 100% or 62%.
     
     unsigned char tmp0=DATA_PREV(im1, jm1);
     unsigned char tmp3=DATA_PREV(i,jm1);
@@ -145,12 +118,9 @@ void upgrade_cell_static(unsigned char * restrict data_prev, unsigned char * res
     unsigned char tmp6=DATA_PREV(ip1,j);
     unsigned char tmp7=DATA_PREV(ip1,jp1);
 
-    register unsigned char n_alive_cells = tmp0+tmp1+tmp2+tmp3+tmp4+tmp5+tmp6+tmp7;
+    unsigned char n_alive_cells = tmp0+tmp1+tmp2+tmp3+tmp4+tmp5+tmp6+tmp7;
 
-    // the majority of cells will be dead and will stay dead 
-    // so by reordering the conditions, we enhance branch prediction
     DATA(i,j) = ALIVE*(n_alive_cells==3) + DATA_PREV(i,j)*(n_alive_cells==2);
-
 }
 
 void upgrade_cell_ordered(unsigned char * data, int i, int j)
