@@ -71,7 +71,7 @@ int   rows   = K_DFLT;
 int   cols   = K_DFLT;
 int   e      = STATIC;
 int   n      = 10000;
-int   s      = 1;
+int   s      = 0;
 char *fname  = NULL;
 
 void get_args( int argc, char **argv )
@@ -79,8 +79,10 @@ void get_args( int argc, char **argv )
     char *optstring = "irk:e:f:n:s:";
 
     int c;
-    while ((c = getopt(argc, argv, optstring)) != -1) {
-        switch(c) {
+    while ((c = getopt(argc, argv, optstring)) != -1)
+    {
+        switch(c)
+        {
 
             case 'i':
                 action = INIT; break;
@@ -118,7 +120,8 @@ void save_grid(char * restrict fname, char * restrict header, int header_size, u
 
     FILE * fh = fopen(fname, "wb");
 
-    if(fh == NULL){
+    if(fh == NULL)
+    {
         fprintf(stderr, "Error opening %s\n", fname);
         exit(0);
     }
@@ -227,7 +230,6 @@ void upgrade_cell_static(unsigned char * restrict data_prev, unsigned char * res
             DATA(ip1,jp1)+=0x02;
         }
     }
-
 }
 
 void upgrade_cell_ordered(unsigned char * data, int i, int j)
@@ -363,18 +365,18 @@ int main(int argc, char **argv){
 
     get_args(argc, argv);
 
-    if(n>99999)
-    {
-        printf("n cannot be greater than 99999. Using this value");
-        n = 99999;
-    }
+    // if(n>99999)
+    // {
+    //     printf("n cannot be greater than 99999. Using this value");
+    //     n = 99999;
+    // }
+    //
+    // if(s>99999)
+    // {
+    //     printf("n cannot be greater than 99999. Using this value");
+    //     s = 99999;
+    // }
 
-    if(s>99999)
-    {
-        printf("n cannot be greater than 99999. Using this value");
-        s = 99999;
-    }
-    
     if(action == INIT)
     {
         // init is done in the same way since we need to save a pgm file
@@ -384,9 +386,7 @@ int main(int argc, char **argv){
 
         data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
 
-        if(
-                !data
-                )
+        if(!data)
         {
             printf("Allocation failed.");
             exit(0);
@@ -471,20 +471,10 @@ int main(int argc, char **argv){
         data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
         data_prev = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
 
-        if(
-                data == NULL
-                || data_prev == NULL
-                )
+        if(!data || !data_prev)
         {
             printf("Allocation failed.");
             exit(0);
-        }
-
-        // initialize the halo regions to being DEAD
-        for(int j = 0; j<cols; ++j)
-        {
-            DATA(0,j) = DATA(rows + 1,j) = DATA_PREV(0,j)
-                = DATA_PREV(rows + 1,j) = DEAD;
         }
 
         int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
@@ -492,17 +482,15 @@ int main(int argc, char **argv){
 
         if(!header)
         {
-
             printf("Allocation failed.");
             exit(0);
-
         }
 
         sprintf(header, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
 
         FILE * fh = fopen(fname, "rb");
 
-        if(fh == NULL)
+        if(!fh)
         {
             fprintf(stderr, "Error opening %s\n", fname);
             exit(0);
@@ -544,13 +532,19 @@ int main(int argc, char **argv){
 
         // now we have preprocessed the grid to our desired format.
         char * snapshot_name = malloc(32);
-        if(snapshot_name == NULL)
+        if(!snapshot_name)
         {
             printf("Not enough space.");
             exit(0);
         }
 
         unsigned char *tmp_data = NULL;
+
+        const int row_len_bytes = cols*sizeof(unsigned char);
+        int save_counter = 0;
+        const unsigned int rows_x_cols = rows*cols;
+        const unsigned int rows_x_cols_p_cols = rows_x_cols + cols;
+        const int grid_size_bytes = rows*cols*sizeof(unsigned char);
 
         for(int t = 1; t < n+1; ++t)
         {
@@ -593,10 +587,10 @@ int main(int argc, char **argv){
 
 
             // copy data_prev into data (only internal columns)
-            memcpy(data+cols, data_prev+cols, cols*rows*sizeof(unsigned char));
+            memcpy(data+cols, data_prev+cols, grid_size_bytes);
 
             // copy row n into halo 0
-            memcpy(data, data + rows*cols, cols*sizeof(unsigned char));
+            memcpy(data, data + rows_x_cols, row_len_bytes);
 
             // update row 1 and 2
             // remember, we *look* at cell(i,j) in data_prev 
@@ -625,10 +619,10 @@ int main(int argc, char **argv){
             }
 
             // copy halo 0 back into row n
-            memcpy(data + rows*cols, data, cols*sizeof(unsigned char));
+            memcpy(data + rows_x_cols, data, row_len_bytes);
 
             // copy row 1 into halo n+1 
-            memcpy(data+rows*cols+cols, data+cols, cols*sizeof(unsigned char));
+            memcpy(data+rows_x_cols_p_cols, data+cols, row_len_bytes);
 
             // we go through the array (from row 3 to rows)
             for(int i = 3; i < rows+1; ++i)
@@ -647,7 +641,9 @@ int main(int argc, char **argv){
             
             
             // we copy halo n+1 into row 1
-            memcpy(data+cols, data+rows*cols+cols, cols*sizeof(unsigned char));
+            memcpy(data+cols, data+rows_x_cols_p_cols, row_len_bytes);
+
+            ++save_counter;
 
             // now comes the (ugly) of writing to file.
             // While this process is faster because of the reasons cited above, 
@@ -661,9 +657,9 @@ int main(int argc, char **argv){
             // region at the moment), then, we will do bitwise AND with 0x01 
             // with each cell to extract the last bit. Finally, we write data_prev
             
-            if(t%s == 0)
+            if(s>0 && save_counter == s && t<100000)
             {
-                memcpy(data_prev + cols, data + cols, cols*rows*sizeof(unsigned char));
+                memcpy(data_prev + cols, data + cols, grid_size_bytes);
 
                 bitwise_and(data_prev, cols, end);
 
@@ -672,6 +668,7 @@ int main(int argc, char **argv){
 
                 sprintf(snapshot_name, "snapshot_%05d", t);
                 save_grid(snapshot_name, header, header_size, data_prev, rows, cols);
+                save_counter = 0;
             }
 
             // Finally, we need to swap data and data_prev.
@@ -702,7 +699,7 @@ int main(int argc, char **argv){
 
         // we know that the magic number is P5 so we set the offset as the  
         // length of P5 * sizeof(char)
-        if(fh_posix == NULL)
+        if(!fh_posix)
         {
             fprintf(stderr, "Error opening %s\n", fname);
             exit(0);
@@ -734,19 +731,10 @@ int main(int argc, char **argv){
         data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
         data_prev = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
 
-        if(
-                data == NULL
-                || data_prev == NULL
-                )
+        if(!data || !data_prev)
         {
             printf("Allocation failed.");
             exit(0);
-        }
-
-        // initialize the halo regions to being DEAD
-        for(int j = 0; j<cols; ++j)
-        {
-            DATA(0,j) = DATA(rows + 1,j) = DEAD;
         }
 
         int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
@@ -754,17 +742,15 @@ int main(int argc, char **argv){
 
         if(!header)
         {
-
             printf("Allocation failed.");
             exit(0);
-
         }
 
         sprintf(header, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
 
         FILE * fh = fopen(fname, "rb");
 
-        if(fh == NULL)
+        if(!fh)
         {
             fprintf(stderr, "Error opening %s\n", fname);
             exit(0);
@@ -804,17 +790,23 @@ int main(int argc, char **argv){
 
         // now we have preprocessed the grid to our desired format.
         char * snapshot_name = malloc(32);
-        if(snapshot_name == NULL)
+        if(!snapshot_name)
         {
             printf("Not enough space.");
             exit(0);
         }
 
+        const int row_len_bytes = cols*sizeof(unsigned char);
+        int save_counter = 0;
+        const unsigned int rows_x_cols = rows*cols;
+        const unsigned int rows_x_cols_p_cols = rows_x_cols + cols;
+        const int grid_size_bytes = rows*cols*sizeof(unsigned char);
+
         for(int t = 1; t < n+1; ++t)
         {
             
             // We copy the bottom row into the top halo cell. 
-            memcpy(data, data + rows*cols, cols*sizeof(unsigned char));
+            memcpy(data, data + rows_x_cols, row_len_bytes);
 
             // we can't do the same thing that we did in v1 where we process 
             // the whole internal portion except the last row, and then copy 
@@ -841,7 +833,7 @@ int main(int argc, char **argv){
             }
 
             // copy top halo (possibly modified) back into last row
-            memcpy(data + rows*cols, data, cols*sizeof(unsigned char));
+            memcpy(data + rows_x_cols, data, row_len_bytes);
 
             // proceed with rows 2 until n-1
             for(int i = 2; i < rows; ++i)
@@ -857,7 +849,7 @@ int main(int argc, char **argv){
             }
 
             // then we copy the first row into the last halo cell
-            memcpy(data+rows*cols+cols, data+cols, cols*sizeof(unsigned char));
+            memcpy(data+rows_x_cols_p_cols, data+cols, row_len_bytes);
 
             // we update the last row now that we have the updated information.
             for(int j = 0; j < cols; ++j)
@@ -871,11 +863,13 @@ int main(int argc, char **argv){
 
             // also, processing the last row may have affected the bottom halo 
             // so once we are done, we have to copy this back into the first row
-            memcpy(data + cols, data+rows*cols+cols, cols*sizeof(unsigned char));
+            memcpy(data + cols, data+rows_x_cols_p_cols, row_len_bytes);
 
-            if(t%s == 0)
+            ++save_counter;
+
+            if(s>0 && save_counter == s && t<100000)
             {
-                memcpy(data_prev + cols, data + cols, cols*rows*sizeof(unsigned char));
+                memcpy(data_prev + cols, data + cols, grid_size_bytes);
 
                 bitwise_and(data_prev, cols, end);
 
@@ -884,6 +878,7 @@ int main(int argc, char **argv){
 
                 sprintf(snapshot_name, "snapshot_%05d", t);
                 save_grid(snapshot_name, header, header_size, data_prev, rows, cols);
+                save_counter = 0;
             }
 
             // data_prev will contain the updated cells (ready for a new 
