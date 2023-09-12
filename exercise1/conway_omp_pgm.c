@@ -321,12 +321,6 @@ int main(int argc, char **argv)
             memcpy(data_prev, data_prev + rows*cols, row_len_bytes);
             memcpy(data_prev + rows*cols + cols, data_prev+cols, row_len_bytes);
 
-            // for(int col=0; col<cols;++col)
-            // {
-            //     DATA_PREV(0,col) = DATA_PREV(rows,col);
-            //     DATA_PREV(rows+1,col) = DATA_PREV(1,col);
-            // }
-
             #pragma omp parallel for schedule(dynamic, chunk)
             for(int row = 1; row < rows+1; ++row)
             {
