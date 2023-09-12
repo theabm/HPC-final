@@ -275,10 +275,8 @@ int main(int argc, char **argv)
 
         if(!header)
         {
-
             printf("Allocation failed.");
             exit(0);
-
         }
 
         sprintf(header, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
@@ -385,12 +383,6 @@ int main(int argc, char **argv)
             exit(0);
         }
 
-        // initialize the halo regions to being DEAD
-        for(int j = 0; j<cols; ++j)
-        {
-            DATA(0,j) = DATA(rows + 1,j) = DEAD;
-        }
-
         int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
         char * header = malloc(header_size + 1);
 
@@ -423,20 +415,20 @@ int main(int argc, char **argv)
         fclose(fh);
 
         char * snapshot_name = malloc(32);
+
         if(!snapshot_name)
         {
             printf("Not enough space.");
             exit(0);
         }
 
+        const int row_len_bytes = cols*sizeof(unsigned char);
+
         for(int t = 1; t < n+1; ++t)
         {
 
             // first we copy the bottom row into the top halo cell
-            for(int col=0; col<cols;++col)
-            {
-                DATA(0,col) = DATA(rows,col);
-            }
+            memcpy(data, data + rows*cols, row_len_bytes);
 
             // then we process all cells starting from row 1 to row 
             // rows - 1. 
@@ -451,10 +443,7 @@ int main(int argc, char **argv)
             }
 
             // we copy row 1 into the bottom halo
-            for(int col=0; col<cols;++col)
-            {
-                DATA(rows+1,col) = DATA(1,col);
-            }
+            memcpy(data + rows*cols + cols, data+cols, row_len_bytes);
 
             // we update the last row now that we have the updated information.
             for(int col = 0; col < cols; ++col)
