@@ -302,33 +302,43 @@ int main(int argc, char **argv)
         unsigned char *tmp_data = NULL;
 
         const int MAX_THREADS = omp_get_max_threads();
-        const int chunk = rows*cols/MAX_THREADS;
+        const int chunk = (rows*cols)/MAX_THREADS;
         const int row_len_bytes = cols*sizeof(unsigned char);
 
-        for(int t = 1; t < n+1; ++t)
+        #pragma omp parallel
         {
-            memcpy(data_prev, data_prev + rows*cols, row_len_bytes);
-            memcpy(data_prev + rows*cols + cols, data_prev+cols, row_len_bytes);
-
-            #pragma omp parallel for schedule(dynamic, chunk)
-            for(int cell = 8; cell < (rows+1)*cols; ++cell)
+            for(int t = 1; t < n+1; ++t)
             {
+                // copy row n into row 0
+                #pragma omp single nowait
+                memcpy(data_prev, data_prev + rows*cols, row_len_bytes);
+                // copy row 1 into row n+1
+                #pragma omp single
+                memcpy(data_prev + rows*cols + cols, data_prev+cols, row_len_bytes);
+
+                #pragma omp for schedule(dynamic, chunk)
+                for(int cell = 8; cell < (rows+1)*cols; ++cell)
+                {
                     int i = cell/cols;
                     int tmp2 = -i*cols;
                     int j = cell + tmp2;
                     upgrade_cell_static(data_prev, data, i, j);
-            }
+                }
 
-            if(s>0 && t%s == 0 && t<100000)
-            {
-                sprintf(snapshot_name, "snapshot_%05d", t);
-                save_grid(snapshot_name, header, header_size, data, rows, cols);
-            }
+                #pragma omp single
+                {
+                    if(s>0 && t%s == 0 && t<100000)
+                    {
+                        sprintf(snapshot_name, "snapshot_%05d", t);
+                        save_grid(snapshot_name, header, header_size, data, rows, cols);
+                    }
 
-            tmp_data = data;
-            data = data_prev;
-            data_prev = tmp_data;
-            tmp_data = NULL;
+                    tmp_data = data;
+                    data = data_prev;
+                    data_prev = tmp_data;
+                    tmp_data = NULL;
+                }
+            }
         }
     
         free(snapshot_name);
