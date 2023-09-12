@@ -152,21 +152,13 @@ void save_grid(char * restrict fname, MPI_Comm comm, int rank, char * restrict h
 
 void upgrade_cell_static(unsigned char * restrict data_prev, unsigned char * restrict data, int i, int j)
 {
-
     DATA(i,j) = DEAD;
-    // this makes the column index periodic (without branches) 
-    // for example, if j = 0, j-1 = -1, and -1%cols = -1. The last term 
-    // is true, so we obtain cols - 1 
-    // if j = col - 1 then j+1 = col (out of bounds). col%col = 0 and the 
-    // second term is 0 so we obtain that the new coordinate is 0.
-    register int jm1 = (j-1)%(int)cols + cols*((j-1)<0);
-    register int jp1 = (j+1)%(int)cols + cols*((j+1)<0);
+
+    register int jm1 = j==0 ? cols-1 : j-1;
+    register int jp1 = j==(cols-1) ? 0 : j+1;
     register int im1 = i-1;
     register int ip1 = i+1;
-
-    // note that the periodicity of the row index is handled by the message 
-    // passing
-
+    
     unsigned char tmp0=DATA_PREV(im1, jm1);
     unsigned char tmp3=DATA_PREV(i,jm1);
     unsigned char tmp5=DATA_PREV(ip1,jm1);
@@ -179,17 +171,15 @@ void upgrade_cell_static(unsigned char * restrict data_prev, unsigned char * res
     unsigned char tmp6=DATA_PREV(ip1,j);
     unsigned char tmp7=DATA_PREV(ip1,jp1);
 
-    register unsigned char n_alive_cells = tmp0+tmp1+tmp2+tmp3+tmp4+tmp5+tmp6+tmp7;
+    unsigned char n_alive_cells = tmp0+tmp1+tmp2+tmp3+tmp4+tmp5+tmp6+tmp7;
 
-    // the majority of cells will be dead and will stay dead 
-    // so by reordering the conditions, we enhance branch prediction
     DATA(i,j) = ALIVE*(n_alive_cells==3) + DATA_PREV(i,j)*(n_alive_cells==2);
 }
 
 void upgrade_cell_ordered(unsigned char * data, int i, int j)
 {
-    register int jm1 = (j-1)%(int)cols + cols*((j-1)<0);
-    register int jp1 = (j+1)%(int)cols + cols*((j+1)<0);
+    register int jm1 = j==0 ? cols-1 : j-1;
+    register int jp1 = j==(cols-1) ? 0 : j+1;
     register int im1 = i-1;
     register int ip1 = i+1;
 
