@@ -101,8 +101,8 @@ void upgrade_cell_static(unsigned char * restrict data_prev, unsigned char * res
 {
     unsigned char count_of_neighbors;
 
-    register int jm1 = (j-1)%(int)cols + cols*((j-1)<0);
-    register int jp1 = (j+1)%(int)cols + cols*((j+1)<0);
+    register int jm1 = j==0 ? cols-1 : j-1;
+    register int jp1 = j==(cols-1) ? 0 : j+1;
     register int im1 = i-1;
     register int ip1 = i+1;
     
@@ -200,8 +200,8 @@ void upgrade_cell_ordered(unsigned char * data, int i, int j)
 {
     unsigned char count_of_neighbors;
 
-    register int jm1 = (j-1)%(int)cols + cols*((j-1)<0);
-    register int jp1 = (j+1)%(int)cols + cols*((j+1)<0);
+    register int jm1 = j==0 ? cols-1 : j-1;
+    register int jp1 = j==(cols-1) ? 0 : j+1;
     register int im1 = i-1;
     register int ip1 = i+1;
 
@@ -286,8 +286,8 @@ void display_args(){
 void preprocess_cell(unsigned char * data_array, int i, int j, int cols)
 {
     // calculate j+1, j-1 with wrapping
-    register int jm1 = (j-1)%(int)cols + cols*((j-1)<0);
-    register int jp1 = (j+1)%(int)cols + cols*((j+1)<0);
+    register int jm1 = j==0 ? cols-1 : j-1;
+    register int jp1 = j==(cols-1) ? 0 : j+1;
     register int im1 = i-1;
     register int ip1 = i+1;
 
