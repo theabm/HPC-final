@@ -388,13 +388,6 @@ int main(int argc, char **argv)
             MPI_Abort(MPI_COMM_WORLD, MPI_ERR_NO_SPACE);
         }
         
-        // initialize the halo regions to being DEAD
-        for(int j = 0; j<cols; ++j)
-        {
-            DATA(0,j) = DATA(my_rows + 1,j) = DATA_PREV(0,j)
-                = DATA_PREV(my_rows + 1,j) = DEAD;
-        }
-
         int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
         char * header = malloc(header_size + 1);
 
@@ -596,11 +589,6 @@ int main(int argc, char **argv)
             MPI_Abort(MPI_COMM_WORLD, MPI_ERR_NO_SPACE);
         }
         
-        for(int j = 0; j<cols; ++j)
-        {
-            DATA(0,j) = DATA(my_rows + 1,j) = DEAD;
-        }
-
         int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
         char * header = malloc(header_size + 1);
 
