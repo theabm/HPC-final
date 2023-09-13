@@ -17,6 +17,8 @@
 #define ALIVE 1
 #define MAX_VAL 1
 
+#define CACHE_LINE_SIZE 64
+
 #define K_DFLT 100
 
 #define INIT 1
@@ -349,7 +351,7 @@ int main(int argc, char **argv){
         // we add two rows for halo regions
         const int augmented_rows = rows + 2;
 
-        data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
+        data = (unsigned char *) aligned_alloc(CACHE_LINE_SIZE, augmented_rows * cols * sizeof(unsigned char));
 
         if(!data)
         {
@@ -431,8 +433,8 @@ int main(int argc, char **argv){
         const int end = (rows+1)*cols;
         const int augmented_rows = rows + 2;
 
-        data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
-        data_prev = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
+        data = (unsigned char *) aligned_alloc(CACHE_LINE_SIZE, augmented_rows * cols * sizeof(unsigned char));
+        data_prev = (unsigned char *) aligned_alloc(CACHE_LINE_SIZE, augmented_rows * cols * sizeof(unsigned char));
 
         if(!data || !data_prev)
         {
@@ -723,8 +725,8 @@ int main(int argc, char **argv){
         const int end = (rows+1)*cols;
         const int augmented_rows = rows + 2;
 
-        data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
-        data_prev = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
+        data = (unsigned char *) aligned_alloc(CACHE_LINE_SIZE, augmented_rows * cols * sizeof(unsigned char));
+        data_prev = (unsigned char *) aligned_alloc(CACHE_LINE_SIZE, augmented_rows * cols * sizeof(unsigned char));
 
         if(
                 data == NULL

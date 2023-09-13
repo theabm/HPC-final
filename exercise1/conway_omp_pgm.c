@@ -15,6 +15,8 @@
 #define ALIVE 1
 #define MAX_VAL 1
 
+#define CACHE_LINE_SIZE 64
+
 #define K_DFLT 100
 
 #define INIT 1
@@ -178,7 +180,7 @@ int main(int argc, char **argv)
         // we add two rows for halo regions
         const int augmented_rows = rows + 2;
 
-        data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
+        data = (unsigned char *) aligned_alloc(CACHE_LINE_SIZE, augmented_rows * cols * sizeof(unsigned char));
 
         if(!data)
         {
@@ -252,8 +254,8 @@ int main(int argc, char **argv)
 
         const int augmented_rows = rows + 2;
 
-        data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
-        data_prev = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
+        data = (unsigned char *) aligned_alloc(CACHE_LINE_SIZE, augmented_rows * cols * sizeof(unsigned char));
+        data_prev = (unsigned char *) aligned_alloc(CACHE_LINE_SIZE, augmented_rows * cols * sizeof(unsigned char));
 
         if(!data || !data_prev)
         {
@@ -302,7 +304,10 @@ int main(int argc, char **argv)
         unsigned char *tmp_data = NULL;
 
         const int MAX_THREADS = omp_get_max_threads();
-        const int chunk = rows*cols/MAX_THREADS;
+        int chunk = rows*cols/MAX_THREADS;
+        int remainder = chunk%CACHE_LINE_SIZE;
+        // ensure chunk is a multiple of CACHE_LINE_SIZE bytes 
+        chunk = remainder ==0 ? chunk : chunk+CACHE_LINE_SIZE-remainder;
         const int row_len_bytes = cols*sizeof(unsigned char);
         int save_counter = 0;
         const unsigned int rows_x_cols = rows*cols;
@@ -376,7 +381,7 @@ int main(int argc, char **argv)
 
         const int augmented_rows = rows + 2;
 
-        data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
+        data = (unsigned char *) aligned_alloc(CACHE_LINE_SIZE, augmented_rows * cols * sizeof(unsigned char));
 
         if(!data)
         {
