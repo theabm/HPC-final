@@ -37,7 +37,7 @@ int   rows   = K_DFLT;
 int   cols   = K_DFLT;
 int   e      = STATIC;
 int   n      = 10000;
-int   s      = 1;
+int   s      = 0;
 char *fname  = NULL;
 
 void get_args( int argc, char **argv )
@@ -330,17 +330,17 @@ int main(int argc, char **argv){
 
     get_args(argc, argv);
 
-    if(n>99999)
-    {
-        printf("n cannot be greater than 99999. Using this value");
-        n = 99999;
-    }
-
-    if(s>99999)
-    {
-        printf("n cannot be greater than 99999. Using this value");
-        s = 99999;
-    }
+    // if(n>99999)
+    // {
+    //     printf("n cannot be greater than 99999. Using this value");
+    //     n = 99999;
+    // }
+    //
+    // if(s>99999)
+    // {
+    //     printf("n cannot be greater than 99999. Using this value");
+    //     s = 99999;
+    // }
     
     if(action == INIT)
     {
@@ -509,6 +509,11 @@ int main(int argc, char **argv){
         }
 
         unsigned char *tmp_data = NULL;
+        const int row_len_bytes = cols*sizeof(unsigned char);
+        int save_counter = 0;
+        const unsigned int rows_x_cols = rows*cols;
+        const unsigned int rows_x_cols_p_cols = rows_x_cols + cols;
+        const int grid_size_bytes = rows*cols*sizeof(unsigned char);
 
         for(int t = 1; t < n+1; ++t)
         {
@@ -554,8 +559,8 @@ int main(int argc, char **argv){
             // This may be a little worse for cache friendliness, but it is 
             // the easiest solution.
 
-            memcpy(data+cols, data_prev+cols, cols*rows*sizeof(unsigned char));
-            memcpy(data, data + rows*cols, cols*sizeof(unsigned char));
+            memcpy(data+cols, data_prev+cols, grid_size_bytes);
+            memcpy(data, data + rows_x_cols, row_len_bytes);
 
             // we cant pararellize these two, as would have race conditions
             // however, we can process them together to exploit data locality 
@@ -590,12 +595,12 @@ int main(int argc, char **argv){
                 #pragma omp section 
                 {
                     // copy halo 0 back into row n
-                    memcpy(data + rows*cols, data, cols*sizeof(unsigned char));
+                    memcpy(data + rows_x_cols, data, row_len_bytes);
                 }
                 #pragma omp section
                 {
                     // copy halo 1 into row n+1
-                    memcpy(data+rows*cols+cols, data+cols, cols*sizeof(unsigned char));
+                    memcpy(data+rows_x_cols_p_cols, data+cols, row_len_bytes);
                 }
             }
             
@@ -644,11 +649,12 @@ int main(int argc, char **argv){
 
             }
 
-            memcpy(data+cols, data+rows*cols+cols, cols*sizeof(unsigned char));
+            memcpy(data+cols, data+rows_x_cols_p_cols, row_len_bytes);
 
-            if(t%s == 0)
+            ++save_counter;
+            if(s>0 && save_counter == s && t<100000)
             {
-                memcpy(data_prev + cols, data + cols, cols*rows*sizeof(unsigned char));
+                memcpy(data_prev + cols, data + cols, grid_size_bytes);
 
                 bitwise_and(data_prev, cols, end);
 
@@ -657,6 +663,7 @@ int main(int argc, char **argv){
 
                 sprintf(snapshot_name, "snapshot_%05d", t);
                 save_grid(snapshot_name, header, header_size, data_prev, rows, cols);
+                save_counter = 0;
             }
 
             // Finally, we need to swap data and data_prev.
@@ -796,11 +803,17 @@ int main(int argc, char **argv){
             exit(0);
         }
 
+        const int row_len_bytes = cols*sizeof(unsigned char);
+        int save_counter = 0;
+        const unsigned int rows_x_cols = rows*cols;
+        const unsigned int rows_x_cols_p_cols = rows_x_cols + cols;
+        const int grid_size_bytes = rows*cols*sizeof(unsigned char);
+
         for(int t = 1; t < n+1; ++t)
         {
             
             // We copy the bottom row into the top halo cell. 
-            memcpy(data, data + rows*cols, cols*sizeof(unsigned char));
+            memcpy(data, data + rows_x_cols, row_len_bytes);
 
             // we can't do the same thing that we did in v1 where we process 
             // the whole internal portion except the last row, and then copy 
@@ -827,7 +840,7 @@ int main(int argc, char **argv){
             }
 
             // copy top halo (possibly modified) back into last row
-            memcpy(data + rows*cols, data, cols*sizeof(unsigned char));
+            memcpy(data + rows_x_cols, data, row_len_bytes);
 
             // proceed with rows 2 until n-1
             for(int i = 2; i < rows; ++i)
@@ -843,7 +856,7 @@ int main(int argc, char **argv){
             }
 
             // then we copy the first row into the last halo cell
-            memcpy(data+rows*cols+cols, data+cols, cols*sizeof(unsigned char));
+            memcpy(data+rows_x_cols_p_cols, data+cols, row_len_bytes);
 
             // we update the last row now that we have the updated information.
             for(int j = 0; j < cols; ++j)
@@ -857,11 +870,13 @@ int main(int argc, char **argv){
 
             // also, processing the last row may have affected the bottom halo 
             // so once we are done, we have to copy this back into the first row
-            memcpy(data + cols, data+rows*cols+cols, cols*sizeof(unsigned char));
+            memcpy(data + cols, data+rows_x_cols_p_cols, row_len_bytes);
 
-            if(t%s == 0)
+            ++save_counter;
+
+            if(s>0 && save_counter == s && t<100000)
             {
-                memcpy(data_prev + cols, data + cols, cols*rows*sizeof(unsigned char));
+                memcpy(data_prev + cols, data + cols, grid_size_bytes);
 
                 bitwise_and(data_prev, cols, end);
 
@@ -870,6 +885,7 @@ int main(int argc, char **argv){
 
                 sprintf(snapshot_name, "snapshot_%05d", t);
                 save_grid(snapshot_name, header, header_size, data_prev, rows, cols);
+                save_counter = 0;
             }
 
             // data_prev will contain the updated cells (ready for a new 
