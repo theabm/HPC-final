@@ -313,8 +313,13 @@ int main(int argc, char **argv)
             memcpy(data_prev, data_prev + rows_x_cols, row_len_bytes);
             memcpy(data_prev + rows_x_cols_p_cols, data_prev+cols, row_len_bytes);
 
+            // we change to a for loop over the cells I need to process 
+            // because this makes the work division better. 
+            // before, we were cycling from row 1 to row n 
+            // now, we number each cell from 0 onways, and 
+            // we start from cell cols process rows*cols cells.
             #pragma omp parallel for schedule(dynamic, chunk)
-            for(int cell = 8; cell < (rows+1)*cols; ++cell)
+            for(int cell = cols; cell < (rows+1)*cols; ++cell)
             {
                     int i = cell/cols;
                     int tmp2 = -i*cols;

@@ -34,7 +34,7 @@ int   rows   = K_DFLT;
 int   cols   = K_DFLT;
 int   e      = STATIC;
 int   n      = 10000;
-int   s      = 1;
+int   s      = 0;
 char *fname  = NULL;
 
 void get_args( int argc, char **argv )
@@ -499,12 +499,14 @@ int main(int argc, char **argv)
             // These are row 1 and row my_rows
 
             // Step 4. Update limiting rows (row 1 and row my_rows)
-            // If my rows = 1 this step will be done twice, however with big 
-            // matrices we wont get to this case, and with small matrices, 
-            // the difference will be negligible.
             for(int col=0; col<cols; ++col)
             {
                 upgrade_cell_static(data_prev, data, 1, col);
+            }
+
+            // if my_rows=1 this is skipped
+            for(int col=0; col<cols*(my_rows>1); ++col)
+            {
                 upgrade_cell_static(data_prev, data, my_rows, col);
             }
 

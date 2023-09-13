@@ -320,7 +320,7 @@ int main(int argc, char **argv)
                 memcpy(data_prev + rows_x_cols_p_cols, data_prev+cols, row_len_bytes);
 
                 #pragma omp for schedule(dynamic, chunk)
-                for(int cell = 8; cell < (rows+1)*cols; ++cell)
+                for(int cell = cols; cell < (rows+1)*cols; ++cell)
                 {
                     int i = cell/cols;
                     int tmp2 = -i*cols;
