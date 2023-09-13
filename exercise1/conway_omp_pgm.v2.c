@@ -304,10 +304,12 @@ int main(int argc, char **argv)
         unsigned char *tmp_data = NULL;
 
         const int MAX_THREADS = omp_get_max_threads();
+
         int chunk = rows*cols/MAX_THREADS;
         int remainder = chunk%CACHE_LINE_SIZE;
         // ensure chunk is a multiple of CACHE_LINE_SIZE bytes 
-        chunk = remainder ==0 ? chunk : chunk+CACHE_LINE_SIZE-remainder;
+        chunk = remainder==0 ? chunk : chunk+CACHE_LINE_SIZE-remainder;
+
         const int row_len_bytes = cols*sizeof(unsigned char);
         int save_counter = 0;
         const unsigned int rows_x_cols = rows*cols;

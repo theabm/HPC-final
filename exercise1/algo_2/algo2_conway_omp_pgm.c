@@ -511,6 +511,11 @@ int main(int argc, char **argv){
         }
 
         unsigned char *tmp_data = NULL;
+
+        const int MAX_THREADS = omp_get_max_threads();
+
+        int chunk = (rows-2)/MAX_THREADS/3;
+
         const int row_len_bytes = cols*sizeof(unsigned char);
         int save_counter = 0;
         const unsigned int rows_x_cols = rows*cols;
@@ -606,7 +611,7 @@ int main(int argc, char **argv){
                 }
             }
             
-            #pragma omp parallel for schedule(dynamic)
+            #pragma omp parallel for schedule(dynamic,chunk)
             for(int i = 3; i < rows+1; i+=3)
             {
                 for(int j = 0; j < cols; ++j)
@@ -621,7 +626,7 @@ int main(int argc, char **argv){
 
             }
 
-            #pragma omp parallel for schedule(dynamic)
+            #pragma omp parallel for schedule(dynamic,chunk)
             for(int i = 4; i < rows+1; i+=3)
             {
                 for(int j = 0; j < cols; ++j)
@@ -636,7 +641,7 @@ int main(int argc, char **argv){
 
             }
 
-            #pragma omp parallel for schedule(dynamic)
+            #pragma omp parallel for schedule(dynamic,chunk)
             for(int i = 5; i < rows+1; i+=3)
             {
                 for(int j = 0; j < cols; ++j)
