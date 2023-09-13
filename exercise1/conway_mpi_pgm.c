@@ -425,6 +425,10 @@ int main(int argc, char **argv)
 
         unsigned char *tmp_data = NULL;
 
+        int save_counter = 0;
+        const unsigned int my_rows_x_cols = my_rows*cols;
+        const unsigned int my_rows_x_cols_p_cols = my_rows_x_cols + cols;
+
         for(int t = 1; t < n+1; ++t)
         {
 
@@ -443,12 +447,12 @@ int main(int argc, char **argv)
             // send row: 1 to the previous rank
             MPI_Isend(data_prev + cols, cols, MPI_CHAR, prev, prev_tag, MPI_COMM_WORLD, &prev_send_request);
             // send row: my_rows to next rank
-            MPI_Isend(data_prev + my_rows*cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request);
+            MPI_Isend(data_prev + my_rows_x_cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request);
 
             // receive from prev and put in row 0 (halo region)
             MPI_Irecv(data_prev, cols, MPI_CHAR, prev, next_tag, MPI_COMM_WORLD, &prev_recv_request);
             // receive from next and put in row my_rows + 1 (halo region)
-            MPI_Irecv(data_prev + cols*my_rows + cols, cols, MPI_CHAR, next, prev_tag, MPI_COMM_WORLD, &next_recv_request);
+            MPI_Irecv(data_prev + my_rows_x_cols_p_cols, cols, MPI_CHAR, next, prev_tag, MPI_COMM_WORLD, &next_recv_request);
 
             // Once the send and receive have completed, each process should 
             // have the halo regions. So we can update the entire grid. 
@@ -510,10 +514,12 @@ int main(int argc, char **argv)
 
             // Step 5. Check if need to save, and if we do, save grid to pgm
             
-            if(s>0 && t%s == 0 && t<100000)
+            ++save_counter;
+            if(s>0 && save_counter == s && t<100000)
             {
                 sprintf(snapshot_name, "snapshot_%05d", t);
                 save_grid(snapshot_name, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data, my_rows, cols);
+                save_counter = 0;
             }
 
             // printf("time step %d\n", t);
@@ -623,6 +629,10 @@ int main(int argc, char **argv)
         const int prev_tag = 0; 
         const int next_tag = 1;
 
+        int save_counter = 0;
+        const unsigned int my_rows_x_cols = my_rows*cols;
+        const unsigned int my_rows_x_cols_p_cols = my_rows_x_cols + cols;
+
         for(int t = 1; t < n+1; ++t)
         {
             // for ordered evolution, we cannot parallelize, and each process 
@@ -634,7 +644,7 @@ int main(int argc, char **argv)
             // until the top halo row has been received to start working on 
             // its grid.
             MPI_Irecv(data, cols, MPI_CHAR, prev, next_tag, MPI_COMM_WORLD, &prev_recv_request);
-            MPI_Irecv(data + cols*my_rows + cols, cols, MPI_CHAR, next, prev_tag, MPI_COMM_WORLD, &next_recv_request);
+            MPI_Irecv(data + my_rows_x_cols_p_cols, cols, MPI_CHAR, next, prev_tag, MPI_COMM_WORLD, &next_recv_request);
 
             // however, each process will also have to send its top row 
             // (the bottom halo row for the previous process) which is necessary 
@@ -645,10 +655,7 @@ int main(int argc, char **argv)
 
             // to get things started for rank 0, this is the first forward 
             // message of the top halo row.
-            if(rank == size-1)
-            {
-                MPI_Isend(data + my_rows*cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request);
-            }
+            if(rank == size-1) { MPI_Isend(data + my_rows_x_cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request); }
 
             // All processes will wait until receive of top halo row is complete 
             // (since they need it to start ordered evolution)
@@ -694,7 +701,7 @@ int main(int argc, char **argv)
                 
                 // all except process n-1 because this will be taken care of in the 
                 // next generation
-                if(rank<(size-1)){ MPI_Isend(data + my_rows*cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request);}
+                if(rank<(size-1)){ MPI_Isend(data + my_rows_x_cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request);}
 
             }
             else
@@ -714,7 +721,7 @@ int main(int argc, char **argv)
 
                 // all ranks except last, send their last row (the same one )
                 // to the next rank
-                if(rank<(size-1)){ MPI_Isend(data + my_rows*cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request);}
+                if(rank<(size-1)){ MPI_Isend(data + my_rows_x_cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request);}
             }
 
             MPI_Barrier(MPI_COMM_WORLD);
@@ -722,10 +729,12 @@ int main(int argc, char **argv)
             MPI_Request_free(&prev_send_request);
             MPI_Request_free(&next_send_request);
 
-            if(s>0 && t%s == 0 && t<100000)
+            ++save_counter;
+            if(s>0 && save_counter == s && t<100000)
             {
                 sprintf(snapshot_name, "snapshot_%05d", t);
                 save_grid(snapshot_name, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data, my_rows, cols);
+                save_counter = 0;
             }
 
         }
