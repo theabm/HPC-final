@@ -461,6 +461,7 @@ int main(int argc, char **argv)
             // rows 2 and my_rows - 1 (look at diagram above)
 
             // Step 2. Process internal cells to hide latency
+            // Note that if my_rows = 1 this will be skipped
 
             for(int row = 2; row < my_rows; ++row)
             {
@@ -494,6 +495,9 @@ int main(int argc, char **argv)
             // These are row 1 and row my_rows
 
             // Step 4. Update limiting rows (row 1 and row my_rows)
+            // If my rows = 1 this step will be done twice, however with big 
+            // matrices we wont get to this case, and with small matrices, 
+            // the difference will be negligible.
             for(int col=0; col<cols; ++col)
             {
                 upgrade_cell_static(data_prev, data, 1, col);
@@ -635,8 +639,8 @@ int main(int argc, char **argv)
             // however, each process will also have to send its top row 
             // (the bottom halo row for the previous process) which is necessary 
             // for the previous process to calculate the grid.
-            // However, this excludes rank 0, because it needs to send its top 
-            // to rank size-1 row only after it has been updated 
+            // However, this excludes rank 0, because it needs to send its first
+            // row to rank size-1 row only AFTER it has been updated 
             if(rank != 0){ MPI_Isend(data + cols, cols, MPI_CHAR, prev, prev_tag, MPI_COMM_WORLD, &prev_send_request);}
 
             // to get things started for rank 0, this is the first forward 
@@ -656,7 +660,7 @@ int main(int argc, char **argv)
             // Since we have received the top halo row, we can process all 
             // data EXCEPT the last row, since we are not sure that we have 
             // received the bottom halo yet.
-            // issue when my_rows = 1
+            // If my_rows = 1 this will be skipped (as it should)
             for(int row = 1; row < my_rows; ++row)
             {
                 for(int col = 0; col < cols; ++col)
@@ -664,34 +668,55 @@ int main(int argc, char **argv)
                     upgrade_cell_ordered(data, row, col);
                 }
             }
-
-            // now that the first row has been processed, rank zero can send it 
-            // to rank size-1
-            if(rank == 0){ MPI_Isend(data + cols, cols, MPI_CHAR, prev, prev_tag, MPI_COMM_WORLD, &prev_send_request);}
-
-            // We have finished processing all our grid except for last row. 
-            // For this, we need to make sure that bottom halo has been received.
-
-            // wait for receive of bottom halo
-            MPI_Wait(&next_recv_request, MPI_STATUS_IGNORE);
-
-            // process last row
-            for(int col=0; col<cols; ++col)
+            if(my_rows>1)
             {
-                upgrade_cell_ordered(data, my_rows, col);
+                // in this case, the for loop above has been executed and 
+                // now that the first row has been processed, rank zero can send it 
+                // to rank size-1
+                if(rank == 0){ MPI_Isend(data + cols, cols, MPI_CHAR, prev, prev_tag, MPI_COMM_WORLD, &prev_send_request);}
+
+                // We have finished processing all our grid except for last row. 
+                // For this, we need to make sure that bottom halo has been received.
+
+                // wait for receive of bottom halo
+                MPI_Wait(&next_recv_request, MPI_STATUS_IGNORE);
+
+                // process last row
+                for(int col=0; col<cols; ++col)
+                {
+                    upgrade_cell_ordered(data, my_rows, col);
+                }
+
+                // now that we have computed the last row, we need to send it 
+                // to the next process. This will be the top halo for the next 
+                // process, which in turn will finally pass the wait statement 
+                // above.
+                
+                // all except process n-1 because this will be taken care of in the 
+                // next generation
+                if(rank<(size-1)){ MPI_Isend(data + my_rows*cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request);}
+
+            }
+            else
+            {
+                // in this case we have skipped the for loop
+                // we need to wait to receive the bottom halo from next
+                MPI_Wait(&next_recv_request, MPI_STATUS_IGNORE);
+                
+                // we process row 1
+                for(int col=0; col<cols; ++col)
+                {
+                    upgrade_cell_ordered(data, my_rows, col);
+                }
+
+                // rank zero sends this row to rank n-1
+                if(rank == 0){ MPI_Isend(data + cols, cols, MPI_CHAR, prev, prev_tag, MPI_COMM_WORLD, &prev_send_request);}
+
+                // all ranks except last, send their last row (the same one )
+                // to the next rank
+                if(rank<(size-1)){ MPI_Isend(data + my_rows*cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request);}
             }
 
-            // now that we have computed the last row, we need to send it 
-            // to the next process. This will be the top halo for the next 
-            // process, which in turn will finally pass the wait statement 
-            // above.
-            
-            // all except process n-1 because this will be taken care of in the 
-            // next generation
-            if(rank<(size-1)){ MPI_Isend(data + my_rows*cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request);}
-
-            // then we need a barrier otherwise rank 0 will keep going even 
-            // though we dont have the whole matrix
             MPI_Barrier(MPI_COMM_WORLD);
 
             MPI_Request_free(&prev_send_request);
