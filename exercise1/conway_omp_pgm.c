@@ -349,7 +349,7 @@ int main(int argc, char **argv)
             tmp_data = NULL;
         }
         double end_time = omp_get_wtime();
-        printf("threads: %d time: %lf\n",MAX_THREADS,end_time-start_time);
+        printf("%d,%lf\n",MAX_THREADS,end_time-start_time);
     
         free(snapshot_name);
         free(header);
@@ -433,8 +433,6 @@ int main(int argc, char **argv)
             exit(0);
         }
 
-        const int MAX_THREADS = omp_get_max_threads();
-
         const int row_len_bytes = cols*sizeof(unsigned char);
         int save_counter = 0;
         const unsigned int rows_x_cols = rows*cols;
@@ -478,7 +476,7 @@ int main(int argc, char **argv)
 
         }
         double end_time = omp_get_wtime();
-        printf("threads: %d time: %lf\n",MAX_THREADS,end_time-start_time);
+        printf("%d,%lf\n",0,end_time-start_time);
     
         free(snapshot_name);
         free(header);

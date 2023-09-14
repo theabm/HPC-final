@@ -359,7 +359,7 @@ int main(int argc, char **argv)
         }
         clock_gettime(CLOCK_MONOTONIC, &end_time);
         elapsed = (double)diff(start_time,end_time).tv_sec + (double)diff(start_time,end_time).tv_nsec / 1000000000.0;
-        printf("time: %lf\n", elapsed);
+        printf("%lf\n", elapsed);
     
         free(snapshot_name);
         free(header);
@@ -487,7 +487,7 @@ int main(int argc, char **argv)
         }
         clock_gettime(CLOCK_MONOTONIC, &end_time);
         elapsed = (double)diff(start_time,end_time).tv_sec + (double)diff(start_time,end_time).tv_nsec / 1000000000.0;
-        printf("time: %lf\n", elapsed);
+        printf("%lf\n", elapsed);
     
         free(snapshot_name);
         free(header);

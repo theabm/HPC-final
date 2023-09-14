@@ -496,7 +496,7 @@ int main(int argc, char **argv)
             tmp_data = NULL;
         }
         double end_time = MPI_Wtime();
-        printf("rank %d of %d - time: %lf\n",rank,size,end_time-start_time);
+        printf("%d,%d,%d,%lf\n",size,rank,MAX_THREADS,end_time-start_time);
     
         free(snapshot_name);
         free(header);
@@ -706,7 +706,7 @@ int main(int argc, char **argv)
 
         }
         double end_time = MPI_Wtime();
-        printf("rank %d of %d - time: %lf\n",rank,size,end_time-start_time);
+        printf("%d,%d,%d,%lf\n",size,rank,0,end_time-start_time);
     
         free(snapshot_name);
         free(header);
