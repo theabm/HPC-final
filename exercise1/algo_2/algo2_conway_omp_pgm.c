@@ -522,6 +522,7 @@ int main(int argc, char **argv){
         const unsigned int rows_x_cols_p_cols = rows_x_cols + cols;
         const int grid_size_bytes = rows*cols*sizeof(unsigned char);
 
+        double start_time = omp_get_wtime();
         for(int t = 1; t < n+1; ++t)
         {
             
@@ -683,6 +684,8 @@ int main(int argc, char **argv){
             // generation) and will begin the next iteration in the for loop 
             // by swapping the halo cells
         }
+        double end_time = omp_get_wtime();
+        printf("threads: %d time: %lf\n",MAX_THREADS,end_time-start_time);
 
         free(snapshot_name);
         free(header);
@@ -810,12 +813,15 @@ int main(int argc, char **argv){
             exit(0);
         }
 
+        const int MAX_THREADS = omp_get_max_threads();
+
         const int row_len_bytes = cols*sizeof(unsigned char);
         int save_counter = 0;
         const unsigned int rows_x_cols = rows*cols;
         const unsigned int rows_x_cols_p_cols = rows_x_cols + cols;
         const int grid_size_bytes = rows*cols*sizeof(unsigned char);
 
+        double start_time = omp_get_wtime();
         for(int t = 1; t < n+1; ++t)
         {
             
@@ -899,6 +905,8 @@ int main(int argc, char **argv){
             // generation) and will begin the next iteration in the for loop 
             // by swapping the halo cells
         }
+        double end_time = omp_get_wtime();
+        printf("threads: %d time: %lf\n",MAX_THREADS,end_time-start_time);
     
         free(snapshot_name);
         free(header);
