@@ -438,6 +438,7 @@ int main(int argc, char **argv)
         const unsigned int my_rows_x_cols = my_rows*cols;
         const unsigned int my_rows_x_cols_p_cols = my_rows_x_cols + cols;
 
+        double start_time = MPI_Wtime();
         for(int t = 1; t < n+1; ++t)
         {
 
@@ -484,6 +485,8 @@ int main(int argc, char **argv)
             data_prev = tmp_data;
             tmp_data = NULL;
         }
+        double end_time = MPI_Wtime();
+        printf("rank %d of %d - %lf\n",rank,size,end_time-start_time);
     
         free(snapshot_name);
         free(header);
@@ -586,6 +589,7 @@ int main(int argc, char **argv)
         const unsigned int my_rows_x_cols = my_rows*cols;
         const unsigned int my_rows_x_cols_p_cols = my_rows_x_cols + cols;
 
+        double start_time = MPI_Wtime();
         for(int t = 1; t < n+1; ++t)
         {
             // for ordered evolution, we cannot parallelize, and each process 
@@ -691,6 +695,8 @@ int main(int argc, char **argv)
             }
 
         }
+        double end_time = MPI_Wtime();
+        printf("rank %d of %d - %lf\n",rank,size,end_time-start_time);
     
         free(snapshot_name);
         free(header);

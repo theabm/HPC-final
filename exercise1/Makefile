@@ -17,5 +17,7 @@ conway_hybrid_pgm.out : conway_hybrid_pgm.c
 
 clean : 
 	rm *.out
+
+clean_output : 
 	rm snapshot_* a1.*
 
