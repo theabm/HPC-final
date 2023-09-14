@@ -40,6 +40,7 @@
 #include <getopt.h>
 #include <unistd.h>
 #include <immintrin.h>
+#include <time.h>
 
 
 #define DATA(i,j) (data[(i)*cols + (j)])
@@ -361,9 +362,25 @@ void preprocess_cell(unsigned char * data_array, int i, int j, int cols)
     data_array[i*cols+j] |= n_alive_cells;
 }
 
-int main(int argc, char **argv){
+struct timespec diff(struct timespec start, struct timespec end)
+{
+        struct timespec temp;
+        if ((end.tv_nsec-start.tv_nsec)<0) {
+                temp.tv_sec = end.tv_sec-start.tv_sec-1;
+                temp.tv_nsec = 1000000000+end.tv_nsec-start.tv_nsec;
+        } else {
+                temp.tv_sec = end.tv_sec-start.tv_sec;
+                temp.tv_nsec = end.tv_nsec-start.tv_nsec;
+        }
+        return temp;
+}
+
+int main(int argc, char **argv)
+{
 
     unsigned char * data, * data_prev;
+    struct timespec start_time, end_time;
+    double elapsed;
 
     get_args(argc, argv);
 
@@ -548,6 +565,7 @@ int main(int argc, char **argv){
         const unsigned int rows_x_cols_p_cols = rows_x_cols + cols;
         const int grid_size_bytes = rows*cols*sizeof(unsigned char);
 
+        clock_gettime(CLOCK_MONOTONIC, &start_time);
         for(int t = 1; t < n+1; ++t)
         {
             
@@ -683,6 +701,9 @@ int main(int argc, char **argv){
             // generation) and will begin the next iteration in the for loop 
             // by swapping the halo cells
         }
+        clock_gettime(CLOCK_MONOTONIC, &end_time);
+        elapsed = (double)diff(start_time,end_time).tv_sec + (double)diff(start_time,end_time).tv_nsec / 1000000000.0;
+        printf("time: %lf\n", elapsed);
     
         free(snapshot_name);
         free(header);
@@ -804,6 +825,7 @@ int main(int argc, char **argv){
         const unsigned int rows_x_cols_p_cols = rows_x_cols + cols;
         const int grid_size_bytes = rows*cols*sizeof(unsigned char);
 
+        clock_gettime(CLOCK_MONOTONIC, &start_time);
         for(int t = 1; t < n+1; ++t)
         {
             
@@ -887,6 +909,9 @@ int main(int argc, char **argv){
             // generation) and will begin the next iteration in the for loop 
             // by swapping the halo cells
         }
+        clock_gettime(CLOCK_MONOTONIC, &end_time);
+        elapsed = (double)diff(start_time,end_time).tv_sec + (double)diff(start_time,end_time).tv_nsec / 1000000000.0;
+        printf("time: %lf\n", elapsed);
     
         free(snapshot_name);
         free(header);

@@ -11,5 +11,7 @@ algo2_conway_mpi_pgm.out : algo2_conway_mpi_pgm.c
 
 clean : 
 	rm *.out
+
+clean_output : 
 	rm snapshot_* a1.*
 
