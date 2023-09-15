@@ -502,7 +502,7 @@ int main(int argc, char **argv)
         if(rank==0)
         {
             global_time_avg/=size;
-            printf("%d,%d,%d,%lf\n",size,MAX_THREADS,2*MAX_THREADS,global_time_avg);
+            printf("%d,%d,%d,%lf\n",size,MAX_THREADS,size*MAX_THREADS,global_time_avg);
         }
         if(s==0)
         {
