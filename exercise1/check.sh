@@ -21,6 +21,9 @@ mv snapshot_00100 snapshot_00100.omp
 ./conway_omp_pgm.v2.out -r -f snark_loop_01.pgm -n 100 -s 100 -e 1
 mv snapshot_00100 snapshot_00100.omp.v2
 
+./conway_omp_pgm.v3.out -r -f snark_loop_01.pgm -n 100 -s 100 -e 1
+mv snapshot_00100 snapshot_00100.omp.v3
+
 mpirun -np 8 conway_mpi_pgm.out -r -f snark_loop_01.pgm -n 100 -s 100 -e 1
 mv snapshot_00100 snapshot_00100.mpi
 
@@ -42,6 +45,8 @@ echo "comparing mpi and hybrid"
 cmp snapshot_00100.mpi snapshot_00100.hybrid >&1
 echo "comparing omp v1 and v2"
 cmp snapshot_00100.omp snapshot_00100.omp.v2 >&1
+echo "comparing omp v1 and v3"
+cmp snapshot_00100.omp snapshot_00100.omp.v3 >&1
 echo "comparing hybrid v2 and v2"
 cmp snapshot_00100.hybrid snapshot_00100.hybrid.v2 >&1
 
@@ -65,6 +70,9 @@ mv snapshot_00400 snapshot_00400.omp
 ./conway_omp_pgm.v2.out -r -f gosper_glider_gun_01.pgm -n 400 -s 400 -e 1
 mv snapshot_00400 snapshot_00400.omp.v2
 
+./conway_omp_pgm.v3.out -r -f gosper_glider_gun_01.pgm -n 400 -s 400 -e 1
+mv snapshot_00400 snapshot_00400.omp.v3
+
 mpirun -np 8 conway_mpi_pgm.out -r -f gosper_glider_gun_01.pgm -n 400 -s 400 -e 1
 mv snapshot_00400 snapshot_00400.mpi
 
@@ -86,6 +94,8 @@ echo "comparing mpi and hybrid"
 cmp snapshot_00400.mpi snapshot_00400.hybrid >&1
 echo "comparing omp v1 and v2"
 cmp snapshot_00400.omp snapshot_00400.omp.v2 >&1
+echo "comparing omp v1 and v3"
+cmp snapshot_00400.omp snapshot_00400.omp.v3 >&1
 echo "comparing hybrid v1 and v2"
 cmp snapshot_00400.hybrid snapshot_00400.hybrid.v2 >&1
 
