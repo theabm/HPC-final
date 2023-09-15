@@ -4,6 +4,7 @@
 #include <getopt.h>
 #include <mpi.h>
 #include <unistd.h>
+#include <omp.h>
 
 #define INIT 1
 #define RUN  2
