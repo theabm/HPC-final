@@ -686,6 +686,15 @@ int main(int argc, char **argv){
         }
         double end_time = omp_get_wtime();
         printf("%d,%lf\n",MAX_THREADS,end_time-start_time);
+        if(s==0)
+        {
+            memcpy(data + cols, data_prev + cols, grid_size_bytes);
+
+            bitwise_and(data, cols, end);
+
+            sprintf(snapshot_name, "snapshot_%05d", n);
+            save_grid(snapshot_name, header, header_size, data, rows, cols);
+        }
 
         free(snapshot_name);
         free(header);
@@ -905,6 +914,15 @@ int main(int argc, char **argv){
         }
         double end_time = omp_get_wtime();
         printf("%d,%lf\n",0,end_time-start_time);
+        if(s==0)
+        {
+            memcpy(data_prev + cols, data + cols, grid_size_bytes);
+
+            bitwise_and(data_prev, cols, end);
+
+            sprintf(snapshot_name, "snapshot_%05d", n);
+            save_grid(snapshot_name, header, header_size, data_prev, rows, cols);
+        }
     
         free(snapshot_name);
         free(header);

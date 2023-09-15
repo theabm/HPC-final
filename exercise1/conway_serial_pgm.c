@@ -360,6 +360,11 @@ int main(int argc, char **argv)
         clock_gettime(CLOCK_MONOTONIC, &end_time);
         elapsed = (double)diff(start_time,end_time).tv_sec + (double)diff(start_time,end_time).tv_nsec / 1000000000.0;
         printf("%lf\n", elapsed);
+        if(s==0)
+        {
+            sprintf(snapshot_name, "snapshot_%05d", n);
+            save_grid(snapshot_name, header, header_size, data_prev, rows, cols);
+        }
     
         free(snapshot_name);
         free(header);
@@ -488,6 +493,11 @@ int main(int argc, char **argv)
         clock_gettime(CLOCK_MONOTONIC, &end_time);
         elapsed = (double)diff(start_time,end_time).tv_sec + (double)diff(start_time,end_time).tv_nsec / 1000000000.0;
         printf("%lf\n", elapsed);
+        if(s==0)
+        {
+            sprintf(snapshot_name, "snapshot_%05d", n);
+            save_grid(snapshot_name, header, header_size, data, rows, cols);
+        }
     
         free(snapshot_name);
         free(header);

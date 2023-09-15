@@ -495,6 +495,11 @@ int main(int argc, char **argv)
             global_time_avg/=size;
             printf("%d,%d,%d,%lf\n",size,MAX_THREADS,2*MAX_THREADS,global_time_avg);
         }
+        if(s==0)
+        {
+            sprintf(snapshot_name, "snapshot_%05d", n);
+            save_grid(snapshot_name, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data_prev, my_rows, cols);
+        }
     
         free(snapshot_name);
         free(header);
@@ -711,6 +716,11 @@ int main(int argc, char **argv)
         {
             global_time_avg/=size;
             printf("%d,%d,%d,%lf\n",size,1,size,global_time_avg);
+        }
+        if(s==0)
+        {
+            sprintf(snapshot_name, "snapshot_%05d", n);
+            save_grid(snapshot_name, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data, my_rows, cols);
         }
     
         free(snapshot_name);
