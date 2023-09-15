@@ -496,7 +496,14 @@ int main(int argc, char **argv)
             tmp_data = NULL;
         }
         double end_time = MPI_Wtime();
-        printf("%d,%d,%d,%lf\n",size,rank,MAX_THREADS,end_time-start_time);
+        double local_time = end_time-start_time;
+        double global_time_avg;
+        MPI_Reduce(&local_time, &global_time_avg, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+        if(rank==0)
+        {
+            global_time_avg/=size;
+            printf("%d,%d,%d,%lf\n",size,MAX_THREADS,2*MAX_THREADS,global_time_avg);
+        }
     
         free(snapshot_name);
         free(header);
@@ -706,7 +713,14 @@ int main(int argc, char **argv)
 
         }
         double end_time = MPI_Wtime();
-        printf("%d,%d,%d,%lf\n",size,rank,0,end_time-start_time);
+        double local_time = end_time-start_time;
+        double global_time_avg;
+        MPI_Reduce(&local_time, &global_time_avg, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+        if(rank==0)
+        {
+            global_time_avg/=size;
+            printf("%d,%d,%d,%lf\n",size,0,0,global_time_avg);
+        }
     
         free(snapshot_name);
         free(header);
