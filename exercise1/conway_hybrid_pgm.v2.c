@@ -431,9 +431,9 @@ int main(int argc, char **argv)
         const int MAX_THREADS = omp_get_max_threads();
 
         int chunk = (my_rows-2)/MAX_THREADS;
-        int remainder = chunk%CACHE_LINE_SIZE;
-        // ensure chunk is a multiple of CACHE_LINE_SIZE bytes 
-        chunk = remainder==0 ? chunk : chunk+CACHE_LINE_SIZE-remainder;
+        // int remainder = chunk%CACHE_LINE_SIZE;
+        // // ensure chunk is a multiple of CACHE_LINE_SIZE bytes 
+        // chunk = remainder==0 ? chunk : chunk+CACHE_LINE_SIZE-remainder;
 
         int save_counter = 0;
         const unsigned int my_rows_x_cols = my_rows*cols;
