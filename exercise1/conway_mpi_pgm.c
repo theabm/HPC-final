@@ -2,11 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <getopt.h>
-#include <mpi.h>
 #include <unistd.h>
+#include <mpi.h>
 
-#define INIT 1
-#define RUN  2
 
 #define DATA(i,j) (data[(i)*cols + (j)])
 #define DATA_PREV(i,j) (data_prev[(i)*cols + (j)])
@@ -21,22 +19,25 @@
 
 #define K_DFLT 100
 
+#define INIT 1
+#define RUN  2
+
 #define ORDERED 0
 #define STATIC  1
 
-#define HEADER_FORMAT_STRING "P5 %d %d %d\n"
+#define HEADER_FORMAT_STRING "P5 %ld %ld %d\n"
 
 
 // DEFAULT VALUES
 char fname_deflt[] = "game_of_life.pgm";
 
 int   action = 0;
-int   k      = K_DFLT;
-int   rows   = K_DFLT;
-int   cols   = K_DFLT;
+unsigned long int   k      = K_DFLT;
+unsigned long int   rows   = K_DFLT;
+unsigned long int   cols   = K_DFLT;
 int   e      = STATIC;
-int   n      = 10000;
-int   s      = 0;
+unsigned long int   n      = 10000;
+unsigned long int   s      = 0;
 char *fname  = NULL;
 
 void get_args( int argc, char **argv )
@@ -46,7 +47,7 @@ void get_args( int argc, char **argv )
     int c;
     while ((c = getopt(argc, argv, optstring)) != -1)
     {
-        switch(c) 
+        switch(c)
         {
 
             case 'i':
@@ -56,10 +57,10 @@ void get_args( int argc, char **argv )
                 action = RUN; break;
 
             case 'k':
-                k = atoi(optarg); rows = cols = k; break;
+                k = strtoul(optarg, NULL, 10); rows = cols = k; break;
 
             case 'e':
-                e = atoi(optarg); break;
+                e = strtoul(optarg, NULL, 10); break;
 
             case 'f':
                 size_t str_len = strlen(optarg) + 1;
@@ -68,10 +69,10 @@ void get_args( int argc, char **argv )
                 break;
 
             case 'n':
-                n = atoi(optarg); break;
+                n = strtoul(optarg, NULL, 10); break;
 
             case 's':
-                s = atoi(optarg); break;
+                s = strtoul(optarg, NULL, 10); break;
 
             default :
                 printf("argument -%c not known\n", c ); break;
@@ -82,10 +83,10 @@ void get_args( int argc, char **argv )
 
 void display_args(int rank, int size)
 {
-    printf("I am rank %d of %d.\naction (i : 1\tr : 2) -- %d\nk (size) -- %d\ne (0 : ORDERED\t1 : STATIC) -- %d\nf (filename) -- %s\nn (steps) -- %d\ns (save frequency) -- %d\n", rank, size, action, k, e, fname, n, s );
+    printf("I am rank %d of %d.\naction (i : 1\tr : 2) -- %d\nk (size) -- %ld\ne (0 : ORDERED\t1 : STATIC) -- %d\nf (filename) -- %s\nn (steps) -- %ld\ns (save frequency) -- %ld\n", rank, size, action, k, e, fname, n, s );
 }
 
-int get_my_rows(int total_rows, int rank, int size)
+unsigned long int get_my_rows(unsigned long int total_rows, int rank, int size)
 {
     // returns the number of rows that each process needs to handle
 
@@ -96,12 +97,12 @@ int get_my_rows(int total_rows, int rank, int size)
     // So, if we have 8 ranks, and the remainder is 3, only the first 3 ranks 
     // get an extra row to deal with.
     //
-    int my_rows = total_rows/size + 1*(rank<(total_rows%size));
+    unsigned long int my_rows = total_rows/size + 1*(((unsigned long int) rank)<(total_rows%size));
 
     return my_rows;
 }
 
-int get_my_row_offset(int total_rows, int rank, int size)
+unsigned long int get_my_row_offset(unsigned long int total_rows, int rank, int size)
 {
     // returns the offset from which the rank must get its rows 
 
@@ -111,8 +112,8 @@ int get_my_row_offset(int total_rows, int rank, int size)
     // and so on.
 
     // nrows is the interger division between total_rows and size
-    int nrows = total_rows/size;
-    int remainder = total_rows%size;
+    unsigned long int nrows = total_rows/size;
+    unsigned long int remainder = total_rows%size;
 
     // The idea is the following, if the division was pefect, we would do 
     // nrows * rank. However, we still need to account for the remainder.
@@ -121,13 +122,14 @@ int get_my_row_offset(int total_rows, int rank, int size)
     // who is greater than the remainder, then we simply need to add the 
     // whole remainder.
     
-    int my_offset = nrows*rank
-        + rank*(rank <= remainder) 
-        + remainder*(rank > remainder);
+    unsigned long int my_offset = nrows*rank
+        + rank*(((unsigned long int) rank) <= remainder) 
+        + remainder*(((unsigned long int) rank) > remainder);
 
     return my_offset;
 }
-void save_grid(char * restrict fname, MPI_Comm comm, int rank, char * restrict header, int header_size, MPI_Offset offset, unsigned char * restrict data, int my_rows, int cols)
+
+void save_grid(char * restrict fname, MPI_Comm comm, int rank, char * restrict header, unsigned long int header_size, MPI_Offset offset, unsigned char * restrict data, unsigned long int my_rows, unsigned long int cols)
 {
 
     MPI_File fh;
@@ -152,14 +154,14 @@ void save_grid(char * restrict fname, MPI_Comm comm, int rank, char * restrict h
     MPI_File_close(&fh);
 }
 
-void upgrade_cell_static(unsigned char * restrict data_prev, unsigned char * restrict data, int i, int j)
+void upgrade_cell_static(unsigned char * restrict data_prev, unsigned char * restrict data, unsigned long int i, unsigned long int j)
 {
     DATA(i,j) = DEAD;
 
-    register int jm1 = j==0 ? cols-1 : j-1;
-    register int jp1 = j==(cols-1) ? 0 : j+1;
-    register int im1 = i-1;
-    register int ip1 = i+1;
+    register unsigned long int jm1 = j==0 ? cols-1 : j-1;
+    register unsigned long int jp1 = j==(cols-1) ? 0 : j+1;
+    register unsigned long int im1 = i-1;
+    register unsigned long int ip1 = i+1;
     
     unsigned char tmp0=DATA_PREV(im1, jm1);
     unsigned char tmp3=DATA_PREV(i,jm1);
@@ -178,12 +180,12 @@ void upgrade_cell_static(unsigned char * restrict data_prev, unsigned char * res
     DATA(i,j) = ALIVE*(n_alive_cells==3) + DATA_PREV(i,j)*(n_alive_cells==2);
 }
 
-void upgrade_cell_ordered(unsigned char * data, int i, int j)
+void upgrade_cell_ordered(unsigned char * data, unsigned long int i, unsigned long int j)
 {
-    register int jm1 = j==0 ? cols-1 : j-1;
-    register int jp1 = j==(cols-1) ? 0 : j+1;
-    register int im1 = i-1;
-    register int ip1 = i+1;
+    register unsigned long int jm1 = j==0 ? cols-1 : j-1;
+    register unsigned long int jp1 = j==(cols-1) ? 0 : j+1;
+    register unsigned long int im1 = i-1;
+    register unsigned long int ip1 = i+1;
 
     unsigned char tmp0=DATA(im1, jm1);
     unsigned char tmp3=DATA(i,jm1);
@@ -248,9 +250,9 @@ int main(int argc, char **argv)
         // we also specify the number of rows and columns. 
         // So this operation is well defined.
         
-        const int my_rows = get_my_rows(rows, rank, size);
-        const int my_row_offset = get_my_row_offset(rows, rank, size);
-        const int augmented_rows = my_rows + 2;
+        const unsigned long int my_rows = get_my_rows(rows, rank, size);
+        const unsigned long int my_row_offset = get_my_row_offset(rows, rank, size);
+        const unsigned long int augmented_rows = my_rows + 2;
 
         // printf("I am rank %d and I am getting %d rows at offset %d\n", rank, my_rows, my_row_offset);
 
@@ -265,7 +267,7 @@ int main(int argc, char **argv)
         }
 
         // initialize the halo regions to being DEAD
-        for(int j = 0; j<cols; ++j)
+        for(unsigned long int j = 0; j<cols; ++j)
         {
             DATA(0,j) = DATA(my_rows + 1,j) = DEAD;
         }
@@ -273,8 +275,8 @@ int main(int argc, char **argv)
         // HEADER INFO CALCULATION
 
         // intuition: https://stackoverflow.com/questions/3919995/determining-sprintf-buffer-size-whats-the-standard
-        int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
-        char * header = malloc(header_size + 1);
+        unsigned long int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
+        char * header = (char *) malloc(header_size + 1);
 
         if(!header)
         {
@@ -293,9 +295,9 @@ int main(int argc, char **argv)
         // need to include some changing information such as time
         srand48(10*rank); 
 
-        for(int i = 1; i<my_rows+1; ++i)
+        for(unsigned long int i = 1; i<rows+1; ++i)
         {
-            for(int j = 0; j<cols; ++j)
+            for(unsigned long int j = 0; j<cols; ++j)
             {
                 DATA(i,j) = drand48() > 0.5 ? ALIVE : DEAD ;
             }
@@ -316,7 +318,7 @@ int main(int argc, char **argv)
         // processes, distribute an area of the matrix for each process 
         // and read from the file
         
-        int opt_args[2] = {0,0};
+        unsigned long int opt_args[2] = {0,0};
 
         if(rank == 0)
         {
@@ -331,7 +333,7 @@ int main(int argc, char **argv)
                 MPI_Abort(MPI_COMM_WORLD, MPI_ERR_REQUEST);
             }
 
-            int args_scanned = fscanf(fh_posix, "P5 %d %d 1\n",opt_args, opt_args+1 );
+            int args_scanned = fscanf(fh_posix, "P5 %ld %ld 1\n",opt_args, opt_args+1 );
             if(args_scanned != 2)
             {
                 printf("fscanf failed.");
@@ -342,28 +344,28 @@ int main(int argc, char **argv)
             // printf("I am rank 0 and I have received %d rows %d cols\n", *opt_args, *(opt_args+1));
         }
 
-        MPI_Bcast(opt_args, 2, MPI_INT, 0, MPI_COMM_WORLD);
+        MPI_Bcast(opt_args, 2, MPI_UNSIGNED_LONG, 0, MPI_COMM_WORLD);
 
         // printf("I am rank %d and I have received %d rows %d cols\n", rank, *opt_args, *(opt_args+1));
 
         rows = opt_args[0];
         cols = opt_args[1];
 
-        if(size > rows)
+        if(((unsigned long int)size) > rows)
         {
             printf("This program cannot handle more processes than rows. Make sure P <= R");
             MPI_Abort(MPI_COMM_WORLD, MPI_ERR_REQUEST);
         }
 
-        const int my_rows = get_my_rows(rows, rank, size);
-        const int my_row_offset = get_my_row_offset(rows, rank, size);
+        const unsigned long int my_rows = get_my_rows(rows, rank, size);
+        const unsigned long int my_row_offset = get_my_row_offset(rows, rank, size);
 
         // printf("I am rank %d and I am getting %d rows at offset %d\n", rank, my_rows, my_row_offset);
 
         // since we need to deal with halos we need to allocate two more 
         // rows than what I need.
         
-        const int augmented_rows = my_rows + 2;
+        const unsigned long int augmented_rows = my_rows + 2;
 
         const MPI_Offset my_file_offset = my_row_offset * cols * sizeof(char);
 
@@ -375,8 +377,8 @@ int main(int argc, char **argv)
             printf("Allocation failed.");
             MPI_Abort(MPI_COMM_WORLD, MPI_ERR_NO_SPACE);
         }
-        
-        int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
+
+        unsigned long int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
         char * header = malloc(header_size + 1);
 
         if(!header)
@@ -423,12 +425,12 @@ int main(int argc, char **argv)
 
         unsigned char *tmp_data = NULL;
 
-        int save_counter = 0;
-        const unsigned int my_rows_x_cols = my_rows*cols;
-        const unsigned int my_rows_x_cols_p_cols = my_rows_x_cols + cols;
+        unsigned long int save_counter = 0;
+        const unsigned long int my_rows_x_cols = my_rows*cols;
+        const unsigned long int my_rows_x_cols_p_cols = my_rows_x_cols + cols;
 
         double start_time = MPI_Wtime();
-        for(int t = 1; t < n+1; ++t)
+        for(unsigned long int t = 1; t < n+1; ++t)
         {
 
             // Step 1. Start non blocking exchange of halo cells.
@@ -466,9 +468,9 @@ int main(int argc, char **argv)
             // Step 2. Process internal cells to hide latency
             // Note that if my_rows = 1 this will be skipped
 
-            for(int row = 2; row < my_rows; ++row)
+            for(unsigned long int row = 2; row < my_rows; ++row)
             {
-                for(int col = 0; col < cols; ++col)
+                for(unsigned long int col = 0; col < cols; ++col)
                 {
                     upgrade_cell_static(data_prev, data, row, col);
                 }
@@ -498,13 +500,13 @@ int main(int argc, char **argv)
             // These are row 1 and row my_rows
 
             // Step 4. Update limiting rows (row 1 and row my_rows)
-            for(int col=0; col<cols; ++col)
+            for(unsigned long int col=0; col<cols; ++col)
             {
                 upgrade_cell_static(data_prev, data, 1, col);
             }
 
             // if my_rows=1 this is skipped
-            for(int col=0; col<cols*(my_rows>1); ++col)
+            for(unsigned long int col=0; col<cols*(my_rows>1); ++col)
             {
                 upgrade_cell_static(data_prev, data, my_rows, col);
             }
@@ -518,7 +520,7 @@ int main(int argc, char **argv)
             ++save_counter;
             if(s>0 && save_counter == s && t<100000)
             {
-                sprintf(snapshot_name, "snapshot_%05d", t);
+                sprintf(snapshot_name, "snapshot_%05ld", t);
                 save_grid(snapshot_name, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data, my_rows, cols);
                 save_counter = 0;
             }
@@ -543,7 +545,7 @@ int main(int argc, char **argv)
         }
         if(s==0)
         {
-            sprintf(snapshot_name, "snapshot_%05d", n);
+            sprintf(snapshot_name, "snapshot_%05ld", n);
             save_grid(snapshot_name, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data_prev, my_rows, cols);
         }
     
@@ -555,7 +557,7 @@ int main(int argc, char **argv)
     else if(e == ORDERED && action == RUN)
     {
 
-        int opt_args[2] = {0,0};
+        unsigned long int opt_args[2] = {0,0};
 
         if(rank == 0)
         {
@@ -568,7 +570,7 @@ int main(int argc, char **argv)
                 MPI_Abort(MPI_COMM_WORLD, MPI_ERR_REQUEST);
             }
 
-            int args_scanned = fscanf(fh_posix, "P5 %d %d 1\n",opt_args, opt_args+1 );
+            int args_scanned = fscanf(fh_posix, "P5 %ld %ld 1\n",opt_args, opt_args+1 );
             if(args_scanned != 2)
             {
                 printf("fscanf failed.");
@@ -578,21 +580,21 @@ int main(int argc, char **argv)
             fclose(fh_posix);
         }
 
-        MPI_Bcast(opt_args, 2, MPI_INT, 0, MPI_COMM_WORLD);
+        MPI_Bcast(opt_args, 2, MPI_UNSIGNED_LONG, 0, MPI_COMM_WORLD);
 
         rows = opt_args[0];
         cols = opt_args[1];
 
-        if(size > rows)
+        if(((unsigned long int) size) > rows)
         {
             printf("This program cannot handle more processes than rows. Make sure P <= R");
             MPI_Abort(MPI_COMM_WORLD, MPI_ERR_REQUEST);
         }
 
-        const int my_rows = get_my_rows(rows, rank, size);
-        const int my_row_offset = get_my_row_offset(rows, rank, size);
+        const unsigned long int my_rows = get_my_rows(rows, rank, size);
+        const unsigned long int my_row_offset = get_my_row_offset(rows, rank, size);
 
-        const int augmented_rows = my_rows + 2;
+        const unsigned long int augmented_rows = my_rows + 2;
 
         const MPI_Offset my_file_offset = my_row_offset * cols * sizeof(char);
 
@@ -603,8 +605,8 @@ int main(int argc, char **argv)
             printf("Allocation failed.");
             MPI_Abort(MPI_COMM_WORLD, MPI_ERR_NO_SPACE);
         }
-        
-        int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
+
+        unsigned long int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
         char * header = malloc(header_size + 1);
 
         if(!header)
@@ -644,12 +646,12 @@ int main(int argc, char **argv)
         const int prev_tag = 0; 
         const int next_tag = 1;
 
-        int save_counter = 0;
-        const unsigned int my_rows_x_cols = my_rows*cols;
-        const unsigned int my_rows_x_cols_p_cols = my_rows_x_cols + cols;
+        unsigned long int save_counter = 0;
+        const unsigned long int my_rows_x_cols = my_rows*cols;
+        const unsigned long int my_rows_x_cols_p_cols = my_rows_x_cols + cols;
 
         double start_time = MPI_Wtime();
-        for(int t = 1; t < n+1; ++t)
+        for(unsigned long int t = 1; t < n+1; ++t)
         {
             // for ordered evolution, we cannot parallelize, and each process 
             // must work on their part of the grid in serial order. 
@@ -684,9 +686,9 @@ int main(int argc, char **argv)
             // data EXCEPT the last row, since we are not sure that we have 
             // received the bottom halo yet.
             // If my_rows = 1 this will be skipped (as it should)
-            for(int row = 1; row < my_rows; ++row)
+            for(unsigned long int row = 1; row < my_rows; ++row)
             {
-                for(int col = 0; col < cols; ++col)
+                for(unsigned long int col = 0; col < cols; ++col)
                 {
                     upgrade_cell_ordered(data, row, col);
                 }
@@ -705,7 +707,7 @@ int main(int argc, char **argv)
                 MPI_Wait(&next_recv_request, MPI_STATUS_IGNORE);
 
                 // process last row
-                for(int col=0; col<cols; ++col)
+                for(unsigned long int col=0; col<cols; ++col)
                 {
                     upgrade_cell_ordered(data, my_rows, col);
                 }
@@ -727,7 +729,7 @@ int main(int argc, char **argv)
                 MPI_Wait(&next_recv_request, MPI_STATUS_IGNORE);
                 
                 // we process row 1
-                for(int col=0; col<cols; ++col)
+                for(unsigned long int col=0; col<cols; ++col)
                 {
                     upgrade_cell_ordered(data, my_rows, col);
                 }
@@ -748,7 +750,7 @@ int main(int argc, char **argv)
             ++save_counter;
             if(s>0 && save_counter == s && t<100000)
             {
-                sprintf(snapshot_name, "snapshot_%05d", t);
+                sprintf(snapshot_name, "snapshot_%05ld", t);
                 save_grid(snapshot_name, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data, my_rows, cols);
                 save_counter = 0;
             }
@@ -765,7 +767,7 @@ int main(int argc, char **argv)
         }
         if(s==0)
         {
-            sprintf(snapshot_name, "snapshot_%05d", n);
+            sprintf(snapshot_name, "snapshot_%05ld", n);
             save_grid(snapshot_name, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data, my_rows, cols);
         }
     
