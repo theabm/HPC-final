@@ -23,19 +23,19 @@
 #define ORDERED 0
 #define STATIC  1
 
-#define HEADER_FORMAT_STRING "P5 %d %d %d\n"
+#define HEADER_FORMAT_STRING "P5 %ld %ld %d\n"
 
 
 // DEFAULT VALUES
 char fname_deflt[] = "game_of_life.pgm";
 
 int   action = 0;
-int   k      = K_DFLT;
-int   rows   = K_DFLT;
-int   cols   = K_DFLT;
+unsigned long int   k      = K_DFLT;
+unsigned long int   rows   = K_DFLT;
+unsigned long int   cols   = K_DFLT;
 int   e      = STATIC;
-int   n      = 10000;
-int   s      = 0;
+unsigned long int   n      = 10000;
+unsigned long int   s      = 0;
 char *fname  = NULL;
 
 void get_args( int argc, char **argv )
@@ -55,10 +55,10 @@ void get_args( int argc, char **argv )
                 action = RUN; break;
 
             case 'k':
-                k = atoi(optarg); rows = cols = k; break;
+                k = strtoul(optarg, NULL, 10); rows = cols = k; break;
 
             case 'e':
-                e = atoi(optarg); break;
+                e = strtoul(optarg, NULL, 10); break;
 
             case 'f':
                 size_t str_len = strlen(optarg) + 1;
@@ -67,10 +67,10 @@ void get_args( int argc, char **argv )
                 break;
 
             case 'n':
-                n = atoi(optarg); break;
+                n = strtoul(optarg, NULL, 10); break;
 
             case 's':
-                s = atoi(optarg); break;
+                s = strtoul(optarg, NULL, 10); break;
 
             default :
                 printf("argument -%c not known\n", c ); break;
@@ -79,7 +79,7 @@ void get_args( int argc, char **argv )
     }
 }
 
-void save_grid(char * restrict fname, char * restrict header, int header_size, unsigned char * restrict data, int rows, int cols)
+void save_grid(char * restrict fname, char * restrict header, unsigned long int header_size, unsigned char * restrict data, unsigned long int rows, unsigned long int cols)
 {
 
     FILE * fh = fopen(fname, "wb");
@@ -98,14 +98,14 @@ void save_grid(char * restrict fname, char * restrict header, int header_size, u
 
 }
 
-void upgrade_cell_static(unsigned char * restrict data_prev, unsigned char * restrict data, int i, int j)
+void upgrade_cell_static(unsigned char * restrict data_prev, unsigned char * restrict data, unsigned long int i, unsigned long int j)
 {
     DATA(i,j) = DEAD;
 
-    register int jm1 = j==0 ? cols-1 : j-1;
-    register int jp1 = j==(cols-1) ? 0 : j+1;
-    register int im1 = i-1;
-    register int ip1 = i+1;
+    register unsigned long int jm1 = j==0 ? cols-1 : j-1;
+    register unsigned long int jp1 = j==(cols-1) ? 0 : j+1;
+    register unsigned long int im1 = i-1;
+    register unsigned long int ip1 = i+1;
     
     unsigned char tmp0=DATA_PREV(im1, jm1);
     unsigned char tmp3=DATA_PREV(i,jm1);
@@ -124,12 +124,12 @@ void upgrade_cell_static(unsigned char * restrict data_prev, unsigned char * res
     DATA(i,j) = ALIVE*(n_alive_cells==3) + DATA_PREV(i,j)*(n_alive_cells==2);
 }
 
-void upgrade_cell_ordered(unsigned char * data, int i, int j)
+void upgrade_cell_ordered(unsigned char * data, unsigned long int i, unsigned long int j)
 {
-    register int jm1 = j==0 ? cols-1 : j-1;
-    register int jp1 = j==(cols-1) ? 0 : j+1;
-    register int im1 = i-1;
-    register int ip1 = i+1;
+    register unsigned long int jm1 = j==0 ? cols-1 : j-1;
+    register unsigned long int jp1 = j==(cols-1) ? 0 : j+1;
+    register unsigned long int im1 = i-1;
+    register unsigned long int ip1 = i+1;
 
     unsigned char tmp0=DATA(im1, jm1);
     unsigned char tmp3=DATA(i,jm1);
@@ -150,7 +150,7 @@ void upgrade_cell_ordered(unsigned char * data, int i, int j)
 
 void display_args()
 {
-    printf("action (i : 1\tr : 2) -- %d\nk (size) -- %d\ne (0 : ORDERED\t1 : STATIC) -- %d\nf (filename) -- %s\nn (steps) -- %d\ns (save frequency) -- %d\n", action, k, e, fname, n, s );
+    printf("action (i : 1\tr : 2) -- %d\nk (size) -- %ld\ne (0 : ORDERED\t1 : STATIC) -- %d\nf (filename) -- %s\nn (steps) -- %ld\ns (save frequency) -- %ld\n", action, k, e, fname, n, s );
 }
 
 struct timespec diff(struct timespec start, struct timespec end)
@@ -191,7 +191,7 @@ int main(int argc, char **argv)
     {
 
         // we add two rows for halo regions
-        const int augmented_rows = rows + 2;
+        const unsigned long int augmented_rows = rows + 2;
 
         data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
 
@@ -202,7 +202,7 @@ int main(int argc, char **argv)
         }
 
         // initialize the halo regions to being DEAD
-        for(int j = 0; j<cols; ++j)
+        for(unsigned long int j = 0; j<cols; ++j)
         {
             DATA(0,j) = DATA(rows + 1,j) = DEAD;
         }
@@ -210,24 +210,22 @@ int main(int argc, char **argv)
         // HEADER INFO CALCULATION
 
         // intuition: https://stackoverflow.com/questions/3919995/determining-sprintf-buffer-size-whats-the-standard
-        int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
+        unsigned long int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
         char * header = (char *) malloc(header_size + 1);
 
         if(!header)
         {
-
             printf("Allocation failed.");
             exit(0);
-
         }
 
         sprintf(header, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
 
         srand48(10); 
 
-        for(int i = 1; i<rows+1; ++i)
+        for(unsigned long int i = 1; i<rows+1; ++i)
         {
-            for(int j = 0; j<cols; ++j)
+            for(unsigned long int j = 0; j<cols; ++j)
             {
                 DATA(i,j) = drand48() > 0.5 ? ALIVE : DEAD ;
             }
@@ -240,7 +238,7 @@ int main(int argc, char **argv)
     else if (e == STATIC && action == RUN)
     {
 
-        int opt_args[2] = {0,0};
+        unsigned long int opt_args[2] = {0,0};
 
 
         FILE * fh_posix = fopen(fname, "r");
@@ -253,7 +251,7 @@ int main(int argc, char **argv)
             exit(0);
         }
 
-        int args_scanned = fscanf(fh_posix, "P5 %d %d 1\n",opt_args, opt_args+1 );
+        int args_scanned = fscanf(fh_posix, "P5 %ld %ld 1\n",opt_args, opt_args+1 );
         if(args_scanned != 2)
         {
             printf("fscanf failed.");
@@ -265,7 +263,7 @@ int main(int argc, char **argv)
         rows = opt_args[0];
         cols = opt_args[1];
 
-        const int augmented_rows = rows + 2;
+        const unsigned long int augmented_rows = rows + 2;
 
         data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
         data_prev = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
@@ -276,7 +274,7 @@ int main(int argc, char **argv)
             exit(0);
         }
 
-        int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
+        unsigned long int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
         char * header = malloc(header_size + 1);
 
         if(!header)
@@ -325,20 +323,20 @@ int main(int argc, char **argv)
 
         unsigned char *tmp_data = NULL;
 
-        const int row_len_bytes = cols*sizeof(unsigned char);
-        int save_counter = 0;
-        const unsigned int rows_x_cols = rows*cols;
-        const unsigned int rows_x_cols_p_cols = rows_x_cols + cols;
+        const unsigned long int row_len_bytes = cols*sizeof(unsigned char);
+        unsigned long int save_counter = 0;
+        const unsigned long int rows_x_cols = rows*cols;
+        const unsigned long int rows_x_cols_p_cols = rows_x_cols + cols;
 
         clock_gettime(CLOCK_MONOTONIC, &start_time);
-        for(int t = 1; t < n+1; ++t)
+        for(unsigned long int t = 1; t < n+1; ++t)
         {
             memcpy(data_prev, data_prev + rows_x_cols, row_len_bytes);
             memcpy(data_prev + rows_x_cols_p_cols, data_prev+cols, row_len_bytes);
 
-            for(int row = 1; row < rows+1; ++row)
+            for(unsigned long int row = 1; row < rows+1; ++row)
             {
-                for(int col = 0; col < cols; ++col)
+                for(unsigned long int col = 0; col < cols; ++col)
                 {
                     upgrade_cell_static(data_prev, data, row, col);
                 }
@@ -347,7 +345,7 @@ int main(int argc, char **argv)
 
             if(s>0 && save_counter == s && t<100000)
             {
-                sprintf(snapshot_name, "snapshot_%05d", t);
+                sprintf(snapshot_name, "snapshot_%05ld", t);
                 save_grid(snapshot_name, header, header_size, data, rows, cols);
                 save_counter = 0;
             }
@@ -362,7 +360,7 @@ int main(int argc, char **argv)
         printf("%lf\n", elapsed);
         if(s==0)
         {
-            sprintf(snapshot_name, "snapshot_%05d", n);
+            sprintf(snapshot_name, "snapshot_%05ld", n);
             save_grid(snapshot_name, header, header_size, data_prev, rows, cols);
         }
     
@@ -374,7 +372,7 @@ int main(int argc, char **argv)
     else if(e == ORDERED && action == RUN)
     {
 
-        int opt_args[2] = {0,0};
+        unsigned long int opt_args[2] = {0,0};
 
 
         FILE * fh_posix = fopen(fname, "r");
@@ -387,7 +385,7 @@ int main(int argc, char **argv)
             exit(0);
         }
 
-        int args_scanned = fscanf(fh_posix, "P5 %d %d 1\n",opt_args, opt_args+1 );
+        int args_scanned = fscanf(fh_posix, "P5 %ld %ld 1\n",opt_args, opt_args+1 );
         if(args_scanned != 2)
         {
             printf("fscanf failed.");
@@ -399,7 +397,7 @@ int main(int argc, char **argv)
         rows = opt_args[0];
         cols = opt_args[1];
 
-        const int augmented_rows = rows + 2;
+        const unsigned long int augmented_rows = rows + 2;
 
         data = (unsigned char *) malloc( augmented_rows * cols * sizeof(unsigned char));
 
@@ -409,7 +407,7 @@ int main(int argc, char **argv)
             exit(0);
         }
 
-        int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
+        unsigned long int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
         char * header = malloc(header_size + 1);
 
         if(!header)
@@ -448,13 +446,13 @@ int main(int argc, char **argv)
             exit(0);
         }
 
-        const int row_len_bytes = cols*sizeof(unsigned char);
-        int save_counter = 0;
-        const unsigned int rows_x_cols = rows*cols;
-        const unsigned int rows_x_cols_p_cols = rows_x_cols + cols;
+        const unsigned long int row_len_bytes = cols*sizeof(unsigned char);
+        unsigned long int save_counter = 0;
+        const unsigned long int rows_x_cols = rows*cols;
+        const unsigned long int rows_x_cols_p_cols = rows_x_cols + cols;
 
         clock_gettime(CLOCK_MONOTONIC, &start_time);
-        for(int t = 1; t < n+1; ++t)
+        for(unsigned long int t = 1; t < n+1; ++t)
         {
 
             // first we copy the bottom row into the top halo cell
@@ -464,9 +462,9 @@ int main(int argc, char **argv)
             // rows - 1. 
             // We cant process row rows because we need to copy the updated 
             // row 1 into the bottom halo.
-            for(int row = 1; row < rows; ++row)
+            for(unsigned long int row = 1; row < rows; ++row)
             {
-                for(int col = 0; col < cols; ++col)
+                for(unsigned long int col = 0; col < cols; ++col)
                 {
                     upgrade_cell_ordered(data, row, col);
                 }
@@ -476,7 +474,7 @@ int main(int argc, char **argv)
             memcpy(data + rows_x_cols_p_cols, data+cols, row_len_bytes);
 
             // we update the last row now that we have the updated information.
-            for(int col = 0; col < cols; ++col)
+            for(unsigned long int col = 0; col < cols; ++col)
             {
                 upgrade_cell_ordered(data, rows, col);
             }
@@ -484,7 +482,7 @@ int main(int argc, char **argv)
 
             if(s>0 && save_counter == s && t<100000)
             {
-                sprintf(snapshot_name, "snapshot_%05d", t);
+                sprintf(snapshot_name, "snapshot_%05ld", t);
                 save_grid(snapshot_name, header, header_size, data, rows, cols);
                 save_counter = 0;
             }
@@ -495,7 +493,7 @@ int main(int argc, char **argv)
         printf("%lf\n", elapsed);
         if(s==0)
         {
-            sprintf(snapshot_name, "snapshot_%05d", n);
+            sprintf(snapshot_name, "snapshot_%05ld", n);
             save_grid(snapshot_name, header, header_size, data, rows, cols);
         }
     
