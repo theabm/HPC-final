@@ -303,7 +303,7 @@ int main(int argc, char **argv)
 
         const int MAX_THREADS = omp_get_max_threads();
 
-        unsigned long int chunk = rows*cols/MAX_THREADS;
+        unsigned long int chunk = (rows-2)*cols/MAX_THREADS;
         int remainder = chunk%CACHE_LINE_SIZE;
         // ensure chunk is a multiple of CACHE_LINE_SIZE bytes 
         chunk = remainder==0 ? chunk : chunk+CACHE_LINE_SIZE-remainder;
@@ -322,16 +322,29 @@ int main(int argc, char **argv)
                 #pragma omp single nowait
                 memcpy(data_prev, data_prev + rows_x_cols, row_len_bytes);
                 // copy row 1 into row n+1
-                #pragma omp single
+                #pragma omp single nowait
                 memcpy(data_prev + rows_x_cols_p_cols, data_prev+cols, row_len_bytes);
 
                 #pragma omp for schedule(dynamic, chunk)
-                for(unsigned long int cell = cols; cell < (rows+1)*cols; ++cell)
+                for(unsigned long int cell = 2*cols; cell < rows_x_cols; ++cell)
                 {
                     unsigned long int i = cell/cols;
                     unsigned long int j = cell - i*cols;
                     upgrade_cell_static(data_prev, data, i, j);
+                }//barrier
+                
+                #pragma omp single nowait
+                for(unsigned long int col=0; col<cols; ++col)
+                {
+                    upgrade_cell_static(data_prev, data, 1, col);
                 }
+
+                // since we know that rows>100 we need to process last row.
+                #pragma omp single
+                for(unsigned long int col=0; col<cols; ++col)
+                {
+                    upgrade_cell_static(data_prev, data, rows, col);
+                }// barrier 
 
                 #pragma omp single
                 {
@@ -347,7 +360,7 @@ int main(int argc, char **argv)
                     data = data_prev;
                     data_prev = tmp_data;
                     tmp_data = NULL;
-                }
+                }//barrier
             }
         }
         double end_time = omp_get_wtime();

@@ -208,8 +208,14 @@ void upgrade_cell_ordered(unsigned char * data, unsigned long int i, unsigned lo
 int main(int argc, char **argv)
 {
 
+    int provided_thread_level;
     // initialize MPI
-    MPI_Init(&argc, &argv);
+    MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided_thread_level);
+    if(provided_thread_level<MPI_THREAD_MULTIPLE)
+    {
+        printf("Can't do thread serialized... Aborting");
+        MPI_Finalize();
+    }
 
     // each rank gets info about itself
     int rank;
@@ -443,55 +449,73 @@ int main(int argc, char **argv)
         const unsigned long int my_rows_x_cols_p_cols = my_rows_x_cols + cols;
 
         double start_time = MPI_Wtime();
+        #pragma omp parallel
         for(unsigned long int t = 1; t < n+1; ++t)
         {
 
+            // no barrier at the end
+            #pragma omp single nowait
+            MPI_Irecv(data_prev, cols, MPI_CHAR, prev, next_tag, MPI_COMM_WORLD, &prev_recv_request);
+            #pragma omp single nowait
+            MPI_Irecv(data_prev + my_rows_x_cols_p_cols, cols, MPI_CHAR, next, prev_tag, MPI_COMM_WORLD, &next_recv_request);
+            #pragma omp single nowait
             MPI_Isend(data_prev + cols, cols, MPI_CHAR, prev, prev_tag, MPI_COMM_WORLD, &prev_send_request);
+            #pragma omp single nowait
             MPI_Isend(data_prev + my_rows_x_cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request);
 
-            MPI_Irecv(data_prev, cols, MPI_CHAR, prev, next_tag, MPI_COMM_WORLD, &prev_recv_request);
-            MPI_Irecv(data_prev + my_rows_x_cols_p_cols, cols, MPI_CHAR, next, prev_tag, MPI_COMM_WORLD, &next_recv_request);
-
-            // we use the for loop over cells instead of the double for loop 
-            // over columns and rows
-            #pragma omp parallel for schedule(dynamic, chunk)
+            // remaining threads in the meantime start to work on internal part 
+            // of grid. We need to keep the implied barrier because waiting can 
+            // only happen if operations have been posted
+            #pragma omp for schedule(dynamic, chunk)
             for(unsigned long int cell = 2*cols; cell< my_rows_x_cols; ++cell)
             {
                     unsigned long int i = cell/cols;
                     unsigned long int j = cell - i*cols;
                     upgrade_cell_static(data_prev, data, i, j);
-            }
+            }//barrier. Needed, otherwise, if threads havent finished posting 
+             //send and receive, the next operation will be an error.
 
-            MPI_Wait(&prev_recv_request, MPI_STATUS_IGNORE);
-            MPI_Wait(&next_recv_request, MPI_STATUS_IGNORE);
-            MPI_Request_free(&prev_send_request);
-            MPI_Request_free(&next_send_request);
+            #pragma omp single
+            {
+                MPI_Wait(&prev_recv_request, MPI_STATUS_IGNORE);
+                MPI_Wait(&next_recv_request, MPI_STATUS_IGNORE);
+                MPI_Request_free(&prev_send_request);
+                MPI_Request_free(&next_send_request);
+            } //barrier needed because we need to get halo cells to process 
+              //next rows
 
-            #pragma omp parallel for schedule(dynamic, small_chunk)
+            // threads can split a row further 
+            #pragma omp for schedule(dynamic, small_chunk) nowait
             for(unsigned long int col=0; col<cols; ++col)
             {
                 upgrade_cell_static(data_prev, data, 1, col);
             }
 
-            #pragma omp parallel for schedule(dynamic, small_chunk)
+            // once done with row above, threads will start immediately on this
+            #pragma omp for schedule(dynamic, small_chunk)
             for(unsigned long int col=0; col<cols*(my_rows>1); ++col)
             {
                 upgrade_cell_static(data_prev, data, my_rows, col);
-            }
+            }// barrier since I need to wait for all of them to finish before 
+             // saving and swapping
 
-            ++save_counter;
-            if(s>0 && save_counter == s && t<100000)
+            // implied barrier at the end to finish saving and swapping
+            #pragma omp single
             {
-                sprintf(snapshot_name, "snapshot_%05ld", t);
-                save_grid(snapshot_name, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data, my_rows, cols);
-                save_counter = 0;
-            }
+                ++save_counter;
+                if(s>0 && save_counter == s && t<100000)
+                {
+                    sprintf(snapshot_name, "snapshot_%05ld", t);
+                    save_grid(snapshot_name, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data, my_rows, cols);
+                    save_counter = 0;
+                }
 
-            tmp_data = data;
-            data = data_prev;
-            data_prev = tmp_data;
-            tmp_data = NULL;
-        }
+                tmp_data = data;
+                data = data_prev;
+                data_prev = tmp_data;
+                tmp_data = NULL;
+            }// barrier
+        } // barrier
         double end_time = MPI_Wtime();
         double local_time = end_time-start_time;
         double global_time_avg;
