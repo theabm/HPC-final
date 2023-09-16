@@ -426,7 +426,7 @@ int main(int argc, char **argv)
 
         unsigned char *tmp_data = NULL;
 
-        const unsigned long int MAX_THREADS = omp_get_max_threads();
+        const int MAX_THREADS = omp_get_max_threads();
 
         unsigned long int chunk = (my_rows-2)*cols/MAX_THREADS;
         int remainder = chunk%CACHE_LINE_SIZE;
@@ -499,7 +499,7 @@ int main(int argc, char **argv)
         if(rank==0)
         {
             global_time_avg/=size;
-            printf("%d,%ld,%ld,%lf\n",size,MAX_THREADS,size*MAX_THREADS,global_time_avg);
+            printf("%d,%d,%d,%lf\n",size,MAX_THREADS,size*MAX_THREADS,global_time_avg);
         }
         if(s==0)
         {
