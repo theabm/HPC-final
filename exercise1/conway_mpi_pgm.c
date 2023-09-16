@@ -295,7 +295,7 @@ int main(int argc, char **argv)
         // need to include some changing information such as time
         srand48(10*rank); 
 
-        for(unsigned long int i = 1; i<rows+1; ++i)
+        for(unsigned long int i = 1; i<my_rows+1; ++i)
         {
             for(unsigned long int j = 0; j<cols; ++j)
             {
