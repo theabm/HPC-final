@@ -47,7 +47,7 @@ echo "comparing omp v1 and v2"
 cmp snapshot_00100.omp snapshot_00100.omp.v2 >&1
 echo "comparing omp v1 and v3"
 cmp snapshot_00100.omp snapshot_00100.omp.v3 >&1
-echo "comparing hybrid v2 and v2"
+echo "comparing hybrid v1 and v2"
 cmp snapshot_00100.hybrid snapshot_00100.hybrid.v2 >&1
 
 echo "comparing serial algo1 and serial algo 2"
