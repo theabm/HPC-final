@@ -1,46 +1,15 @@
-This is BibTeX, Version 0.99d (TeX Live 2022/dev/Debian)
-Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
-The top-level auxiliary file: main.aux
-The style file: alpha.bst
-Database file #1: sample.bib
-You've used 1 entry,
-            2543 wiz_defined-function locations,
-            565 strings with 4538 characters,
-and the built_in function-call counts, 384 in all, are:
-= -- 38
-> -- 8
-< -- 1
-+ -- 3
-- -- 2
-* -- 29
-:= -- 68
-add.period$ -- 3
-call.type$ -- 1
-change.case$ -- 5
-chr.to.int$ -- 1
-cite$ -- 1
-duplicate$ -- 15
-empty$ -- 31
-format.name$ -- 4
-if$ -- 74
-int.to.chr$ -- 1
-int.to.str$ -- 0
-missing$ -- 1
-newline$ -- 8
-num.names$ -- 3
-pop$ -- 3
-preamble$ -- 1
-purify$ -- 6
-quote$ -- 0
-skip$ -- 12
-stack$ -- 0
-substring$ -- 33
-swap$ -- 1
-text.length$ -- 1
-text.prefix$ -- 1
-top$ -- 0
-type$ -- 8
-warning$ -- 0
-while$ -- 4
-width$ -- 2
-write$ -- 15
+[0] Config.pm:307> INFO - This is Biber 2.17
+[0] Config.pm:310> INFO - Logfile is 'main.blg'
+[52] biber:340> INFO - === Tue Sep 19, 2023, 00:21:51
+[61] Biber.pm:418> INFO - Reading 'main.bcf'
+[107] Biber.pm:972> INFO - Found 4 citekeys in bib section 0
+[116] Biber.pm:4383> INFO - Processing section 0
+[123] Biber.pm:4574> INFO - Looking for bibtex file 'bibliography.bib' for section 0
+[123] bibtex.pm:1713> INFO - LaTeX decoding ...
+[125] bibtex.pm:1518> INFO - Found BibTeX data source 'bibliography.bib'
+[140] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[140] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[140] Biber.pm:4203> INFO - Sorting list 'none/global//global/global' of type 'entry' with template 'none' and locale 'en-US'
+[141] Biber.pm:4209> INFO - No sort tailoring available for locale 'en-US'
+[145] bbl.pm:654> INFO - Writing 'main.bbl' with encoding 'UTF-8'
+[146] bbl.pm:757> INFO - Output to main.bbl

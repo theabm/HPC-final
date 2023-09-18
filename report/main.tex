@@ -12,6 +12,9 @@
 \usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage[style=ieee, backend=biber]{biblatex}
+\addbibresource{bibliography.bib}
+\usepackage{csquotes}
 
 \title{High Performance Computing Project - A.A. 2022/2023}
 \author{Andres Bermeo Marinelli}
@@ -20,7 +23,9 @@
 \maketitle
 \tableofcontents
 \chapter{Benchmarking MKL, OpenBLAS, and BLIS}
+
 \section{Introduction}
+
 In this exercise we compare the performance of three High Performance Libraries
 (HPC): MKL, OpenBLAS, and BLIS. In particular, we focus on the level 3 BLAS 
 function called \texttt{gemm}, which multiples an $m \times k$ matrix $A$ times 
@@ -44,6 +49,7 @@ Furthermore, for the second scenario, we also modify the thread affinity policy
 of OMP in order to observe any differences.
 
 \section{Methodology}
+
 \subsection{Compiling BLIS and obtaining binaries}
 
 We begin by downloading the BLIS library by using the following commands:
@@ -54,6 +60,7 @@ We begin by downloading the BLIS library by using the following commands:
     $srun -p {NODE} -n 1 --cpus-per-task={P} make -j {P}
     $make install
 \end{verbatim}
+
 Where \texttt{NODE} can be specified as either \texttt{THIN} or \texttt{EPYC} and 
 \texttt{P} are the available cores for each node, $24$ and $128$ respectively.
 
@@ -69,6 +76,7 @@ Next, we specify the flag in the Makefile to compile for float or double using
     $export LD_LIBRARY_PATH=/path/to/myblis/lib:$LD_LIBRARY_PATH
     $srun -n1 make cpu
 \end{verbatim}
+
 Which will generate the binaries for the desired architecture, with floar or 
 double precision, depending on the flag we used.
 
@@ -151,10 +159,94 @@ under the names \texttt{es2\_2\_close\_thin.sh}, \texttt{es2\_2\_close\_epyc.sh}
 \texttt{es2\_2\_spread\_thin.sh}, and \texttt{es2\_2\_spread\_epyc.sh}.
 
 \section{Results and Discussion}
-We discuss the results of both exercises individually. 
+
+Before we discuss the results of both exercises individually, we briefly 
+introduce the equation to calculate the theoretical peak performance ($T_{pp}$) 
+of a machine:
+
+\begin{equation}
+    T_{pp} = \text{Core Count}\times \text{clock freq.} \times \text{IPC}
+\end{equation}
+
+Where \texttt{IPC} is the instructions per cycle that the architecture 
+is capable of executing.
+
+This equation is very intuitive. The clock frequency tells us how many cycles 
+per second a single core is able to achieve. The ipc factor tells us how many 
+instructions per cycle the core can execute. This number is different for 
+single precision (SP) and double precision (DP) operations. Finally, we need 
+to multiple this by the number of cores that our machine has. 
+
+On orfeo, THIN and EPYC nodes are composed of: 
+\begin{itemize}
+    \item THIN: $24$ Intel(R) Xeon(R) Gold $6126$ CPU's at $2.60$GHz - Skylake
+    \item EPYC: $128$ EPYC AMD 7H12 CPU's at $2.60$GHz - Zen 2 (7002 a.k.a "Rome")
+\end{itemize}
+
+Skylake architecture is reported\cite{arch} to be able to execute $64$ SP FLOP per cycle 
+and $32$ DP FLOP per cycle. On the other hand, Zen 2 is reported\cite{arch} to execute 
+$32$ SP FLOP per cycle and $16$ DP FLOP per cycle.
+
+Therefore, we obtain: 
+
+\begin{table}
+\centering
+\begin{tabular}{c|c|c|c|c|c|}
+    Node Type & Total Cores & IPC (SP) & IPC (DP) & $T_{pp}$ (SP) & $T_{pp}$ (DP)\\\hline
+    THIN      &     24      &    64    &   32     & $\sim 4$ TFLOPS & $\sim 2$ TFLOPS \\
+    EPYC      &    128      &    32    &   16     & $\sim 10.6$ TFLOPS & $\sim 5.3$ TFLOPS \\
+\end{tabular}
+\caption{\label{tab:perf}Performance table of THIN and EPYC architectures.}
+\end{table}
+
 \subsection{Using a fixed number of cores}
-Below we show the graphs that were obtained for both THIN and EPYC, for both 
-floating and double precision.
+
+As mentioned above, in this section, we keep the number of cores fixed and 
+we slowly increase the size of the matrices being multiplied from $m=2000$ 
+to $m=20000$. 
+
+\subsubsection{THIN Nodes}
+
+THIN nodes have two sockets each of $12$ cores, for a total of $24$ cores per 
+node. The cores are Intel(R) Xeon(R) Gold $6126$ CPU at $2.60$GHz, which are 
+part of the Skylake microarchitecture.
+
+Furthermore, we know that the peak performance of any machine is given by the 
+equation: 
+
+
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=14cm, height=6cm]{./images/fixed_cores_thin_float_time.pdf}
+\includegraphics[width=14cm, height=6cm]{./images/fixed_cores_thin_float_gflops.pdf}
+\caption{\label{fig:fixed_cores_thin_float}}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=10cm, height=5cm]{./images/fixed_cores_thin_double_time.pdf}
+\includegraphics[width=10cm, height=5cm]{./images/fixed_cores_thin_double_gflops.pdf}
+\caption{\label{fig:fixed_cores_thin_double}.}
+\end{figure}
+
+\subsubsection{EPYC Nodes}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=10cm, height=5cm]{./images/fixed_cores_epyc_float_time.pdf}
+\includegraphics[width=10cm, height=5cm]{./images/fixed_cores_epyc_float_gflops.pdf}
+\caption{\label{fig:fixed_cores_epyc_float}.}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=10cm, height=5cm]{./images/fixed_cores_epyc_double_time.pdf}
+\includegraphics[width=10cm, height=5cm]{./images/fixed_cores_epyc_double_gflops.pdf}
+\caption{\label{fig:fixed_cores_epyc_double}.}
+\end{figure}
+
+\subsection{Using a fixed matrix size}
 
 \section{Conclusion}
 
@@ -163,95 +255,175 @@ floating and double precision.
 
 \section{Introduction}
 
-Your introduction goes here! Simply start writing your document and use the Recompile button to view the updated PDF preview. Examples of commonly used commands and features are listed below, to help you get started.
+This exercise is devoted to implementing a scalable version of Conway's Game of 
+life\cite{conway}. The game consists of a $k\times k$ grid, where each cell can 
+be "alive" or "dead".
 
-Once you're familiar with the editor, you can find various project settings in the Overleaf menu, accessed via the button in the very top left of the editor. To view tutorials, user guides, and further documentation, please visit our \href{https://www.overleaf.com/learn}{help library}, or head to our plans page to \href{https://www.overleaf.com/user/subscription/plans}{choose your plan}.
+The grid evolves over time by looking at a cell's $\mathcal{C}$ eight nearest 
+neighbors and observing the following simple rules: 
 
-\section{Some examples to get started}
+\begin{itemize}
+    \item A dead cell with exactly three live neighbors comes to live (\textit{birth}).
+    \item A live cell with two or three neighbors stays alive (\textit{survival}).
+    \item A dead or live cell less than two or more than three neighbors dies 
+        or stays dead by under or overpolulation, respectively (\textit{death}).
+\end{itemize}
 
-\subsection{How to create Sections and Subsections}
+These seemingly simple rules give rise to many interesting behaviors and patterns.
 
-Simply use the section and subsection commands, as in this example document! With Overleaf, all the formatting and numbering is handled automatically according to the template you've chosen. If you're using the Visual Editor, you can also create new section and subsections via the buttons in the editor toolbar.
+Depending on how we update the cells, there exist two methods to evolve the 
+grid: \texttt{static} and \texttt{ordered}. In \texttt{static} evolution, we 
+freeze the state of the grid $\mathcal{G}_t$ at time step $t$, and compute 
+$\mathcal{G}_{t+1}$ separately, while looking at $\mathcal{G}_t$.
 
-\subsection{How to include Figures}
+On the other hand, in \texttt{ordered} evolution, we start from a specific cell, 
+usually in position $(0,0)$ (top left), and update the elements in\-place. 
+In this scenario, the state of each cell depends on the evolution of all the 
+cells before it. 
 
-First you have to upload the image file from your computer using the upload link in the file-tree menu. Then use the includegraphics command to include it in your document. Use the figure environment and the caption command to add a number and a caption to your figure. See the code for Figure \ref{fig:frog} in this section for an example.
+Our implementation must satisfy the following requirements: 
 
-Note that your figure will automatically be placed in the most appropriate place for it, given the surrounding text and taking into account other figures or tables that may be close by. You can find out more about adding images to your documents in this help article on \href{https://www.overleaf.com/learn/how-to/Including_images_on_Overleaf}{including images on Overleaf}.
+\begin{enumerate}
+    \item Randomly initialize a square grid ("playground") of size $k \times k$ 
+        with $k \geq 100$ and save it as a binary PGM file.
+    \item Load a binary PGM file and evolve for $n$ steps.
+    \item Save a snapshot during the course of evolution with frequency $s$ ($s=0$ 
+        means save at the end). 
+    \item Support both \texttt{static} and \texttt{ordered} evolution.
+\end{enumerate}
 
-\begin{figure}
+Lastly, it must use both MPI\cite{mpi} and OpenMP\cite{omp} to paralellize 
+the computations and be able to process grids of considerably high dimensions. 
+
+\section{Methodology}
+
+Since programs in MPI need to be rewritten completely from their serial 
+counterparts, we must begin to conceptualize the problem in an encapsulated 
+manner from the start.
+
+At a high abstract level, we must make two important choices: 
+
+\begin{enumerate}
+    \item How we will decompose the problem. 
+    \item How we will perform the IO (this has important consequences on the 
+        organizational paradigm we will use).
+\end{enumerate}
+
+We briefly discuss both of these topics more in depth in the following subsections.
+
+\subsection{Problem decomposition}
+
+To exploit paralellism, we must first identify the concurrency in our 
+application and then apply some form of decomposition. The two most important 
+types of decomposition are \texttt{domain} and \texttt{functional} decomposition. 
+
+In domain decomposition, multiple workers are performing the same set of 
+instructions on different portions of data (SIMD). In functional 
+decomposition, workers are performing different instructions on possibly 
+different data (MIMD). 
+ 
+In the case of static evolution, each cell can be updated independently from each 
+other, as long as we have acccess to its neighbors. Therefore, one immediately 
+obviously form of paralellism is for each MPI process to update their "part" 
+of the whole grid. 
+
+For this, we need to decide how to split the grid since we can do both a 1D or 
+2D decomposition of our grid. It is known that a 2D decomposition is more 
+efficient as it can exploit more bandwidth (more workers will send shorter messages 
+at the same time). However, it is more complicated both from an implementation 
+point of view, as well as it is worse for memory access. 
+
+Let's talk briefly about this second aspect. Although we will talk about our 
+grid as a 2D array, internally, for efficiency, it will be represented as a 1D 
+array. Therefore, each process will work on a strip of continuous data as 
+shown in the figure below. 
+
+\begin{figure}[h]
 \centering
-\includegraphics[width=0.25\linewidth]{frog.jpg}
-\caption{\label{fig:frog}This frog was uploaded via the file-tree menu.}
+\includegraphics[width=10cm, height=5cm]{./other_images/arraydecomposition.jpg}
+\caption{\label{fig:decomposition}.}
 \end{figure}
+
+
+Fas one long array, in a 1D split, each process will need to work on a continuous
+
+
+"strip" of this memory. 
+
+
+
+\section{Implementation}
+
+\section{Results and Discussion}
+
+\section{Conclusions}
 
 \subsection{How to add Tables}
 
-Use the table and tabular environments for basic tables --- see Table~\ref{tab:widgets}, for example. For more information, please see this help article on \href{https://www.overleaf.com/learn/latex/tables}{tables}. 
+% Use the table and tabular environments for basic tables --- see Table~\ref{tab:widgets}, for example. For more information, please see this help article on \href{https://www.overleaf.com/learn/latex/tables}{tables}. 
+%
+% \begin{table}
+% \centering
+% \begin{tabular}{l|r}
+% Item & Quantity \\\hline
+% Widgets & 42 \\
+% Gadgets & 13
+% \end{tabular}
+% \caption{\label{tab:widgets}An example table.}
+% \end{table}
+%
+% \subsection{How to add Comments and Track Changes}
+%
+% Comments can be added to your project by highlighting some text and clicking ``Add comment'' in the top right of the editor pane. To view existing comments, click on the Review menu in the toolbar above. To reply to a comment, click on the Reply button in the lower right corner of the comment. You can close the Review pane by clicking its name on the toolbar when you're done reviewing for the time being.
+%
+% Track changes are available on all our \href{https://www.overleaf.com/user/subscription/plans}{premium plans}, and can be toggled on or off using the option at the top of the Review pane. Track changes allow you to keep track of every change made to the document, along with the person making the change. 
+%
+% \subsection{How to add Lists}
+%
+% You can make lists with automatic numbering \dots
+%
+% \begin{enumerate}
+% \item Like this,
+% \item and like this.
+% \end{enumerate}
+% \dots or bullet points \dots
+% \begin{itemize}
+% \item Like this,
+% \item and like this.
+% \end{itemize}
+%
+% \subsection{How to write Mathematics}
+%
+% \LaTeX{} is great at typesetting mathematics. Let $X_1, X_2, \ldots, X_n$ be a sequence of independent and identically distributed random variables with $\text{E}[X_i] = \mu$ and $\text{Var}[X_i] = \sigma^2 < \infty$, and let
+% \[S_n = \frac{X_1 + X_2 + \cdots + X_n}{n}
+%       = \frac{1}{n}\sum_{i}^{n} X_i\]
+% denote their mean. Then as $n$ approaches infinity, the random variables $\sqrt{n}(S_n - \mu)$ converge in distribution to a normal $\mathcal{N}(0, \sigma^2)$.
+%
+%
+% \subsection{How to change the margins and paper size}
+%
+% Usually the template you're using will have the page margins and paper size set correctly for that use-case. For example, if you're using a journal article template provided by the journal publisher, that template will be formatted according to their requirements. In these cases, it's best not to alter the margins directly.
+%
+% If however you're using a more general template, such as this one, and would like to alter the margins, a common way to do so is via the geometry package. You can find the geometry package loaded in the preamble at the top of this example file, and if you'd like to learn more about how to adjust the settings, please visit this help article on \href{https://www.overleaf.com/learn/latex/page_size_and_margins}{page size and margins}.
+%
+% \subsection{How to change the document language and spell check settings}
+%
+% Overleaf supports many different languages, including multiple different languages within one document. 
+%
+% To configure the document language, simply edit the option provided to the babel package in the preamble at the top of this example project. To learn more about the different options, please visit this help article on \href{https://www.overleaf.com/learn/latex/International_language_support}{international language support}.
+%
+% To change the spell check language, simply open the Overleaf menu at the top left of the editor window, scroll down to the spell check setting, and adjust accordingly.
+%
+% \subsection{How to add Citations and a References List}
+%
+% You can simply upload a \verb|.bib| file containing your BibTeX entries, created with a tool such as JabRef. You can then cite entries from it, like this: \cite{greenwade93}. Just remember to specify a bibliography style, as well as the filename of the \verb|.bib|. You can find a \href{https://www.overleaf.com/help/97-how-to-include-a-bibliography-using-bibtex}{video tutorial here} to learn more about BibTeX.
+%
+% If you have an \href{https://www.overleaf.com/user/subscription/plans}{upgraded account}, you can also import your Mendeley or Zotero library directly as a \verb|.bib| file, via the upload menu in the file-tree.
+%
+% \subsection{Good luck!}
+%
+% We hope you find Overleaf useful, and do take a look at our \href{https://www.overleaf.com/learn}{help library} for more tutorials and user guides! Please also let us know if you have any feedback using the Contact Us link at the bottom of the Overleaf menu --- or use the contact form at \url{https://www.overleaf.com/contact}.
 
-\begin{table}
-\centering
-\begin{tabular}{l|r}
-Item & Quantity \\\hline
-Widgets & 42 \\
-Gadgets & 13
-\end{tabular}
-\caption{\label{tab:widgets}An example table.}
-\end{table}
-
-\subsection{How to add Comments and Track Changes}
-
-Comments can be added to your project by highlighting some text and clicking ``Add comment'' in the top right of the editor pane. To view existing comments, click on the Review menu in the toolbar above. To reply to a comment, click on the Reply button in the lower right corner of the comment. You can close the Review pane by clicking its name on the toolbar when you're done reviewing for the time being.
-
-Track changes are available on all our \href{https://www.overleaf.com/user/subscription/plans}{premium plans}, and can be toggled on or off using the option at the top of the Review pane. Track changes allow you to keep track of every change made to the document, along with the person making the change. 
-
-\subsection{How to add Lists}
-
-You can make lists with automatic numbering \dots
-
-\begin{enumerate}
-\item Like this,
-\item and like this.
-\end{enumerate}
-\dots or bullet points \dots
-\begin{itemize}
-\item Like this,
-\item and like this.
-\end{itemize}
-
-\subsection{How to write Mathematics}
-
-\LaTeX{} is great at typesetting mathematics. Let $X_1, X_2, \ldots, X_n$ be a sequence of independent and identically distributed random variables with $\text{E}[X_i] = \mu$ and $\text{Var}[X_i] = \sigma^2 < \infty$, and let
-\[S_n = \frac{X_1 + X_2 + \cdots + X_n}{n}
-      = \frac{1}{n}\sum_{i}^{n} X_i\]
-denote their mean. Then as $n$ approaches infinity, the random variables $\sqrt{n}(S_n - \mu)$ converge in distribution to a normal $\mathcal{N}(0, \sigma^2)$.
-
-
-\subsection{How to change the margins and paper size}
-
-Usually the template you're using will have the page margins and paper size set correctly for that use-case. For example, if you're using a journal article template provided by the journal publisher, that template will be formatted according to their requirements. In these cases, it's best not to alter the margins directly.
-
-If however you're using a more general template, such as this one, and would like to alter the margins, a common way to do so is via the geometry package. You can find the geometry package loaded in the preamble at the top of this example file, and if you'd like to learn more about how to adjust the settings, please visit this help article on \href{https://www.overleaf.com/learn/latex/page_size_and_margins}{page size and margins}.
-
-\subsection{How to change the document language and spell check settings}
-
-Overleaf supports many different languages, including multiple different languages within one document. 
-
-To configure the document language, simply edit the option provided to the babel package in the preamble at the top of this example project. To learn more about the different options, please visit this help article on \href{https://www.overleaf.com/learn/latex/International_language_support}{international language support}.
-
-To change the spell check language, simply open the Overleaf menu at the top left of the editor window, scroll down to the spell check setting, and adjust accordingly.
-
-\subsection{How to add Citations and a References List}
-
-You can simply upload a \verb|.bib| file containing your BibTeX entries, created with a tool such as JabRef. You can then cite entries from it, like this: \cite{greenwade93}. Just remember to specify a bibliography style, as well as the filename of the \verb|.bib|. You can find a \href{https://www.overleaf.com/help/97-how-to-include-a-bibliography-using-bibtex}{video tutorial here} to learn more about BibTeX.
-
-If you have an \href{https://www.overleaf.com/user/subscription/plans}{upgraded account}, you can also import your Mendeley or Zotero library directly as a \verb|.bib| file, via the upload menu in the file-tree.
-
-\subsection{Good luck!}
-
-We hope you find Overleaf useful, and do take a look at our \href{https://www.overleaf.com/learn}{help library} for more tutorials and user guides! Please also let us know if you have any feedback using the Contact Us link at the bottom of the Overleaf menu --- or use the contact form at \url{https://www.overleaf.com/contact}.
-
-\bibliographystyle{alpha}
-\bibliography{sample}
+\printbibliography
 
 \end{document}

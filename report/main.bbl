@@ -1,8 +1,121 @@
-\begin{thebibliography}{Gre93}
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.2 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
 
-\bibitem[Gre93]{greenwade93}
-George~D. Greenwade.
-\newblock The {C}omprehensive {T}ex {A}rchive {N}etwork ({CTAN}).
-\newblock {\em TUGBoat}, 14(3):342--351, 1993.
 
-\end{thebibliography}
+\refsection{0}
+  \datalist[entry]{none/global//global/global}
+    \entry{arch}{online}{}
+      \name{author}{1}{}{%
+        {{hash=0afb10138f9cc599a823c6c0c3336860}{%
+           family={wikichip},
+           familyi={w\bibinitperiod}}}%
+      }
+      \strng{namehash}{0afb10138f9cc599a823c6c0c3336860}
+      \strng{fullhash}{0afb10138f9cc599a823c6c0c3336860}
+      \strng{bibnamehash}{0afb10138f9cc599a823c6c0c3336860}
+      \strng{authorbibnamehash}{0afb10138f9cc599a823c6c0c3336860}
+      \strng{authornamehash}{0afb10138f9cc599a823c6c0c3336860}
+      \strng{authorfullhash}{0afb10138f9cc599a823c6c0c3336860}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Floating-Point Operations Per Second (FLOPS)}
+      \verb{urlraw}
+      \verb https://en.wikichip.org/wiki/flops
+      \endverb
+      \verb{url}
+      \verb https://en.wikichip.org/wiki/flops
+      \endverb
+    \endentry
+    \entry{conway}{online}{}
+      \name{author}{1}{}{%
+        {{hash=af3bf37af7bbe577dff1016c4dbedf9d}{%
+           family={LifeWiki},
+           familyi={L\bibinitperiod}}}%
+      }
+      \strng{namehash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \strng{fullhash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \strng{bibnamehash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \strng{authorbibnamehash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \strng{authornamehash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \strng{authorfullhash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Conway's Game of Life}
+      \verb{urlraw}
+      \verb https://conwaylife.com/wiki/Conway%27s_Game_of_Life
+      \endverb
+      \verb{url}
+      \verb https://conwaylife.com/wiki/Conway%27s_Game_of_Life
+      \endverb
+    \endentry
+    \entry{mpi}{online}{}
+      \name{author}{1}{}{%
+        {{hash=bf160d1e93569149ef5b07d1530e69a6}{%
+           family={OpenMPI},
+           familyi={O\bibinitperiod}}}%
+      }
+      \strng{namehash}{bf160d1e93569149ef5b07d1530e69a6}
+      \strng{fullhash}{bf160d1e93569149ef5b07d1530e69a6}
+      \strng{bibnamehash}{bf160d1e93569149ef5b07d1530e69a6}
+      \strng{authorbibnamehash}{bf160d1e93569149ef5b07d1530e69a6}
+      \strng{authornamehash}{bf160d1e93569149ef5b07d1530e69a6}
+      \strng{authorfullhash}{bf160d1e93569149ef5b07d1530e69a6}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{OpenMPI}
+      \verb{urlraw}
+      \verb https://www.open-mpi.org/
+      \endverb
+      \verb{url}
+      \verb https://www.open-mpi.org/
+      \endverb
+    \endentry
+    \entry{omp}{online}{}
+      \name{author}{1}{}{%
+        {{hash=ab7a37a2661ec9bda56227ade2bbc727}{%
+           family={OpenMP},
+           familyi={O\bibinitperiod}}}%
+      }
+      \strng{namehash}{ab7a37a2661ec9bda56227ade2bbc727}
+      \strng{fullhash}{ab7a37a2661ec9bda56227ade2bbc727}
+      \strng{bibnamehash}{ab7a37a2661ec9bda56227ade2bbc727}
+      \strng{authorbibnamehash}{ab7a37a2661ec9bda56227ade2bbc727}
+      \strng{authornamehash}{ab7a37a2661ec9bda56227ade2bbc727}
+      \strng{authorfullhash}{ab7a37a2661ec9bda56227ade2bbc727}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{OpenMP}
+      \verb{urlraw}
+      \verb https://www.openmp.org/
+      \endverb
+      \verb{url}
+      \verb https://www.openmp.org/
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+
