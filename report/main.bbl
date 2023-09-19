@@ -55,6 +55,7 @@
       \strng{authorbibnamehash}{af3bf37af7bbe577dff1016c4dbedf9d}
       \strng{authornamehash}{af3bf37af7bbe577dff1016c4dbedf9d}
       \strng{authorfullhash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \field{extraname}{1}
       \field{sortinit}{3}
       \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
       \field{labelnamesource}{author}
@@ -65,6 +66,57 @@
       \endverb
       \verb{url}
       \verb https://conwaylife.com/wiki/Conway%27s_Game_of_Life
+      \endverb
+    \endentry
+    \entry{conway_patterns}{online}{}
+      \name{author}{1}{}{%
+        {{hash=af3bf37af7bbe577dff1016c4dbedf9d}{%
+           family={LifeWiki},
+           familyi={L\bibinitperiod}}}%
+      }
+      \strng{namehash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \strng{fullhash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \strng{bibnamehash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \strng{authorbibnamehash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \strng{authornamehash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \strng{authorfullhash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \field{extraname}{2}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Category: Patterns}
+      \verb{urlraw}
+      \verb https://conwaylife.com/wiki/Category:Patterns
+      \endverb
+      \verb{url}
+      \verb https://conwaylife.com/wiki/Category:Patterns
+      \endverb
+    \endentry
+    \entry{pgm}{online}{}
+      \name{author}{1}{}{%
+        {{hash=e1de25b32254f8dac7eac5839ebc53f0}{%
+           family={Poskanzer},
+           familyi={P\bibinitperiod},
+           given={Jef},
+           giveni={J\bibinitperiod}}}%
+      }
+      \strng{namehash}{e1de25b32254f8dac7eac5839ebc53f0}
+      \strng{fullhash}{e1de25b32254f8dac7eac5839ebc53f0}
+      \strng{bibnamehash}{e1de25b32254f8dac7eac5839ebc53f0}
+      \strng{authorbibnamehash}{e1de25b32254f8dac7eac5839ebc53f0}
+      \strng{authornamehash}{e1de25b32254f8dac7eac5839ebc53f0}
+      \strng{authorfullhash}{e1de25b32254f8dac7eac5839ebc53f0}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{PGM}
+      \verb{urlraw}
+      \verb https://netpbm.sourceforge.net/doc/pgm.html
+      \endverb
+      \verb{url}
+      \verb https://netpbm.sourceforge.net/doc/pgm.html
       \endverb
     \endentry
     \entry{mpi}{online}{}
@@ -79,8 +131,8 @@
       \strng{authorbibnamehash}{bf160d1e93569149ef5b07d1530e69a6}
       \strng{authornamehash}{bf160d1e93569149ef5b07d1530e69a6}
       \strng{authorfullhash}{bf160d1e93569149ef5b07d1530e69a6}
-      \field{sortinit}{4}
-      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{title}{OpenMPI}
@@ -103,8 +155,8 @@
       \strng{authorbibnamehash}{ab7a37a2661ec9bda56227ade2bbc727}
       \strng{authornamehash}{ab7a37a2661ec9bda56227ade2bbc727}
       \strng{authorfullhash}{ab7a37a2661ec9bda56227ade2bbc727}
-      \field{sortinit}{5}
-      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{title}{OpenMP}

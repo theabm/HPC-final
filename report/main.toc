@@ -16,8 +16,9 @@
 \contentsline {chapter}{\numberline {2}Conway's Game of Life}{13}{chapter.2}%
 \contentsline {section}{\numberline {2.1}Introduction}{13}{section.2.1}%
 \contentsline {section}{\numberline {2.2}Methodology}{13}{section.2.2}%
-\contentsline {subsection}{\numberline {2.2.1}Problem decomposition}{14}{subsection.2.2.1}%
-\contentsline {section}{\numberline {2.3}Implementation}{14}{section.2.3}%
-\contentsline {section}{\numberline {2.4}Results and Discussion}{14}{section.2.4}%
-\contentsline {section}{\numberline {2.5}Conclusions}{14}{section.2.5}%
-\contentsline {subsection}{\numberline {2.5.1}How to add Tables}{14}{subsection.2.5.1}%
+\contentsline {subsection}{\numberline {2.2.1}Decomposition}{14}{subsection.2.2.1}%
+\contentsline {subsection}{\numberline {2.2.2}MPI IO}{15}{subsection.2.2.2}%
+\contentsline {section}{\numberline {2.3}Implementation}{15}{section.2.3}%
+\contentsline {section}{\numberline {2.4}Results and Discussion}{15}{section.2.4}%
+\contentsline {section}{\numberline {2.5}Conclusions}{15}{section.2.5}%
+\contentsline {subsection}{\numberline {2.5.1}How to add Tables}{15}{subsection.2.5.1}%

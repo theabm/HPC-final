@@ -568,99 +568,171 @@ perhaps, to understand whether we can obtain better performance in this case.
 \section{Introduction}
 
 This exercise is devoted to implementing a scalable version of Conway's Game of 
-life\cite{conway}. The game consists of a $k\times k$ grid, where each cell can 
-be "alive" or "dead".
+life\cite{conway}. The game consists of a $k\times k$ grid, where each cell 
+$\mathcal{C}$, at position $(i,j)$, can be "alive" or "dead".
 
-The grid evolves over time by looking at a cell's $\mathcal{C}$ eight nearest 
-neighbors and observing the following simple rules: 
+The grid evolves over time by looking at each cell's  eight nearest 
+neighbors and observing the following rules: 
 
 \begin{itemize}
     \item A dead cell with exactly three live neighbors comes to live (\textit{birth}).
     \item A live cell with two or three neighbors stays alive (\textit{survival}).
-    \item A dead or live cell less than two or more than three neighbors dies 
-        or stays dead by under or overpolulation, respectively (\textit{death}).
+    \item A dead or live cell with less than two or more than three neighbors dies 
+        or stays dead (\textit{death}).
 \end{itemize}
 
-These seemingly simple rules give rise to many interesting behaviors and patterns.
+These seemingly simple rules give rise to many interesting behaviors and 
+patterns\cite{conway_patterns}. 
 
-Depending on how we update the cells, there exist two methods to evolve the 
-grid: \texttt{static} and \texttt{ordered}. In \texttt{static} evolution, we 
-freeze the state of the grid $\mathcal{G}_t$ at time step $t$, and compute 
-$\mathcal{G}_{t+1}$ separately, while looking at $\mathcal{G}_t$.
+There exist two methods to evolve the grid: \texttt{static} and \texttt{ordered}
+evolution. In \texttt{static} evolution, we freeze the state of the entire grid 
+$\mathcal{G}_t$ at time step $t$, and compute $\mathcal{G}_{t+1}$, separately, 
+while looking at $\mathcal{G}_t$. This corresponds to maintaining two buffers, 
+one for the current generation and the other for the new generation.
 
 On the other hand, in \texttt{ordered} evolution, we start from a specific cell, 
-usually in position $(0,0)$ (top left), and update the elements in\-place. 
-In this scenario, the state of each cell depends on the evolution of all the 
-cells before it. 
+usually in position $(0,0)$ (top left), and update the elements inplace. This 
+means that the state of each cell depends on the evolved state of some of its 
+neighbors. We call this "ordered" evolution, because the choice of starting 
+point, and the order in which we evolve the grid, lead to different results.
+In this scenario, the state of each cell instrinsically depends on the history of 
+evolution of \textit{all} the cells before it. 
 
 Our implementation must satisfy the following requirements: 
 
 \begin{enumerate}
     \item Randomly initialize a square grid ("playground") of size $k \times k$ 
-        with $k \geq 100$ and save it as a binary PGM file.
-    \item Load a binary PGM file and evolve for $n$ steps.
-    \item Save a snapshot during the course of evolution with frequency $s$ ($s=0$ 
-        means save at the end). 
+        with $k \geq 100$ and save it as a binary PGM\cite{pgm} file.
+    \item Load any binary PGM file and evolve for $n$ steps.
+    \item Save a snapshot during the course of evolution with a frequency $s$, 
+        where $s=0$ means saving only at the end. 
     \item Support both \texttt{static} and \texttt{ordered} evolution.
 \end{enumerate}
 
-Lastly, it must use both MPI\cite{mpi} and OpenMP\cite{omp} to paralellize 
+Lastly, it must use both MPI\cite{mpi} and OpenMP\cite{omp} (OMP) to paralellize 
 the computations and be able to process grids of considerably high dimensions. 
 
 \section{Methodology}
 
-Since programs in MPI need to be rewritten completely from their serial 
-counterparts, we must begin to conceptualize the problem in an encapsulated 
-manner from the start.
+In this section, we briefly describe some of the important choices for the 
+implementation, as well as their implications. We will proceed by layers, 
+tackling the more abstract and higher level problems first and then slowly 
+going into detail about more technical choices. 
+
+The first most important step is to think about how to paralellize the problem 
+in order to use MPI and OMP properly.
+
+Since programs in MPI need to be written completely with paralellization in mind 
+from the start, we must begin to conceptualize the problem in an encapsulated 
+manner from the beginning.
 
 At a high abstract level, we must make two important choices: 
 
 \begin{enumerate}
     \item How we will decompose the problem. 
-    \item How we will perform the IO (this has important consequences on the 
-        organizational paradigm we will use).
+    \item How we will perform the IO. 
 \end{enumerate}
 
-We briefly discuss both of these topics more in depth in the following subsections.
+How we solve the first problem is of fundamental importance to ensure that our 
+program is scalable and efficient. Also, it has important consequences on the 
+type of paralellism we will need to use. 
+On the other hand, the second problem will determine the organizational paradigm 
+that we will use in our code, as we will see later.
 
-\subsection{Problem decomposition}
+We briefly discuss both of these topics more in depth in the following 
+subsections.
+
+\subsection{Decomposition}
 
 To exploit paralellism, we must first identify the concurrency in our 
 application and then apply some form of decomposition. The two most important 
 types of decomposition are \texttt{domain} and \texttt{functional} decomposition. 
 
-In domain decomposition, multiple workers are performing the same set of 
-instructions on different portions of data (SIMD). In functional 
+In \texttt{domain} decomposition, multiple workers are performing the same set of 
+instructions on different portions of data (SIMD). In \texttt{functional} 
 decomposition, workers are performing different instructions on possibly 
 different data (MIMD). 
  
-In the case of static evolution, each cell can be updated independently from each 
-other, as long as we have acccess to its neighbors. Therefore, one immediately 
-obviously form of paralellism is for each MPI process to update their "part" 
-of the whole grid. 
-
-For this, we need to decide how to split the grid since we can do both a 1D or 
-2D decomposition of our grid. It is known that a 2D decomposition is more 
-efficient as it can exploit more bandwidth (more workers will send shorter messages 
-at the same time). However, it is more complicated both from an implementation 
-point of view, as well as it is worse for memory access. 
-
-Let's talk briefly about this second aspect. Although we will talk about our 
-grid as a 2D array, internally, for efficiency, it will be represented as a 1D 
-array. Therefore, each process will work on a strip of continuous data as 
-shown in the figure below. 
+In the case of \texttt{static} evolution, each cell can be updated 
+independently from each other, as long as we have acccess to its neighbors. 
+Therefore, one immediately obviously form of paralellism is for each MPI 
+process to process a "part" of the whole grid. This is an example of \texttt{domain}
+decomposition, and it is shown below:
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=10cm, height=5cm]{./other_images/arraydecomposition.jpg}
-\caption{\label{fig:decomposition}.}
+\caption{\label{fig:decomposition} Decomposition of an array among three processes. 
+Although the array is conceptualized as a 2D structure, internally, for efficiency, 
+it is represented as a 1D contigous block of memory.}
 \end{figure}
 
+However, we need to decide how to split the grid. We can do a 1D decomposition by 
+"stripes", as shown in image \ref{fig:decomposition} or a 2D decomposition by 
+"blocks". It is known that a 2D decomposition is more efficient as it 
+can exploit more bandwidth as more workers will send shorter messages 
+contemporarily. However, it is more complicated both from an implementation 
+point of view and worse for memory access.
 
-Fas one long array, in a 1D split, each process will need to work on a continuous
+Let's talk briefly about this second aspect. Although we talk about the 
+grid as a 2D array, internally, for efficiency, it will be represented as a 1D 
+array. 
+
+If we do a 1D split, each process will work on a thick strip of data which 
+continuous in memory. On the other hand, if we do a 2D split, each process will 
+work on a block of memory which is not contiguous and located every certain 
+"jumps" in the 1D array. As a consequence, as each process traverses its block 
+of the grid, it will have more cache misses compared to the 1D case where 
+we perform a simple a linear access.
+
+Therefore, for reasons stated above, and for simplicity and readability, we 
+decided to use the 1D splitting.
+
+Lastly, we must consider how to handle halo regions. Since each process will 
+process a strip (composed of 1 ore more rows) of the grid, the rows at the 
+boundary of the strip must be handled with special attention. These rows - 2 per 
+process - need information that is contained at the boundary of the strips of 
+other processes. Therefore, we need to set up message passing between processes 
+to handle the exchange of the boundary rows, also known as \texttt{halo} rows.
+
+\subsection{MPI IO}
+
+The problem specifications require that we must save the grid with a certain 
+frequency $s$. There are multiple ways to achieve this, and they all have 
+important implications on the scalability of the code. 
+
+The simplest way is for each process to write its part of the grid to a 
+separate file. This however, is extremely messy as we loose the flexibility 
+of using a different number of processes between separate runs. More importantly, 
+for a large number of processes, the filesystem will not be able to handle all 
+these requests and will be completely overloaded and possibly crash. This means 
+that for $P>>1$ we would have very serious problems, which is undesirable, since 
+we wish to use as many processes as we want/have.
+
+The second solution, is to use a master-slave approach. In this paradigm, one 
+process is designated as the master process, while all the other are its slaves. 
+The master will coordinate the IO, and with a frequency $s$, it will collect 
+information from all the slaves, and take care of writing everything to a file. 
+This approach, although very common, is not scalable, as each process needs to 
+send its part of the grid to the master process. So for $P>>1$, the bottleneck 
+will be in the communication. 
+
+Lastly, the third, and best solution, is to use MPI IO, which was meant to handle 
+exactly this problem. The idea behind MPI IO is very similar to message passing. 
+Each process will call a collective function to read/write its part of the grid
+and the MPI implementation will take care of exploiting the parallel filesystem
+and reducing the amount of read and write operations. Furthermore, this is 
+the only solution that takes advantage of the parallel filesystem which allows 
+for a unified logical view of the file, while allowing the file to be stored 
+in physically different locations. This is very advantageous for scalability 
+since many processes can contemporarily write in different physical locations, 
+which increases the throughput of the program. We note that this is a form 
+of \texttt{functional} decomposition.
 
 
-"strip" of this memory. 
+
+
+
 
 
 
