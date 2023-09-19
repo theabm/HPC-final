@@ -189,66 +189,192 @@ $32$ SP FLOP per cycle and $16$ DP FLOP per cycle.
 
 Therefore, we obtain: 
 
-\begin{table}
+\begin{table}[h]
 \centering
 \begin{tabular}{c|c|c|c|c|c|}
     Node Type & Total Cores & IPC (SP) & IPC (DP) & $T_{pp}$ (SP) & $T_{pp}$ (DP)\\\hline
     THIN      &     24      &    64    &   32     & $\sim 4$ TFLOPS & $\sim 2$ TFLOPS \\
     EPYC      &    128      &    32    &   16     & $\sim 10.6$ TFLOPS & $\sim 5.3$ TFLOPS \\
 \end{tabular}
-\caption{\label{tab:perf}Performance table of THIN and EPYC architectures.}
+\caption{\label{tab:perf}Performance table of THIN and EPYC node architectures.}
 \end{table}
+
+Now we can proceed to discuss the results of the exercise.
 
 \subsection{Using a fixed number of cores}
 
-As mentioned above, in this section, we keep the number of cores fixed and 
-we slowly increase the size of the matrices being multiplied from $m=2000$ 
-to $m=20000$. 
+As mentioned above, in this section, we keep the number of cores fixed to the 
+maximum available in the node, and we slowly increase the size of the matrices 
+being multiplied from $m=2000$ to $m=20000$. 
 
 \subsubsection{THIN Nodes}
 
-THIN nodes have two sockets each of $12$ cores, for a total of $24$ cores per 
-node. The cores are Intel(R) Xeon(R) Gold $6126$ CPU at $2.60$GHz, which are 
-part of the Skylake microarchitecture.
+\begin{figure}[h!]
+% \centering
+\hspace*{-2.5cm}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_cores_thin_float_time.pdf}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_cores_thin_float_gflops.pdf}
+\caption{\label{fig:fixed_cores_thin_float} Results of SP matrix-matrix multiplication 
+for THIN nodes. \texttt{MKL} and \texttt{OpenBLAS} perform similarly, outperforming 
+\texttt{BLIS} for all matrix sizes.}
+\end{figure}
+We see that both \texttt{MKL} and 
+\texttt{OpenBLAS} are able to reach $\sim 3$ TFLOPS, which is around 
+$75\%$ of $T_{pp}$. On the other hand, the \texttt{BLIS} library is not 
+able to exploit the full potential of the machine, arriving only to 
+$\sim 2.4$ TFLOPS, which is $60\%$ of $T_{pp}$.
 
-Furthermore, we know that the peak performance of any machine is given by the 
-equation: 
+\begin{figure}[h!]
+% \centering
+\hspace*{-2.5cm}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_cores_thin_double_time.pdf}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_cores_thin_double_gflops.pdf}
+\caption{\label{fig:fixed_cores_thin_double} Results of DP matrix-matrix multiplication 
+for THIN nodes. \texttt{MKL} performs the best, slightly above \texttt{OpenBLAS}. 
+Both outperform \texttt{BLIS} for all matrix sizes.}
+\end{figure}
+We see that \texttt{MKL} reaches $1.6$ TFLOPS, 
+while \texttt{OpenBLAS} is slightly lower, at $1.5$ TFLOPS, which is $80\%$ and 
+$75\%$ of $T_{pp}$, respectively. On the other hand, \texttt{BLIS} arrives to 
+$1.3$ TFLOPS, which is $65\%$ of $T_{pp}$.
 
+For both graphs, we notice that on \texttt{MKL} and \texttt{OpenBLAS} are better 
+able to exploit the full potential of a THIN node. On the other hand, \texttt{BLIS}
+seems to only be able to arrive to $\sim 60\%$ of $T_{pp}$. Therefore, on THIN nodes, 
+if we need to multiply two matrices on THIN, we should always use the first 
+two libraries to get some more performance. To get the absolute best performance, 
+it is preferable to use \texttt{MKL}.
 
+Notice that this statement is true for both single and double precision, and for 
+the whole range of matrix sizes we have analyzed. 
 
-\begin{figure}[h]
-\centering
-\includegraphics[width=14cm, height=6cm]{./images/fixed_cores_thin_float_time.pdf}
-\includegraphics[width=14cm, height=6cm]{./images/fixed_cores_thin_float_gflops.pdf}
-\caption{\label{fig:fixed_cores_thin_float}}
+These results shouldn't be surprising, considering 
+that \texttt{MKL} is developed by Intel, and THIN nodes are Intel based.
+Therefore, we expect that this library is very fine tuned to their own architecture 
+and is able to exploit the performance of their machines.
+
+Lastly, we observe the impressive results achieved by \texttt{OpenBLAS} which 
+is based on the original implementation of Kazushige Goto, and is able to achieve a similar performance to 
+\texttt{MKL}, which is maintained by an entire corporation.
+
+\subsubsection{EPYC Nodes}
+
+Now we show the results for the same computations on EPYC nodes, which have a 
+$T_{pp}$ of $10.6$ TFLOPS for SP and $5.3$ TFLOPS for DP.
+
+\begin{figure}[h!p]
+% \centering
+\hspace*{-2.5cm}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_cores_epyc_float_time.pdf}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_cores_epyc_float_gflops.pdf}
+\caption{\label{fig:fixed_cores_epyc_float} Results of SP matrix-matrix multiplication 
+for EPYC nodes. We notice that asymptotically, \texttt{OpenBLAS} outperforms 
+\texttt{MKL} and \texttt{BLIS}, while for small matrices, \texttt{OpenBLAS} 
+performs the worst.}
+\end{figure} 
+
+In this case, we obtain some results. None of the libraries are able to reach 
+more than $20\%$ of $T_{pp}$. Furthermore, for matrices of size $\leq 9000$, 
+\texttt{MKL} and \texttt{BLIS} outperform \texttt{OpenBLAS}. Between sizes 
+$9000$ and $12000$, \texttt{MKL} performs best, and \texttt{OpenBLAS} begins to 
+perform better than \texttt{BLIS}. For sizes $\geq 12000$, \texttt{OpenBLAS} 
+performs the best.
+
+\begin{figure}[h!p]
+% \centering
+\hspace*{-2.5cm}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_cores_epyc_double_time.pdf}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_cores_epyc_double_gflops.pdf}
+\caption{\label{fig:fixed_cores_epyc_double} Results of DP matrix-matrix multiplication 
+for EPYC nodes. \texttt{BLIS} outperforms \texttt{MKL} and \texttt{OpenBLAS}, 
+for all matrix sizes.}
+
+\end{figure}
+Again, we notice that none of the libraries are able to achieve more than $20\%$ 
+of $T_{pp}$. However, in this case, \texttt{BLIS} outperforms the other two libraries 
+for all matrix sizes. The next best performer is \texttt{OpenBLAS}, followed by 
+\texttt{MKL}, which performs the worst.
+
+In conclusion, on EPYC nodes, it seems that for DP matrix-matrix multiplication, 
+it is better to use \texttt{BLIS}, while for SP, it is very dependant on the 
+size of the matrices. However, for large matrices, we should use \texttt{OpenBLAS}
+while for smaller ones, we should use \texttt{MKL}. 
+
+\subsection{Using a fixed matrix size}
+
+In this section, we fix the matrix size to $10000$ and we slowly increase the 
+amount of cores that the libraries can exploit for multithrading, through OMP. 
+For THIN nodes, we arrive to $24$ cores, while for EPYC nodes, we arrive to $128$ 
+cores.
+
+Furthermore, since we are slowly increasing the number of cores that the libraries 
+can use for multithreading, we can study the effects of using different 
+thread allocation policies.
+
+As mentioned above, we chose to always use \texttt{OMP\_PLACES=cores} for these 
+experiments. However, we used both \texttt{OMP\_PROC\_BIND=close} and 
+\texttt{OMP\_PROC\_BIND=spread}. In the first case, the threads will occupy first 
+one entire socket, and then, when it is full, the other socket. In the second case, 
+the threads will be placed as spread as possible, on two sockets. 
+In both cases, when we use the full node, we expect the results to be the same.
+
+For conciceness, we omit the time graphs in this 
+section, as they report similar results to the \texttt{GFLOPS} measurements. 
+
+\subsubsection{THIN Nodes}
+\begin{figure}[h!]
+% \centering
+\hspace*{-2.5cm}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_size_thin_float_gflops_close.pdf}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_size_thin_float_gflops_spread.pdf}
+\caption{\label{fig:fixed_size_thin_float} Results of SP matrix-matrix multiplication 
+as the number of cores increase, using close and spread policies. The results 
+seem to be very similar in both cases.}
 \end{figure}
 
+We observe that both \texttt{MKL} and \texttt{OpenBLAS} achieve similar 
+performance. Using the full node, they are able to achieve $3$ TFLOPS, which is 
+$75\%$ of $T_{pp}$. This is consistent with the previous results, since for a 
+matrix size of $10000$, using a full node, we obtain the same performance. 
+
+The results are also consistent for \texttt{BLIS} which reaches $2.2$ TFLOPS 
+when using a full node, which is $55\%$ of $T_{pp}$, and similar to what we 
+obtained previously.
+
+ 
+
+
+
 \begin{figure}[h]
-\centering
-\includegraphics[width=10cm, height=5cm]{./images/fixed_cores_thin_double_time.pdf}
-\includegraphics[width=10cm, height=5cm]{./images/fixed_cores_thin_double_gflops.pdf}
-\caption{\label{fig:fixed_cores_thin_double}.}
+% \centering
+\hspace*{-2.5cm}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_size_thin_double_gflops_close.pdf}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_size_thin_double_gflops_spread.pdf}
+\caption{\label{fig:fixed_size_thin_double} Results of DP matrix-matrix multiplication 
+as the number of cores increase, using close and spread policies. The results are 
+very similar, except for a slight different towards the end for \texttt{BLIS}.}
 \end{figure}
 
 \subsubsection{EPYC Nodes}
 
 \begin{figure}[h]
-\centering
-\includegraphics[width=10cm, height=5cm]{./images/fixed_cores_epyc_float_time.pdf}
-\includegraphics[width=10cm, height=5cm]{./images/fixed_cores_epyc_float_gflops.pdf}
-\caption{\label{fig:fixed_cores_epyc_float}.}
+% \centering
+\hspace*{-2.5cm}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_size_epyc_float_gflops_close.pdf}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_size_epyc_float_gflops_spread.pdf}
+\caption{\label{fig:fixed_size_epyc_float} }
 \end{figure}
 
 \begin{figure}[h]
-\centering
-\includegraphics[width=10cm, height=5cm]{./images/fixed_cores_epyc_double_time.pdf}
-\includegraphics[width=10cm, height=5cm]{./images/fixed_cores_epyc_double_gflops.pdf}
-\caption{\label{fig:fixed_cores_epyc_double}.}
+% \centering
+\hspace*{-2.5cm}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_size_epyc_double_gflops_close.pdf}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_size_epyc_double_gflops_spread.pdf}
+\caption{\label{fig:fixed_size_epyc_double} }
 \end{figure}
 
-\subsection{Using a fixed matrix size}
-
 \section{Conclusion}
+
 
 \chapter{Conway's Game of Life}
 

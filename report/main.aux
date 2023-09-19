@@ -32,43 +32,53 @@
 \abx@aux@segm{0}{0}{arch}
 \abx@aux@cite{0}{arch}
 \abx@aux@segm{0}{0}{arch}
-\@writefile{lot}{\contentsline {table}{\numberline {1.1}{\ignorespaces Performance table of THIN and EPYC architectures.}}{4}{table.1.1}\protected@file@percent }
-\newlabel{tab:perf}{{1.1}{4}{Performance table of THIN and EPYC architectures}{table.1.1}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {1.3}Results and Discussion}{4}{section.1.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1.1}{\ignorespaces Performance table of THIN and EPYC node architectures.}}{4}{table.1.1}\protected@file@percent }
+\newlabel{tab:perf}{{1.1}{4}{Performance table of THIN and EPYC node architectures}{table.1.1}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {1.3.1}Using a fixed number of cores}{4}{subsection.1.3.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{THIN Nodes}{4}{section*.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{EPYC Nodes}{4}{section*.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.3.2}Using a fixed matrix size}{4}{subsection.1.3.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {1.4}Conclusion}{4}{section.1.4}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {1.1}{\ignorespaces }}{5}{figure.1.1}\protected@file@percent }
-\newlabel{fig:fixed_cores_thin_float}{{1.1}{5}{}{figure.1.1}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.2}{\ignorespaces .}}{6}{figure.1.2}\protected@file@percent }
-\newlabel{fig:fixed_cores_thin_double}{{1.2}{6}{}{figure.1.2}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.3}{\ignorespaces .}}{6}{figure.1.3}\protected@file@percent }
-\newlabel{fig:fixed_cores_epyc_float}{{1.3}{6}{}{figure.1.3}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.4}{\ignorespaces .}}{7}{figure.1.4}\protected@file@percent }
-\newlabel{fig:fixed_cores_epyc_double}{{1.4}{7}{}{figure.1.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.1}{\ignorespaces  Results of SP matrix-matrix multiplication for THIN nodes. \texttt  {MKL} and \texttt  {OpenBLAS} perform similarly, outperforming \texttt  {BLIS} for all matrix sizes.}}{4}{figure.1.1}\protected@file@percent }
+\newlabel{fig:fixed_cores_thin_float}{{1.1}{4}{Results of SP matrix-matrix multiplication for THIN nodes. \texttt {MKL} and \texttt {OpenBLAS} perform similarly, outperforming \texttt {BLIS} for all matrix sizes}{figure.1.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.2}{\ignorespaces  Results of DP matrix-matrix multiplication for THIN nodes. \texttt  {MKL} performs the best, slightly above \texttt  {OpenBLAS}. Both outperform \texttt  {BLIS} for all matrix sizes.}}{5}{figure.1.2}\protected@file@percent }
+\newlabel{fig:fixed_cores_thin_double}{{1.2}{5}{Results of DP matrix-matrix multiplication for THIN nodes. \texttt {MKL} performs the best, slightly above \texttt {OpenBLAS}. Both outperform \texttt {BLIS} for all matrix sizes}{figure.1.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{EPYC Nodes}{5}{section*.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.3.2}Using a fixed matrix size}{5}{subsection.1.3.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1.3}{\ignorespaces  Results of SP matrix-matrix multiplication for EPYC nodes. We notice that asymptotically, \texttt  {OpenBLAS} outperforms \texttt  {MKL} and \texttt  {BLIS}, while for small matrices, \texttt  {OpenBLAS} performs the worst.}}{6}{figure.1.3}\protected@file@percent }
+\newlabel{fig:fixed_cores_epyc_float}{{1.3}{6}{Results of SP matrix-matrix multiplication for EPYC nodes. We notice that asymptotically, \texttt {OpenBLAS} outperforms \texttt {MKL} and \texttt {BLIS}, while for small matrices, \texttt {OpenBLAS} performs the worst}{figure.1.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.4}{\ignorespaces  Results of DP matrix-matrix multiplication for EPYC nodes. \texttt  {BLIS} outperforms \texttt  {MKL} and \texttt  {OpenBLAS}, for all matrix sizes.}}{6}{figure.1.4}\protected@file@percent }
+\newlabel{fig:fixed_cores_epyc_double}{{1.4}{6}{Results of DP matrix-matrix multiplication for EPYC nodes. \texttt {BLIS} outperforms \texttt {MKL} and \texttt {OpenBLAS}, for all matrix sizes}{figure.1.4}{}}
+\@writefile{toc}{\contentsline {subsubsection}{THIN Nodes}{7}{section*.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1.5}{\ignorespaces  Results of SP matrix-matrix multiplication as the number of cores increase, using close and spread policies. The results seem to be very similar in both cases.}}{7}{figure.1.5}\protected@file@percent }
+\newlabel{fig:fixed_size_thin_float}{{1.5}{7}{Results of SP matrix-matrix multiplication as the number of cores increase, using close and spread policies. The results seem to be very similar in both cases}{figure.1.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.6}{\ignorespaces  Results of DP matrix-matrix multiplication as the number of cores increase, using close and spread policies. The results are very similar, except for a slight different towards the end for \texttt  {BLIS}.}}{7}{figure.1.6}\protected@file@percent }
+\newlabel{fig:fixed_size_thin_double}{{1.6}{7}{Results of DP matrix-matrix multiplication as the number of cores increase, using close and spread policies. The results are very similar, except for a slight different towards the end for \texttt {BLIS}}{figure.1.6}{}}
+\@writefile{toc}{\contentsline {subsubsection}{EPYC Nodes}{8}{section*.5}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1.7}{\ignorespaces  }}{8}{figure.1.7}\protected@file@percent }
+\newlabel{fig:fixed_size_epyc_float}{{1.7}{8}{}{figure.1.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.8}{\ignorespaces  }}{8}{figure.1.8}\protected@file@percent }
+\newlabel{fig:fixed_size_epyc_double}{{1.8}{8}{}{figure.1.8}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {1.4}Conclusion}{8}{section.1.4}\protected@file@percent }
 \abx@aux@cite{0}{conway}
 \abx@aux@segm{0}{0}{conway}
 \abx@aux@cite{0}{mpi}
 \abx@aux@segm{0}{0}{mpi}
 \abx@aux@cite{0}{omp}
 \abx@aux@segm{0}{0}{omp}
-\@writefile{toc}{\contentsline {chapter}{\numberline {2}Conway's Game of Life}{8}{chapter.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {2}Conway's Game of Life}{9}{chapter.2}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{\numberline {2.1}Introduction}{8}{section.2.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2.2}Methodology}{8}{section.2.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.1}Problem decomposition}{9}{subsection.2.2.1}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {2.1}{\ignorespaces .}}{9}{figure.2.1}\protected@file@percent }
-\newlabel{fig:decomposition}{{2.1}{9}{}{figure.2.1}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.3}Implementation}{9}{section.2.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2.4}Results and Discussion}{9}{section.2.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2.5}Conclusions}{9}{section.2.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.1}How to add Tables}{9}{subsection.2.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.1}Introduction}{9}{section.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.2}Methodology}{9}{section.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.1}Problem decomposition}{10}{subsection.2.2.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2.1}{\ignorespaces .}}{10}{figure.2.1}\protected@file@percent }
+\newlabel{fig:decomposition}{{2.1}{10}{}{figure.2.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.3}Implementation}{10}{section.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.4}Results and Discussion}{10}{section.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.5}Conclusions}{10}{section.2.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.1}How to add Tables}{10}{subsection.2.5.1}\protected@file@percent }
 \abx@aux@read@bbl@mdfivesum{71F1438ED73C9EDD9520F56ED9D803D5}
 \abx@aux@defaultrefcontext{0}{arch}{none/global//global/global}
 \abx@aux@defaultrefcontext{0}{conway}{none/global//global/global}
 \abx@aux@defaultrefcontext{0}{mpi}{none/global//global/global}
 \abx@aux@defaultrefcontext{0}{omp}{none/global//global/global}
-\gdef \@abspage@last{11}
+\gdef \@abspage@last{12}
