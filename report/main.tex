@@ -211,9 +211,9 @@ being multiplied from $m=2000$ to $m=20000$.
 
 \begin{figure}[h!]
 % \centering
-\hspace*{-2.5cm}
-\includegraphics[width=10cm, height=6cm]{./images/fixed_cores_thin_float_time.pdf}
+\hspace*{-3.0cm}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_cores_thin_float_gflops.pdf}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_cores_thin_float_gflops_ratio.pdf}
 \caption{\label{fig:fixed_cores_thin_float} Results of SP matrix-matrix multiplication 
 for THIN nodes. \texttt{MKL} and \texttt{OpenBLAS} perform similarly, outperforming 
 \texttt{BLIS} for all matrix sizes.}
@@ -227,8 +227,8 @@ $\sim 2.4$ TFLOPS, which is $60\%$ of $T_{pp}$.
 \begin{figure}[h!]
 % \centering
 \hspace*{-2.5cm}
-\includegraphics[width=10cm, height=6cm]{./images/fixed_cores_thin_double_time.pdf}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_cores_thin_double_gflops.pdf}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_cores_thin_double_gflops_ratio.pdf}
 \caption{\label{fig:fixed_cores_thin_double} Results of DP matrix-matrix multiplication 
 for THIN nodes. \texttt{MKL} performs the best, slightly above \texttt{OpenBLAS}. 
 Both outperform \texttt{BLIS} for all matrix sizes.}
@@ -264,9 +264,9 @@ $T_{pp}$ of $10.6$ TFLOPS for SP and $5.3$ TFLOPS for DP.
 
 \begin{figure}[h!p]
 % \centering
-\hspace*{-2.5cm}
-\includegraphics[width=10cm, height=6cm]{./images/fixed_cores_epyc_float_time.pdf}
+\hspace*{-3.0cm}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_cores_epyc_float_gflops.pdf}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_cores_epyc_float_gflops_ratio.pdf}
 \caption{\label{fig:fixed_cores_epyc_float} Results of SP matrix-matrix multiplication 
 for EPYC nodes. We notice that asymptotically, \texttt{OpenBLAS} outperforms 
 \texttt{MKL} and \texttt{BLIS}, while for small matrices, \texttt{OpenBLAS} 
@@ -283,8 +283,8 @@ performs the best.
 \begin{figure}[h!p]
 % \centering
 \hspace*{-2.5cm}
-\includegraphics[width=10cm, height=6cm]{./images/fixed_cores_epyc_double_time.pdf}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_cores_epyc_double_gflops.pdf}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_cores_epyc_double_gflops_ratio.pdf}
 \caption{\label{fig:fixed_cores_epyc_double} Results of DP matrix-matrix multiplication 
 for EPYC nodes. \texttt{BLIS} outperforms \texttt{MKL} and \texttt{OpenBLAS}, 
 for all matrix sizes.}
