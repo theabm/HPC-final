@@ -15,6 +15,7 @@
 \usepackage[style=ieee, backend=biber]{biblatex}
 \addbibresource{bibliography.bib}
 \usepackage{csquotes}
+\usepackage{float}
 
 \title{High Performance Computing Project - A.A. 2022/2023}
 \author{Andres Bermeo Marinelli}
@@ -164,7 +165,7 @@ Before we discuss the results of both exercises individually, we briefly
 introduce the equation to calculate the theoretical peak performance ($T_{pp}$) 
 of a machine:
 
-\begin{equation}
+\begin{equation}\label{eq:perf}
     T_{pp} = \text{Core Count}\times \text{clock freq.} \times \text{IPC}
 \end{equation}
 
@@ -189,7 +190,7 @@ $32$ SP FLOP per cycle and $16$ DP FLOP per cycle.
 
 Therefore, we obtain: 
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \begin{tabular}{c|c|c|c|c|c|}
     Node Type & Total Cores & IPC (SP) & IPC (DP) & $T_{pp}$ (SP) & $T_{pp}$ (DP)\\\hline
@@ -212,7 +213,7 @@ We first show the results for THIN and then for EPYC nodes.
 
 \subsubsection{THIN Nodes}
 
-\begin{figure}[h!]
+\begin{figure}[H]
 % \centering
 \hspace*{-2.5cm}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_cores_thin_float_gflops.pdf}
@@ -234,7 +235,7 @@ problem size is so small, that the majority of cores are starving for data rathe
 than crunching numbers. In fact, we are able to reach the best performance when 
 dealing with matrices of size $20000$. 
 
-\begin{figure}[h!]
+\begin{figure}[H]
 % \centering
 \hspace*{-2.5cm}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_cores_thin_double_gflops.pdf}
@@ -273,16 +274,15 @@ Lastly, we observe the impressive results achieved by \texttt{OpenBLAS} which
 is based on the original implementation of Kazushige Goto, and is able to achieve a similar performance to 
 \texttt{MKL}, which is maintained by an entire corporation.
 
-\pagebreak
 \subsubsection{EPYC Nodes}
 
 Now we show the results on EPYC nodes, which have a $T_{pp}$ of $10.6$ TFLOPS 
 for SP and $5.3$ TFLOPS for DP.
-
+\\\\
 We first show the results of matrix-matrix multiplication for single point 
 precision.
 
-\begin{figure}[h!p]
+\begin{figure}[H]
 % \centering
 \hspace*{-2.5cm}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_cores_epyc_float_gflops.pdf}
@@ -293,81 +293,102 @@ for EPYC nodes. We notice that asymptotically, \texttt{OpenBLAS} outperforms
 performs the worst.}
 \end{figure} 
 
-In this case, we obtain some results. None of the libraries are able to reach 
-more than $20\%$ of $T_{pp}$. Furthermore, for matrices of size $\leq 9000$, 
-\texttt{MKL} and \texttt{BLIS} outperform \texttt{OpenBLAS}. Between sizes 
-$9000$ and $12000$, \texttt{MKL} performs best, and \texttt{OpenBLAS} begins to 
-perform better than \texttt{BLIS}. For sizes $\geq 12000$, \texttt{OpenBLAS} 
-performs the best.
+In this case, none of the libraries are able to reach more than $18\%$ of $T_{pp}$.
+This could be an indication that to properly exploit a full EPYC node, we need 
+to multiply much bigger matrices.
+\\
 
-\begin{figure}[h!p]
+We also notice that for matrices of size $\leq 9000$, \texttt{MKL} and \texttt{BLIS} 
+outperform \texttt{OpenBLAS}. Between sizes $9000$ and $12000$, \texttt{MKL} 
+performs best and \texttt{OpenBLAS} begins outperform \texttt{BLIS}. 
+For sizes $\geq 12000$, \texttt{OpenBLAS} performs the best.
+
+\begin{figure}[H]
 % \centering
 \hspace*{-2.5cm}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_cores_epyc_double_gflops.pdf}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_cores_epyc_double_gflops_ratio.pdf}
 \caption{\label{fig:fixed_cores_epyc_double} Results of DP matrix-matrix multiplication 
-for EPYC nodes. \texttt{BLIS} outperforms \texttt{MKL} and \texttt{OpenBLAS}, 
+for EPYC nodes. \texttt{BLIS} outperforms \texttt{MKL} and \texttt{OpenBLAS} 
 for all matrix sizes.}
-
 \end{figure}
-Again, we notice that none of the libraries are able to achieve more than $20\%$ 
+
+Again, we notice that none of the libraries are able to achieve more than $18\%$ 
 of $T_{pp}$. However, in this case, \texttt{BLIS} outperforms the other two libraries 
 for all matrix sizes. The next best performer is \texttt{OpenBLAS}, followed by 
 \texttt{MKL}, which performs the worst.
+\\
 
 In conclusion, on EPYC nodes, it seems that for DP matrix-matrix multiplication, 
-it is better to use \texttt{BLIS}, while for SP, it is very dependant on the 
-size of the matrices. However, for large matrices, we should use \texttt{OpenBLAS}
+it is better to use \texttt{BLIS}, while for SP, it is very dependent on the 
+size of the matrices. For large matrices, we should use \texttt{OpenBLAS}
 while for smaller ones, we should use \texttt{MKL}. 
+Furthermore, evidence suggests that to fully exploit and EPYC node, we need to 
+deal with much bigger matrices. So if we are multiplying matrices of size up to 
+$20000$, it is much more convenient to just use a THIN node to get more 
+performance.
 
 \subsection{Using a fixed matrix size}
 
 In this section, we fix the matrix size to $10000$ and we slowly increase the 
-amount of cores that the libraries can exploit for multithrading, through OMP. 
-For THIN nodes, we arrive to $24$ cores, while for EPYC nodes, we arrive to $128$ 
-cores.
+amount of cores that the libraries can exploit for multithreading through OMP. 
+For THIN nodes, we arrive to $24$ cores, while for EPYC nodes, we arrive to 
+$128$ cores.
 
 Furthermore, since we are slowly increasing the number of cores that the libraries 
 can use for multithreading, we can study the effects of using different 
-thread allocation policies.
+thread allocation policies. In particular, we chose to use 
+\texttt{OMP\_PROC\_BIND=close} and \texttt{OMP\_PROC\_BIND=spread}, while 
+always using \texttt{OMP\_PLACES=cores}. 
 
-As mentioned above, we chose to always use \texttt{OMP\_PLACES=cores} for these 
-experiments. However, we used both \texttt{OMP\_PROC\_BIND=close} and 
-\texttt{OMP\_PROC\_BIND=spread}. In the first case, the threads will occupy first 
-one entire socket, and then, when it is full, the other socket. In the second case, 
-the threads will be placed as spread as possible, on two sockets. 
+In the first case, the threads will slowly occupy first one entire socket, and 
+then, when it is full, the other one. In the second case, the threads will be 
+placed as spread apart as possible, most likely on different sockets. 
 In both cases, when we use the full node, we expect the results to be the same.
 
+Furthermore, in contrast to the previous part of the exercise, we compare the 
+GFLOPS obtained with the $T_{pp}$ calculated with the cores that are being used. 
+In other words, in equation\ref{eq:perf}, instead of using the full 24 or 128 
+to calculate $T_{pp}$ for the whole node, we use the number of cores we are using 
+for that calculation.
+
+We first analyze THIN and then EPYC nodes.
+
 \subsubsection{THIN Nodes}
-\begin{figure}[h!]
+\begin{figure}[H]
 % \centering
 \hspace*{-2.5cm}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_size_thin_float_gflops_close.pdf}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_size_thin_float_gflops_close_ratio.pdf}
-\caption{\label{fig:fixed_size_thin_float_close} Results of SP matrix-matrix multiplication 
-    as the number of cores increase, using close policy.}
+\caption{\label{fig:fixed_size_thin_float_close} Results of SP matrix-matrix 
+    multiplication as the number of cores increase, using OMP close policy. 
+    \texttt{MKL} and \texttt{OpenBLAS} obtain the best performance.}
 \end{figure}
 
-\texttt{MKL} and \texttt{OpenBLAS} are able to maintain $\sim 75\%$
-of $T_{pp}$ from $6$ cores and onwards. On the other hand, \texttt{BLIS}
-is able to achieve $\sim 60\%$ of $T_{pp}$, although with a lot of cores, 
-this figure decreases to $55\%$. These numbers are consistent with the results 
-that we obtained previously. 
+As we can see from the graph, both \texttt{MKL} and \texttt{OpenBLAS} are able 
+to maintain $\sim 75\%$ of $T_{pp}$ for cores $\geq 6$. On the other 
+hand, \texttt{BLIS} is able to achieve $\sim 60\%$ of $T_{pp}$. With $24$ cores 
+this figure decreases to $55\%$. 
 
 Interestingly, we notice that with $2$ cores, there is a significant performance 
 drop. This is most likely explained by the fact that both cores are mapped to the 
-same socket and must share resources, such as the higher level caches.
+same socket due to the close policy and must share resources such as the higher 
+level caches, causing some contention.
 
-In conclusion, once again, we notice that the best performing library is \texttt{MKL}
-which is Intel based, closely followed by \texttt{OpenBLAS}.
+Furtermore, once again, we notice that the best performing library is 
+\texttt{MKL} which is Intel-based, closely followed by \texttt{OpenBLAS}.
+\\
 
-\begin{figure}[h!]
+Now we analyze the results using a spread policy.
+
+\begin{figure}[H]
 % \centering
 \hspace*{-2.5cm}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_size_thin_float_gflops_spread.pdf}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_size_thin_float_gflops_spread_ratio.pdf}
 \caption{\label{fig:fixed_size_thin_float_spread} Results of SP matrix-matrix multiplication 
-as the number of cores increase, using spread policy.}
+    as the number of cores increase, using OMP spread policy. \texttt{MKL} 
+and \texttt{OpenBLAS} are the best perfomers.}
 \end{figure}
 
 Using a spread policy, we obtain very similar results to the case where we use 
@@ -376,23 +397,31 @@ drop at 2 cores. This is most likely due to the fact that with a spread policy,
 each core is mapped to its own socket and there is no contention for resources. 
 
 In fact, we notice that on average, the performance is slightly better than the 
-close policy counterpart, and this is probably due to better resource sharing 
-from the beginning.
-
-This highlights the importance of using the correct mapping policy to obtain better 
-performance.
+close policy counterpart, and this is probably due to better resource usage 
+from the beginning, since threads don't have to compete for resources immediately.
+This highlights the importance of using the correct mapping policy to obtain 
+better performance.
+\\
 
 Now we briefly analyze the results obtained for double precision.
-\begin{figure}[h!]
+\begin{figure}[H]
 % \centering
 \hspace*{-2.5cm}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_size_thin_double_gflops_close.pdf}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_size_thin_double_gflops_close_ratio.pdf}
 \caption{\label{fig:fixed_size_thin_double_close} Results of DP matrix-matrix multiplication 
-    as the number of cores increase, using close policy.}
+    as the number of cores increase, using close policy. \texttt{MKL} and \texttt{OpenBLAS}
+perform the best.} 
 \end{figure}
 
-\begin{figure}[h!]
+Similarly to the case of single precision, \texttt{MKL} is able to achieve around 
+$\sim 75\%$ of $T_{pp}$. However, \texttt{OpenBLAS} suffers from a bit of performance 
+degradation compared to the SP case. 
+
+Once again, we notice the immediate drop in performance as soon as we use 2 cores, 
+which is probably caused by the close policy. 
+
+\begin{figure}[H]
 % \centering
 \hspace*{-2.5cm}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_size_thin_double_gflops_spread.pdf}
@@ -402,46 +431,60 @@ as the number of cores increase, using spread policy.}
 \end{figure}
 
 The analysis and discussion is very similar to the case of single point precision. 
-As usual, \texttt{MKL}, which is Intel based, performs the best, closely followed 
-by \texttt{OpenBLAS}, and finally, \texttt{BLIS} performs the worst. 
+We no longer see the drop at 2 cores, which is due to better resource usage from 
+the beginning. Compared to the close policy, there is a slightly better performance 
+for this scenario.
 
-The percentage of $T_{pp}$ achieved is rather similar, with \texttt{OpenBLAS} performing 
-slightly worse.
+As usual, \texttt{MKL}, which is Intel-based, performs the best, 
+closely followed by \texttt{OpenBLAS}, and finally, \texttt{BLIS}, which performs the worst. 
+
+Finally, we analyze EPYC nodes.
 
 \subsubsection{EPYC Nodes}
 
-We discuss the situation on EPYC nodes. Considering the results of the first part 
-of the exercise, we expect that \texttt{MKL} won't be the dominating library to 
-perform matrix-matrix multiplication since we are using an AMD architecture.
-We also expect some more fluctuation in performance among the libraries. 
+Considering the results obtained in the first part of the exercise, we expect 
+that \texttt{MKL} won't be the dominating library anymore since we are using 
+an AMD architecture. We also expect some more fluctuation in performance among 
+the libraries, similarly to how there was a dependency on the matrix size. 
 
-\begin{figure}[h]
+Furthermore, since we obtained low performance with matrices up to $20000$, using 
+all 128 cores, we don't expect an asymptotic improvement. What may happen however,
+is that when we use less cores, the performance will be much better compared 
+to the theoretical peak performance (per number of cores this time).
+
+We begin by analyzing the SP case with close policy.
+
+\begin{figure}[H]
 % \centering
 \hspace*{-2.5cm}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_size_epyc_float_gflops_close.pdf}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_size_epyc_float_gflops_close_ratio.pdf}
 \caption{\label{fig:fixed_size_epyc_float_close} Results of SP matrix-matrix multiplication 
-as the number of cores increase, using close policy.}
+as the number of cores increase, using close policy. The best performance is obtained 
+by \texttt{OpenBLAS} with 40 cores.}
 \end{figure}
 
-For an EPYC node, we see that \texttt{OpenBLAS} obtains the best performance until 
-$80$ cores. In fact, this plot suggests that it is less convenient to use the 
-entire epyc node to compute the matrix-matrix multiplication. This can be seen 
-by the fact that the peak performance is obtained with 40 cores. Since this number 
-is just shy of 32, which is the size of a NUMA region inside a single EPYC socket, 
-this seems to suggest that for a matrices of size $10000$, it is more convenient 
-to use a single NUMA region, rather than the whole node. 
+Looking at the graph, we see that the best absolute performance is obtained by 
+\texttt{OpenBLAS} at $40$ cores, however, this is only $\sim60\%$ of $T_{pp}$. 
+On the other hand, for $10-20$ cores, the performance almost on part with $T_{pp}$. 
+This tells us that to fully exploit the machine as intended, with a matrices of size 
+$10000$, we only need a handful of cores.
 
-However, it could be the case that for a much bigger matrix, using the whole node 
-may be beneficial.
+This information is consistent with our previous hypothesis that to fully exploit 
+an EPYC node, we need to consider much larger matrices. 
 
-We also notice that for all three libraries, as we increase the number of cores, 
-they get worse and worse at exploiting the full peak performance of the machine. 
-In fact, all three libraries are capable of performing $\sim20\%$ of $T_{pp}$.
+An immediate consequence of this observation, is that as we use more and more cores, 
+the performance deteriorates considerably. When we use the full node, the 
+performance is $\sim20\%$ of $T_{pp}$, which is higher than what we obtained for 
+the first part of the exercise.
 
-We investigate this in the end.
+Contrary to what happens in THIN, we do not notice any severe drops in performance 
+which could be due to the close policy mapping. However, this will be more 
+noticeable once we analyze what happens when we use the spread policy.
 
-\begin{figure}[h]
+Now we analyze the SP case using spread policy.
+
+\begin{figure}[H]
 % \centering
 \hspace*{-2.5cm}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_size_epyc_float_gflops_spread.pdf}
@@ -450,39 +493,38 @@ We investigate this in the end.
 as the number of cores increase, using spread policy.}
 \end{figure}
 
-Using the spread policy, we observe that \texttt{BLIS} is the best choice, although 
-it suffers from considerable fluctuations. Interestingly, all the fluctuations happen 
-at 30, 60, and 90 cores. These are all values that are close to full usage of a 
-NUMA region. 
-Once again, this seems to suggest that it is better to fully utilize a subset of 
-NUMA regions, rather than use an intermediate value. 
+There is a big change. The first thing is that now \texttt{BLIS} obtains the best 
+performance, although it suffers from considerable fluctuations. Furthermore, 
+\texttt{OpenBLAS}, which used to perform the best, now performs the worst out of 
+all three libraries.
 
 We also notice that using the spread policy causes both \texttt{MKL} and \texttt{BLIS}
 to improve and \texttt{OpenBLAS} to worsen. This is interesting because it seems 
 to suggest that the latter library is better able to handle resource contention 
 while the first two are better at fully exploiting resources.
- 
-Finally, we notice that also here, all three libraries are not able to fully exploit 
-the theoretical peak performance of the machine, and progressively get worse, 
-until $\sim15\%$ of $T_{pp}$.
 
+Once again, we notice that as we use more cores, we get worse performance.
+\\
+Now we look at the DP case with close policy.
 
-\begin{figure}[h]
+\begin{figure}[H]
 % \centering
 \hspace*{-2.5cm}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_size_epyc_double_gflops_close.pdf}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_size_epyc_double_gflops_close_ratio.pdf}
 \caption{\label{fig:fixed_size_epyc_double_close} Results of DP matrix-matrix multiplication 
-as the number of cores increase, using close policy.}
+as the number of cores increase, using close policy. The best performance is 
+obtained by \texttt{BLIS}, followed by \texttt{OpenBLAS}.}
 \end{figure}
 
 For double precision, using a close policy, we observe that \texttt{BLIS} 
 performs the best for many cores, while for the first 64 cores, it performs close 
-to \texttt{OpenBLAS}. \texttt{MKL} peforms the worst.
+to \texttt{OpenBLAS}, which is the best. \texttt{MKL} peforms the worst.
+\\
 
-Also, we see that there are less 
+Finally, we analyze the DP case with spread policy.
 
-\begin{figure}[h]
+\begin{figure}[H]
 % \centering
 \hspace*{-2.5cm}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_size_epyc_double_gflops_spread.pdf}
@@ -491,8 +533,34 @@ Also, we see that there are less
 as the number of cores increase, using spread policy.}
 \end{figure}
 
+Using a spread policy makes the gap between \texttt{BLIS} and \texttt{OpenBLAS} much 
+wider. Also, \texttt{BLIS} seems to be more capable at maintaining the throughput 
+as the number of cores are increasing. Of course, this means however, that the 
+peformance compared to the theoretical peak is deteriorating.
+
 \section{Conclusion}
 
+After analyzing the results, we can state many conclusions. The first and most 
+obvious one, is that it is better to use Intel-based implementations for Intel 
+machines. This is evidenced by the fact that \texttt{MKL} consistently performed
+the best in all scenarios for THIN, although it was closely followed by 
+\texttt{OpenBLAS}. 
+
+Next, if we are dealing with non-Intel architecures, such as EPYC, it is not 
+advisable to use \texttt{MKL}, as it consistenly underperforms compared to 
+\texttt{OpenBLAS} and \texttt{BLIS}. We also notice that \texttt{OpenBLAS} and 
+\texttt{BLIS} behave completely differently, depending on the mapping policy we 
+use.
+
+We find that for matrices up to $20000$, THIN nodes are able to achieve 
+$\sim 75\%$ of $T_{pp}$, with \texttt{MKL} and \texttt{OpenBLAS}. However, 
+such matrix dimensions are to small to be able to fully exploit an EPYC node 
+which has 128 cores. In fact, in all of our experiments, we are unable to obtain 
+more than $20\%$ of the $T_{pp}$ of the full node.
+
+Finally, as an improvement to this exercise, it would be very interesting to 
+analyze what happens with an EPYC node, using matrices of size $50000$ or bigger 
+perhaps, to understand whether we can obtain better performance in this case.
 
 \chapter{Conway's Game of Life}
 
@@ -582,7 +650,7 @@ grid as a 2D array, internally, for efficiency, it will be represented as a 1D
 array. Therefore, each process will work on a strip of continuous data as 
 shown in the figure below. 
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=10cm, height=5cm]{./other_images/arraydecomposition.jpg}
 \caption{\label{fig:decomposition}.}
