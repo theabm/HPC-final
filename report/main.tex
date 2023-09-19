@@ -334,9 +334,12 @@ is able to achieve $\sim 60\%$ of $T_{pp}$, although with a lot of cores,
 this figure decreases to $55\%$. These numbers are consistent with the results 
 that we obtained previously. 
 
-Furthermore, we notice that with $2$ cores, there is a significant performance 
+Interestingly, we notice that with $2$ cores, there is a significant performance 
 drop. This is most likely explained by the fact that both cores are mapped to the 
 same socket and must share resources, such as the higher level caches.
+
+In conclusion, once again, we notice that the best performing library is \texttt{MKL}
+which is Intel based, closely followed by \texttt{OpenBLAS}.
 
 \begin{figure}[h!]
 % \centering
@@ -365,7 +368,7 @@ Now we briefly analyze the results obtained for double precision.
 \hspace*{-2.5cm}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_size_thin_double_gflops_close.pdf}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_size_thin_double_gflops_close_ratio.pdf}
-\caption{\label{fig:fixed_size_thin_double_close} Results of SP matrix-matrix multiplication 
+\caption{\label{fig:fixed_size_thin_double_close} Results of DP matrix-matrix multiplication 
     as the number of cores increase, using close policy.}
 \end{figure}
 
@@ -374,11 +377,22 @@ Now we briefly analyze the results obtained for double precision.
 \hspace*{-2.5cm}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_size_thin_double_gflops_spread.pdf}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_size_thin_double_gflops_spread_ratio.pdf}
-\caption{\label{fig:fixed_size_thin_double_spread} Results of SP matrix-matrix multiplication 
+\caption{\label{fig:fixed_size_thin_double_spread} Results of DP matrix-matrix multiplication 
 as the number of cores increase, using spread policy.}
 \end{figure}
 
+The analysis and discussion is very similar to the case of single point precision. 
+As usual, \texttt{MKL}, which is Intel based, performs the best, closely followed 
+by \texttt{OpenBLAS}, and finally, \texttt{BLIS} performs the worst. 
+
+The percentage of $T_{pp}$ achieved is rather similar, with \texttt{OpenBLAS} performing 
+slightly worse.
+
 \subsubsection{EPYC Nodes}
+
+We discuss the situation on EPYC nodes. Considering the results of the first part 
+of the exercise, we expect that \texttt{MKL} won't be the dominating library to 
+perform matrix-matrix multiplication since we are using an AMD architecture.
 
 \begin{figure}[h]
 % \centering
