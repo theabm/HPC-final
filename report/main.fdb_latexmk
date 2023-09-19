@@ -1,13 +1,12 @@
 # Fdb version 3
-["biber main"] 1695133271 "main.bcf" "main.bbl" "main" 1695133987
+["biber main"] 1695133271 "main.bcf" "main.bbl" "main" 1695142290
   "bibliography.bib" 1695074978 497 93bf0886b18130595e7b283638236800 ""
-  "main.bcf" 1695133987 106751 0196fe2aa37805c27983b7deccd3ab3f "pdflatex"
+  "main.bcf" 1695142290 106751 0196fe2aa37805c27983b7deccd3ab3f "pdflatex"
   (generated)
   "main.bbl"
   "main.blg"
-["pdflatex"] 1695133986 "/home/andres/hpc/Foundations_of_HPC_2022/Assignment/my_assignment/report/main.tex" "main.pdf" "main" 1695133987
+["pdflatex"] 1695142289 "main.tex" "main.pdf" "main" 1695142290
   "/etc/texmf/web2c/texmf.cnf" 1677594583 475 c0e671620eb5563b2130f56340a5fde8 ""
-  "/home/andres/hpc/Foundations_of_HPC_2022/Assignment/my_assignment/report/main.tex" 1695133012 26700 bc479a12bb1ca837d2ac2be6ad2a5247 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/tcrm1000.tfm" 1136768653 1536 e07581a4bb3136ece9eeb4c3ffab8233 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1246382020 1004 54797486969f23fa377b128694d548df ""
@@ -129,9 +128,13 @@
   "images/fixed_cores_thin_float_gflops.pdf" 1695125280 12271 1d8979b4b35967c294d4902e69425530 ""
   "images/fixed_cores_thin_float_gflops_ratio.pdf" 1695125280 11553 a590304ece8f0c174a4e5f8c815a4111 ""
   "images/fixed_size_epyc_double_gflops_close.pdf" 1695133986 13158 3edb8cce76efed5cc5f63c3574d42bb1 ""
+  "images/fixed_size_epyc_double_gflops_close_ratio.pdf" 1695133986 11971 d92c598bab0aef5f3a3d8b48a235e697 ""
   "images/fixed_size_epyc_double_gflops_spread.pdf" 1695133977 13155 2e578110f010ec598f2cd6f392b36e55 ""
+  "images/fixed_size_epyc_double_gflops_spread_ratio.pdf" 1695133977 11970 f26b0e4e4ff5fc63be248f84ce2a098a ""
   "images/fixed_size_epyc_float_gflops_close.pdf" 1695133985 13291 aa68359cd9088654b6dc479c6f81c4a7 ""
   "images/fixed_size_epyc_float_gflops_close_ratio.pdf" 1695133985 12079 fc8468450cddd0e7602e37f3af15971b ""
+  "images/fixed_size_epyc_float_gflops_spread.pdf" 1695133976 13279 7c72feb50053010b79108053e95d739c ""
+  "images/fixed_size_epyc_float_gflops_spread_ratio.pdf" 1695133976 12094 a47e9c5334c2d2c45c905c6e83380e27 ""
   "images/fixed_size_thin_double_gflops_close.pdf" 1695133950 12576 53581ea7641001c0df60202916ad7771 ""
   "images/fixed_size_thin_double_gflops_close_ratio.pdf" 1695133950 11649 2214e58288aab80d7ba26acf00115e4f ""
   "images/fixed_size_thin_double_gflops_spread.pdf" 1695133965 12570 ae3350b16dba196b9d0d7485422f6b5b ""
@@ -140,12 +143,12 @@
   "images/fixed_size_thin_float_gflops_close_ratio.pdf" 1695133950 11742 abfaeb0c20d31402b98b3be93f5c426d ""
   "images/fixed_size_thin_float_gflops_spread.pdf" 1695133965 12903 9601b06f29fdb2529fb4a96299a36be1 ""
   "images/fixed_size_thin_float_gflops_spread_ratio.pdf" 1695133965 11739 31997aa580095376502c63ebc8cffe49 ""
-  "main.aux" 1695133987 8631 6137a2ce155be7bd1ede07c86984d639 "pdflatex"
+  "main.aux" 1695142290 9789 f6084600a0345ea37a1b1f827aa4f45e "pdflatex"
   "main.bbl" 1695133272 4264 71f1438ed73c9edd9520f56ed9d803d5 "biber main"
-  "main.out" 1695133987 2944 4d7ecb19f8635cda73c10993a6d428b9 "pdflatex"
-  "main.run.xml" 1695133987 2404 e448bd39f241edac993cdd8a8bf2c7e0 "pdflatex"
-  "main.tex" 1695133012 26700 bc479a12bb1ca837d2ac2be6ad2a5247 ""
-  "main.toc" 1695133987 1777 5ec33774978613951636efea404a8032 "pdflatex"
+  "main.out" 1695142290 2944 4d7ecb19f8635cda73c10993a6d428b9 "pdflatex"
+  "main.run.xml" 1695142290 2404 e448bd39f241edac993cdd8a8bf2c7e0 "pdflatex"
+  "main.tex" 1695142287 31423 25f2d386200f384246aa1d21e410db76 ""
+  "main.toc" 1695142290 1778 d179fa3a8671c72acdb395b7980e8686 "pdflatex"
   "other_images/arraydecomposition.jpg" 1695063870 22004 bd61a4177fcda591a806e2b7db6973af ""
   (generated)
   "main.aux"
