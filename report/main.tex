@@ -211,7 +211,7 @@ being multiplied from $m=2000$ to $m=20000$.
 
 \begin{figure}[h!]
 % \centering
-\hspace*{-3.0cm}
+\hspace*{-2.5cm}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_cores_thin_float_gflops.pdf}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_cores_thin_float_gflops_ratio.pdf}
 \caption{\label{fig:fixed_cores_thin_float} Results of SP matrix-matrix multiplication 
@@ -219,8 +219,8 @@ for THIN nodes. \texttt{MKL} and \texttt{OpenBLAS} perform similarly, outperform
 \texttt{BLIS} for all matrix sizes.}
 \end{figure}
 We see that both \texttt{MKL} and 
-\texttt{OpenBLAS} are able to reach $\sim 3$ TFLOPS, which is around 
-$75\%$ of $T_{pp}$. On the other hand, the \texttt{BLIS} library is not 
+\texttt{OpenBLAS} are able to reach $\sim 3.2$ TFLOPS, which is around 
+$80\%$ of $T_{pp}$. On the other hand, the \texttt{BLIS} library is not 
 able to exploit the full potential of the machine, arriving only to 
 $\sim 2.4$ TFLOPS, which is $60\%$ of $T_{pp}$.
 
@@ -233,10 +233,10 @@ $\sim 2.4$ TFLOPS, which is $60\%$ of $T_{pp}$.
 for THIN nodes. \texttt{MKL} performs the best, slightly above \texttt{OpenBLAS}. 
 Both outperform \texttt{BLIS} for all matrix sizes.}
 \end{figure}
-We see that \texttt{MKL} reaches $1.6$ TFLOPS, 
-while \texttt{OpenBLAS} is slightly lower, at $1.5$ TFLOPS, which is $80\%$ and 
-$75\%$ of $T_{pp}$, respectively. On the other hand, \texttt{BLIS} arrives to 
-$1.3$ TFLOPS, which is $65\%$ of $T_{pp}$.
+We see that \texttt{MKL} reaches $\sim1.6$ TFLOPS, 
+while \texttt{OpenBLAS} is slightly lower, at $\sim1.5$ TFLOPS, which is $\sim80\%$ and 
+$\sim75\%$ of $T_{pp}$, respectively. On the other hand, \texttt{BLIS} arrives to 
+$\sim1.3$ TFLOPS, which is $\sim65\%$ of $T_{pp}$.
 
 For both graphs, we notice that on \texttt{MKL} and \texttt{OpenBLAS} are better 
 able to exploit the full potential of a THIN node. On the other hand, \texttt{BLIS}
@@ -264,7 +264,7 @@ $T_{pp}$ of $10.6$ TFLOPS for SP and $5.3$ TFLOPS for DP.
 
 \begin{figure}[h!p]
 % \centering
-\hspace*{-3.0cm}
+\hspace*{-2.5cm}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_cores_epyc_float_gflops.pdf}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_cores_epyc_float_gflops_ratio.pdf}
 \caption{\label{fig:fixed_cores_epyc_float} Results of SP matrix-matrix multiplication 
@@ -318,41 +318,64 @@ one entire socket, and then, when it is full, the other socket. In the second ca
 the threads will be placed as spread as possible, on two sockets. 
 In both cases, when we use the full node, we expect the results to be the same.
 
-For conciceness, we omit the time graphs in this 
-section, as they report similar results to the \texttt{GFLOPS} measurements. 
-
 \subsubsection{THIN Nodes}
 \begin{figure}[h!]
 % \centering
 \hspace*{-2.5cm}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_size_thin_float_gflops_close.pdf}
-\includegraphics[width=10cm, height=6cm]{./images/fixed_size_thin_float_gflops_spread.pdf}
-\caption{\label{fig:fixed_size_thin_float} Results of SP matrix-matrix multiplication 
-as the number of cores increase, using close and spread policies. The results 
-seem to be very similar in both cases.}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_size_thin_float_gflops_close_ratio.pdf}
+\caption{\label{fig:fixed_size_thin_float_close} Results of SP matrix-matrix multiplication 
+    as the number of cores increase, using close policy.}
 \end{figure}
 
-We observe that both \texttt{MKL} and \texttt{OpenBLAS} achieve similar 
-performance. Using the full node, they are able to achieve $3$ TFLOPS, which is 
-$75\%$ of $T_{pp}$. This is consistent with the previous results, since for a 
-matrix size of $10000$, using a full node, we obtain the same performance. 
+\texttt{MKL} and \texttt{OpenBLAS} are able to maintain $\sim 75\%$
+of $T_{pp}$ from $6$ cores and onwards. On the other hand, \texttt{BLIS}
+is able to achieve $\sim 60\%$ of $T_{pp}$, although with a lot of cores, 
+this figure decreases to $55\%$. These numbers are consistent with the results 
+that we obtained previously. 
 
-The results are also consistent for \texttt{BLIS} which reaches $2.2$ TFLOPS 
-when using a full node, which is $55\%$ of $T_{pp}$, and similar to what we 
-obtained previously.
+Furthermore, we notice that with $2$ cores, there is a significant performance 
+drop. This is most likely explained by the fact that both cores are mapped to the 
+same socket and must share resources, such as the higher level caches.
 
- 
+\begin{figure}[h!]
+% \centering
+\hspace*{-2.5cm}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_size_thin_float_gflops_spread.pdf}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_size_thin_float_gflops_spread_ratio.pdf}
+\caption{\label{fig:fixed_size_thin_float_spread} Results of SP matrix-matrix multiplication 
+as the number of cores increase, using spread policy.}
+\end{figure}
 
+Using a spread policy, we obtain very similar results to the case where we use 
+a close policy. The main difference is that we don't have the same performance 
+drop at 2 cores. This is most likely due to the fact that with a spread policy, 
+each core is mapped to its own socket and there is no contention for resources. 
 
+In fact, we notice that on average, the performance is slightly better than the 
+close policy counterpart, and this is probably due to better resource sharing 
+from the beginning.
 
-\begin{figure}[h]
+This highlights the importance of using the correct mapping policy to obtain better 
+performance.
+
+Now we briefly analyze the results obtained for double precision.
+\begin{figure}[h!]
 % \centering
 \hspace*{-2.5cm}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_size_thin_double_gflops_close.pdf}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_size_thin_double_gflops_close_ratio.pdf}
+\caption{\label{fig:fixed_size_thin_double_close} Results of SP matrix-matrix multiplication 
+    as the number of cores increase, using close policy.}
+\end{figure}
+
+\begin{figure}[h!]
+% \centering
+\hspace*{-2.5cm}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_size_thin_double_gflops_spread.pdf}
-\caption{\label{fig:fixed_size_thin_double} Results of DP matrix-matrix multiplication 
-as the number of cores increase, using close and spread policies. The results are 
-very similar, except for a slight different towards the end for \texttt{BLIS}.}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_size_thin_double_gflops_spread_ratio.pdf}
+\caption{\label{fig:fixed_size_thin_double_spread} Results of SP matrix-matrix multiplication 
+as the number of cores increase, using spread policy.}
 \end{figure}
 
 \subsubsection{EPYC Nodes}
@@ -361,7 +384,7 @@ very similar, except for a slight different towards the end for \texttt{BLIS}.}
 % \centering
 \hspace*{-2.5cm}
 \includegraphics[width=10cm, height=6cm]{./images/fixed_size_epyc_float_gflops_close.pdf}
-\includegraphics[width=10cm, height=6cm]{./images/fixed_size_epyc_float_gflops_spread.pdf}
+\includegraphics[width=10cm, height=6cm]{./images/fixed_size_epyc_float_gflops_close_ratio.pdf}
 \caption{\label{fig:fixed_size_epyc_float} }
 \end{figure}
 

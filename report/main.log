@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2023.6.1)  19 SEP 2023 14:15
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2023.6.1)  19 SEP 2023 16:29
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -653,7 +653,7 @@ File: ./images/fixed_cores_thin_float_gflops_ratio.pdf Graphic file (type pdf)
 Package pdftex.def Info: ./images/fixed_cores_thin_float_gflops_ratio.pdf  used on input line 216.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 
-Overfull \hbox (44.5726pt too wide) in paragraph at lines 214--219
+Overfull \hbox (58.79898pt too wide) in paragraph at lines 214--219
 []|  [] [] 
  []
 
@@ -687,7 +687,7 @@ File: ./images/fixed_cores_epyc_float_gflops_ratio.pdf Graphic file (type pdf)
 Package pdftex.def Info: ./images/fixed_cores_epyc_float_gflops_ratio.pdf  used on input line 269.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 
-Overfull \hbox (44.5726pt too wide) in paragraph at lines 267--273
+Overfull \hbox (58.79898pt too wide) in paragraph at lines 267--273
 []|  [] [] 
  []
 
@@ -710,75 +710,111 @@ Overfull \hbox (58.79898pt too wide) in paragraph at lines 285--290
 <./images/fixed_size_thin_float_gflops_close.pdf, id=236, 752.8125pt x 376.52669pt>
 File: ./images/fixed_size_thin_float_gflops_close.pdf Graphic file (type pdf)
 <use ./images/fixed_size_thin_float_gflops_close.pdf>
-Package pdftex.def Info: ./images/fixed_size_thin_float_gflops_close.pdf  used on input line 328.
+Package pdftex.def Info: ./images/fixed_size_thin_float_gflops_close.pdf  used on input line 325.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
-<./images/fixed_size_thin_float_gflops_spread.pdf, id=237, 752.8125pt x 376.52669pt>
+<./images/fixed_size_thin_float_gflops_close_ratio.pdf, id=237, 752.8125pt x 376.52669pt>
+File: ./images/fixed_size_thin_float_gflops_close_ratio.pdf Graphic file (type pdf)
+<use ./images/fixed_size_thin_float_gflops_close_ratio.pdf>
+Package pdftex.def Info: ./images/fixed_size_thin_float_gflops_close_ratio.pdf  used on input line 326.
+(pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
+
+Overfull \hbox (58.79898pt too wide) in paragraph at lines 324--328
+[]|  [] [] 
+ []
+
+<./images/fixed_size_thin_float_gflops_spread.pdf, id=238, 752.8125pt x 376.52669pt>
 File: ./images/fixed_size_thin_float_gflops_spread.pdf Graphic file (type pdf)
 <use ./images/fixed_size_thin_float_gflops_spread.pdf>
-Package pdftex.def Info: ./images/fixed_size_thin_float_gflops_spread.pdf  used on input line 329.
+Package pdftex.def Info: ./images/fixed_size_thin_float_gflops_spread.pdf  used on input line 344.
+(pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
+<./images/fixed_size_thin_float_gflops_spread_ratio.pdf, id=239, 752.8125pt x 376.52669pt>
+File: ./images/fixed_size_thin_float_gflops_spread_ratio.pdf Graphic file (type pdf)
+<use ./images/fixed_size_thin_float_gflops_spread_ratio.pdf>
+Package pdftex.def Info: ./images/fixed_size_thin_float_gflops_spread_ratio.pdf  used on input line 345.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 
-Overfull \hbox (58.79898pt too wide) in paragraph at lines 327--332
+Overfull \hbox (58.79898pt too wide) in paragraph at lines 343--347
 []|  [] [] 
  []
 
-<./images/fixed_size_thin_double_gflops_close.pdf, id=238, 752.8125pt x 376.52669pt>
+[7 <./images/fixed_size_thin_float_gflops_close.pdf> <./images/fixed_size_thin_float_gflops_close_ratio.pdf> <./images/fixed_size_thin_float_gflops_spread.pdf> <./images/fixed_size_thin_float_gflops_spread_ratio.pdf>]
+<./images/fixed_size_thin_double_gflops_close.pdf, id=308, 752.8125pt x 376.52669pt>
 File: ./images/fixed_size_thin_double_gflops_close.pdf Graphic file (type pdf)
 <use ./images/fixed_size_thin_double_gflops_close.pdf>
-Package pdftex.def Info: ./images/fixed_size_thin_double_gflops_close.pdf  used on input line 351.
+Package pdftex.def Info: ./images/fixed_size_thin_double_gflops_close.pdf  used on input line 366.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
-<./images/fixed_size_thin_double_gflops_spread.pdf, id=239, 752.8125pt x 376.52669pt>
+<./images/fixed_size_thin_double_gflops_close_ratio.pdf, id=309, 752.8125pt x 376.52669pt>
+File: ./images/fixed_size_thin_double_gflops_close_ratio.pdf Graphic file (type pdf)
+<use ./images/fixed_size_thin_double_gflops_close_ratio.pdf>
+Package pdftex.def Info: ./images/fixed_size_thin_double_gflops_close_ratio.pdf  used on input line 367.
+(pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
+
+Overfull \hbox (58.79898pt too wide) in paragraph at lines 365--369
+[]|  [] [] 
+ []
+
+<./images/fixed_size_thin_double_gflops_spread.pdf, id=310, 752.8125pt x 376.52669pt>
 File: ./images/fixed_size_thin_double_gflops_spread.pdf Graphic file (type pdf)
 <use ./images/fixed_size_thin_double_gflops_spread.pdf>
-Package pdftex.def Info: ./images/fixed_size_thin_double_gflops_spread.pdf  used on input line 352.
+Package pdftex.def Info: ./images/fixed_size_thin_double_gflops_spread.pdf  used on input line 375.
+(pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
+<./images/fixed_size_thin_double_gflops_spread_ratio.pdf, id=311, 752.8125pt x 376.52669pt>
+File: ./images/fixed_size_thin_double_gflops_spread_ratio.pdf Graphic file (type pdf)
+<use ./images/fixed_size_thin_double_gflops_spread_ratio.pdf>
+Package pdftex.def Info: ./images/fixed_size_thin_double_gflops_spread_ratio.pdf  used on input line 376.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 
-Overfull \hbox (58.79898pt too wide) in paragraph at lines 350--355
+Overfull \hbox (58.79898pt too wide) in paragraph at lines 374--378
 []|  [] [] 
  []
 
-<./images/fixed_size_epyc_float_gflops_close.pdf, id=240, 752.8125pt x 376.52669pt>
+<./images/fixed_size_epyc_float_gflops_close.pdf, id=312, 752.8125pt x 376.52669pt>
 File: ./images/fixed_size_epyc_float_gflops_close.pdf Graphic file (type pdf)
 <use ./images/fixed_size_epyc_float_gflops_close.pdf>
-Package pdftex.def Info: ./images/fixed_size_epyc_float_gflops_close.pdf  used on input line 363.
+Package pdftex.def Info: ./images/fixed_size_epyc_float_gflops_close.pdf  used on input line 386.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
-<./images/fixed_size_epyc_float_gflops_spread.pdf, id=241, 752.8125pt x 376.52669pt>
-File: ./images/fixed_size_epyc_float_gflops_spread.pdf Graphic file (type pdf)
-<use ./images/fixed_size_epyc_float_gflops_spread.pdf>
-Package pdftex.def Info: ./images/fixed_size_epyc_float_gflops_spread.pdf  used on input line 364.
+<./images/fixed_size_epyc_float_gflops_close_ratio.pdf, id=313, 752.8125pt x 376.52669pt>
+File: ./images/fixed_size_epyc_float_gflops_close_ratio.pdf Graphic file (type pdf)
+<use ./images/fixed_size_epyc_float_gflops_close_ratio.pdf>
+Package pdftex.def Info: ./images/fixed_size_epyc_float_gflops_close_ratio.pdf  used on input line 387.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 
-Overfull \hbox (58.79898pt too wide) in paragraph at lines 362--365
+Overfull \hbox (58.79898pt too wide) in paragraph at lines 385--388
 []|  [] [] 
  []
 
-[7 <./images/fixed_size_thin_float_gflops_close.pdf> <./images/fixed_size_thin_float_gflops_spread.pdf> <./images/fixed_size_thin_double_gflops_close.pdf> <./images/fixed_size_thin_double_gflops_spread.pdf>]
-<./images/fixed_size_epyc_double_gflops_close.pdf, id=289, 752.8125pt x 376.52669pt>
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+<./images/fixed_size_epyc_double_gflops_close.pdf, id=314, 752.8125pt x 376.52669pt>
 File: ./images/fixed_size_epyc_double_gflops_close.pdf Graphic file (type pdf)
 <use ./images/fixed_size_epyc_double_gflops_close.pdf>
-Package pdftex.def Info: ./images/fixed_size_epyc_double_gflops_close.pdf  used on input line 371.
+Package pdftex.def Info: ./images/fixed_size_epyc_double_gflops_close.pdf  used on input line 394.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
-<./images/fixed_size_epyc_double_gflops_spread.pdf, id=290, 752.8125pt x 376.52669pt>
+<./images/fixed_size_epyc_double_gflops_spread.pdf, id=315, 752.8125pt x 376.52669pt>
 File: ./images/fixed_size_epyc_double_gflops_spread.pdf Graphic file (type pdf)
 <use ./images/fixed_size_epyc_double_gflops_spread.pdf>
-Package pdftex.def Info: ./images/fixed_size_epyc_double_gflops_spread.pdf  used on input line 372.
+Package pdftex.def Info: ./images/fixed_size_epyc_double_gflops_spread.pdf  used on input line 395.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 
-Overfull \hbox (58.79898pt too wide) in paragraph at lines 370--373
+Overfull \hbox (58.79898pt too wide) in paragraph at lines 393--396
 []|  [] [] 
  []
 
-[8 <./images/fixed_size_epyc_float_gflops_close.pdf> <./images/fixed_size_epyc_float_gflops_spread.pdf> <./images/fixed_size_epyc_double_gflops_close.pdf> <./images/fixed_size_epyc_double_gflops_spread.pdf>]
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[8 <./images/fixed_size_thin_double_gflops_close.pdf> <./images/fixed_size_thin_double_gflops_close_ratio.pdf> <./images/fixed_size_thin_double_gflops_spread.pdf> <./images/fixed_size_thin_double_gflops_spread_ratio.pdf>] [9 <./images/fixed_size_epyc_float_gflops_close.pdf> <./images/fixed_size_epyc_float_gflops_close_ratio.pdf> <./images/fixed_size_epyc_double_gflops_close.pdf> <./images/fixed_size_epyc_double_gflops_spread.pdf>]
 Chapter 2.
-[9
+[10
 
 ]
-<./other_images/arraydecomposition.jpg, id=357, 722.7pt x 414.54875pt>
+<./other_images/arraydecomposition.jpg, id=463, 722.7pt x 414.54875pt>
 File: ./other_images/arraydecomposition.jpg Graphic file (type jpg)
 <use ./other_images/arraydecomposition.jpg>
-Package pdftex.def Info: ./other_images/arraydecomposition.jpg  used on input line 469.
+Package pdftex.def Info: ./other_images/arraydecomposition.jpg  used on input line 492.
 (pdftex.def)             Requested size: 284.53154pt x 142.2604pt.
- [10 <./other_images/arraydecomposition.jpg>] [11
+ [11 <./other_images/arraydecomposition.jpg>] [12
 
 ] (./main.aux)
 Package rerunfilecheck Info: File `main.out' has not changed.
@@ -788,18 +824,18 @@ Package logreq Info: Writing requests to 'main.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 18683 strings out of 478287
- 331158 string characters out of 5849290
- 1064893 words of memory out of 5000000
- 36604 multiletter control sequences out of 15000+600000
+ 18716 strings out of 478287
+ 332998 string characters out of 5849290
+ 1064971 words of memory out of 5000000
+ 36630 multiletter control sequences out of 15000+600000
  476703 words of font info for 54 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  60i,10n,68p,1131b,1824s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texmf/fonts/enc/dvips/cm-super/cm-super-ts1.enc}</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfrm1000.pfb>
-Output written on main.pdf (12 pages, 385111 bytes).
+Output written on main.pdf (13 pages, 490170 bytes).
 PDF statistics:
- 442 PDF objects out of 1000 (max. 8388607)
- 351 compressed objects within 4 object streams
- 59 named destinations out of 1000 (max. 500000)
- 230 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 550 PDF objects out of 1000 (max. 8388607)
+ 423 compressed objects within 5 object streams
+ 62 named destinations out of 1000 (max. 500000)
+ 250 words of extra memory for PDF output out of 10000 (max. 10000000)
 
