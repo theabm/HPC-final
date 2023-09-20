@@ -15,10 +15,25 @@
 \contentsline {section}{\numberline {1.4}Conclusion}{11}{section.1.4}%
 \contentsline {chapter}{\numberline {2}Conway's Game of Life}{13}{chapter.2}%
 \contentsline {section}{\numberline {2.1}Introduction}{13}{section.2.1}%
-\contentsline {section}{\numberline {2.2}Methodology}{13}{section.2.2}%
+\contentsline {section}{\numberline {2.2}Methodology}{14}{section.2.2}%
 \contentsline {subsection}{\numberline {2.2.1}Decomposition}{14}{subsection.2.2.1}%
-\contentsline {subsection}{\numberline {2.2.2}MPI IO}{15}{subsection.2.2.2}%
-\contentsline {section}{\numberline {2.3}Implementation}{15}{section.2.3}%
-\contentsline {section}{\numberline {2.4}Results and Discussion}{15}{section.2.4}%
-\contentsline {section}{\numberline {2.5}Conclusions}{15}{section.2.5}%
-\contentsline {subsection}{\numberline {2.5.1}How to add Tables}{15}{subsection.2.5.1}%
+\contentsline {subsection}{\numberline {2.2.2}MPI IO}{16}{subsection.2.2.2}%
+\contentsline {subsection}{\numberline {2.2.3}Mixing MPI and OMP}{16}{subsection.2.2.3}%
+\contentsline {section}{\numberline {2.3}Implementation}{16}{section.2.3}%
+\contentsline {subsection}{\numberline {2.3.1}State representation}{16}{subsection.2.3.1}%
+\contentsline {subsection}{\numberline {2.3.2}Distributing the grid among MPI processes}{17}{subsection.2.3.2}%
+\contentsline {subsection}{\numberline {2.3.3}Allocating data}{17}{subsection.2.3.3}%
+\contentsline {subsection}{\numberline {2.3.4}PGM Files - Header}{17}{subsection.2.3.4}%
+\contentsline {subsection}{\numberline {2.3.5}MPI IO}{18}{subsection.2.3.5}%
+\contentsline {subsection}{\numberline {2.3.6}Updating Cells - Static Evolution}{19}{subsection.2.3.6}%
+\contentsline {subsection}{\numberline {2.3.7}Updating Cells - Ordered Evolution}{21}{subsection.2.3.7}%
+\contentsline {subsection}{\numberline {2.3.8}OMP Integration - Hybrid V1}{24}{subsection.2.3.8}%
+\contentsline {subsection}{\numberline {2.3.9}OMP Integration - Hybrid V2}{25}{subsection.2.3.9}%
+\contentsline {subsection}{\numberline {2.3.10}Software Stack}{25}{subsection.2.3.10}%
+\contentsline {subsection}{\numberline {2.3.11}Running the Code}{25}{subsection.2.3.11}%
+\contentsline {section}{\numberline {2.4}Bonus - Algorithm 2}{25}{section.2.4}%
+\contentsline {section}{\numberline {2.5}Results and Discussion}{25}{section.2.5}%
+\contentsline {subsection}{\numberline {2.5.1}Strong OMP Scalability}{25}{subsection.2.5.1}%
+\contentsline {subsection}{\numberline {2.5.2}Strong MPI Scalability}{25}{subsection.2.5.2}%
+\contentsline {subsection}{\numberline {2.5.3}Weak MPI Scalability}{25}{subsection.2.5.3}%
+\contentsline {section}{\numberline {2.6}Conclusions}{25}{section.2.6}%

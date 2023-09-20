@@ -213,7 +213,7 @@ int main(int argc, char **argv)
     MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided_thread_level);
     if(provided_thread_level<MPI_THREAD_MULTIPLE)
     {
-        printf("Can't do thread serialized... Aborting");
+        printf("Can't do thread multiple... Aborting");
         MPI_Finalize();
     }
 

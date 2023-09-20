@@ -16,6 +16,34 @@
 \addbibresource{bibliography.bib}
 \usepackage{csquotes}
 \usepackage{float}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+
 
 \title{High Performance Computing Project - A.A. 2022/2023}
 \author{Andres Bermeo Marinelli}
@@ -54,13 +82,14 @@ of OMP in order to observe any differences.
 \subsection{Compiling BLIS and obtaining binaries}
 
 We begin by downloading the BLIS library by using the following commands:
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
     $git clone https://github.com/flame/blis.git
     $cd blis
-    $srun -p {NODE} -n1 ./configure --enable-cblas --enable-threading=openmp --prefix=/path/to/myblis/lib auto
+    $srun -p {NODE} -n1 ./configure --enable-cblas --enable-threading=openmp \
+    \ --prefix=/path/to/myblis/lib auto
     $srun -p {NODE} -n 1 --cpus-per-task={P} make -j {P}
     $make install
-\end{verbatim}
+\end{lstlisting}
 
 Where \texttt{NODE} can be specified as either \texttt{THIN} or \texttt{EPYC} and 
 \texttt{P} are the available cores for each node, $24$ and $128$ respectively.
@@ -70,23 +99,23 @@ architecture.
 
 Next, we specify the flag in the Makefile to compile for float or double using 
 \texttt{\-DUSE\_FLOAT} or \texttt{\-DUSE\_DOUBLE}. Then, we run:
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
     $salloc -n {P} -N1 -p {NODE} --time=1:0:0
     $module load mkl/latest
     $module load openBLAS/0.3.23-omp
     $export LD_LIBRARY_PATH=/path/to/myblis/lib:$LD_LIBRARY_PATH
     $srun -n1 make cpu
-\end{verbatim}
+\end{lstlisting}
 
 Which will generate the binaries for the desired architecture, with floar or 
 double precision, depending on the flag we used.
 
 To run, we use: 
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
     $srun -n1 --cpus-per-task=128  ./gemm_mkl.x {size_M} {size_K} {size_N}
     $srun -n1 --cpus-per-task=128  ./gemm_oblas.x {size_M} {size_K} {size_N}
     $srun -n1 --cpus-per-task=128  ./gemm_blis.x {size_M} {size_K} {size_N}
-\end{verbatim}
+\end{lstlisting}
 
 At the end of this procedure, we should have the appropriate binaries for each 
 architecture, and for each type of precision, double or float.
@@ -612,6 +641,21 @@ Our implementation must satisfy the following requirements:
 Lastly, it must use both MPI\cite{mpi} and OpenMP\cite{omp} (OMP) to paralellize 
 the computations and be able to process grids of considerably high dimensions. 
 
+Using our implementation, we will perform a study of the scalability of our code 
+in three cases: 
+\begin{enumerate}
+    \item Strong OMP scalability: Using a grid of fixed dimensions, we fix the 
+        number of MPI processes to one per socket and progressively increase 
+        the number of OMP threads.
+    \item Strong MPI scalability: Using a grid of fixed dimensions, we increase 
+        the number of MPI processes, using only 1 OMP thread per process. We use 
+        the largest amount of nodes possible.
+    \item Weak MPI scalability: Changing the grid dimensions to keep the work per 
+        process constant, we use one MPI process per socket, with enough OMP 
+        threads to saturate the cores in the socket, and slowly increase the 
+        number of MPI processes among multiple nodes.
+\end{enumerate}
+
 \section{Methodology}
 
 In this section, we briefly describe some of the important choices for the 
@@ -631,6 +675,7 @@ At a high abstract level, we must make two important choices:
 \begin{enumerate}
     \item How we will decompose the problem. 
     \item How we will perform the IO. 
+    \item How to mix MPI and OMP.
 \end{enumerate}
 
 How we solve the first problem is of fundamental importance to ensure that our 
@@ -638,6 +683,7 @@ program is scalable and efficient. Also, it has important consequences on the
 type of paralellism we will need to use. 
 On the other hand, the second problem will determine the organizational paradigm 
 that we will use in our code, as we will see later.
+Finally, the third solution will determine the effectiveness of our hybrid code.
 
 We briefly discuss both of these topics more in depth in the following 
 subsections.
@@ -683,17 +729,48 @@ continuous in memory. On the other hand, if we do a 2D split, each process will
 work on a block of memory which is not contiguous and located every certain 
 "jumps" in the 1D array. As a consequence, as each process traverses its block 
 of the grid, it will have more cache misses compared to the 1D case where 
-we perform a simple a linear access.
+we perform a simple a linear access. This is more easily visualized in 
+the following image:
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=12cm, height=4cm]{./other_images/2d_decomposition.png}
+\caption{\label{fig:2ddecomposition} 2D decomposition of a grid. As we can see, 
+each process needs to deal with non-contiguous memory.}
+\end{figure}
+
 
 Therefore, for reasons stated above, and for simplicity and readability, we 
 decided to use the 1D splitting.
 
 Lastly, we must consider how to handle halo regions. Since each process will 
-process a strip (composed of 1 ore more rows) of the grid, the rows at the 
+process a strip - composed of 1 or more rows - of the grid, the rows at the 
 boundary of the strip must be handled with special attention. These rows - 2 per 
-process - need information that is contained at the boundary of the strips of 
-other processes. Therefore, we need to set up message passing between processes 
-to handle the exchange of the boundary rows, also known as \texttt{halo} rows.
+process - need information that is contained in the grid of other processes.
+Therefore, we need to allocate some extra space for these additional rows, and 
+set up message passing between processes to handle the exchange of these 
+boundary rows, also known as \texttt{halo} regions.
+
+Below we show the idea:
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=4cm, height=3cm]{./other_images/stencil.png}
+\includegraphics[width=8cm, height=5cm]{./other_images/halo_exchange.png}
+\caption{\label{fig:haloexchange} On the figure in the left, we can see that 
+we can process cells that are internal with no problem. However, at the boundary 
+we need information that belongs to another process. Therefore, we allocate 
+some extra space and do a halo exchange as shown in the figure on the right.}
+\end{figure}
+
+Finally, in the case of \texttt{ordered} evolution, we cannot update each cell 
+independently, since we modify the elements inplace in an ordered fashion. 
+Therefore, we cannot parallelize this process. The only thing that we can do, is 
+use MPI to be able to process much bigger grids than we could in a conventional 
+computer. In this case, each process will compute its part of the grid 
+\textit{in order}, rather than in parallel. So process 0 will update its portion, 
+and send the updated row to process 1, and so on. Of course, each process needs 
+the appropriate halo regions. 
 
 \subsection{MPI IO}
 
@@ -717,8 +794,8 @@ This approach, although very common, is not scalable, as each process needs to
 send its part of the grid to the master process. So for $P>>1$, the bottleneck 
 will be in the communication. 
 
-Lastly, the third, and best solution, is to use MPI IO, which was meant to handle 
-exactly this problem. The idea behind MPI IO is very similar to message passing. 
+Lastly, the third, and best solution, is to use \texttt{MPI IO}, which was meant to handle 
+exactly this problem. The idea behind \texttt{MPI IO} is very similar to message passing. 
 Each process will call a collective function to read/write its part of the grid
 and the MPI implementation will take care of exploiting the parallel filesystem
 and reducing the amount of read and write operations. Furthermore, this is 
@@ -729,84 +806,723 @@ since many processes can contemporarily write in different physical locations,
 which increases the throughput of the program. We note that this is a form 
 of \texttt{functional} decomposition.
 
+Notice that this aspect is independent of the type of evolution.
 
+\subsection{Mixing MPI and OMP}
 
+Now that we have discussed at an abstract level how to distribute the workload 
+among the MPI processes, we need to think about how to integrate OMP to obtain 
+a hybrid implementation. 
 
+In \texttt{static} evolution, since each process can update its part of the grid 
+independently, the most natural approach is to use OMP to parallelize this 
+computation. For this, there are a few options. 
 
+The simplest option, is that each MPI process will spawn a parallel region at 
+\textit{each} iteration $t$ to accelerate its computations.
 
+Another, more advanced approach, is to use \texttt{MPI\_THREAD\_MULTIPLE}. In 
+this mode, each OMP thread can make an MPI call contemporarily. This mode must 
+be handled with care but it will enable us to create a \texttt{single} parallel
+region, as we will see later. 
 
+We implemented both cases to do some comparisons. 
+
+Finally, for \texttt{ordered} evolution, we cannot use OMP, because the update 
+depends on the order, and it is intrinsically serial.
 
 \section{Implementation}
 
+In this section, we discuss the most technical details of our implementation, 
+from the datatypes used, to compiler keywords, to optimization of branches, to 
+memory allocation, and optimization of for loops. We will also describe how to 
+use the code, what software stack is needed, and what tools were used.
+
+Our implementation was done in C, so we will have to manually handle all 
+memory aspects. This gives us great control in to what we are doing. 
+
+\subsection{State representation}
+
+We begin by discussing how to represent data. Since each cell can be alive (1) 
+or dead (0), theoretically, we need a single bit to represent the state. This 
+means that every byte of data can represent the state of 8 cells. However, 
+this approach is complex since we need to do a lot of bit manipulation to 
+access the information of each cell. This will also make the code less 
+readable and longer. 
+
+The next best idea, which we used, is to use the smallest datatype possible, 
+i.e a \texttt{char}, which is 1 byte, to represent the state of a single cell.
+In this way, we are less memory efficient, but we gain in readability and ease 
+of implementation. In particular, we use an \texttt{unsigned char} which 
+is of the same size, however, in this way, the compiler can possibly optimize 
+the operations since it doesn't need to keep track of the sign.
+
+All of our implementations contain the following macros:
+\begin{lstlisting}[language=C++]
+#define DEAD 0 
+#define ALIVE 1
+\end{lstlisting}
+
+\subsection{Distributing the grid among MPI processes}
+
+Given a $k \times k$ grid, we need to tell each MPI process how many rows it must 
+deal with.
+To do this we can divide the total number of rows by the number of processes, i.e 
+the size of the MPI Communicator, and distribute the remainder among a subset 
+of them.
+
+This is done through a common trick:
+\begin{lstlisting}[language=C++]
+    my_rows = total_rows/size + 1*(rank<(total_rows%size));
+\end{lstlisting}
+
+In this way, all processes will have an equal workload, except for some ranks 
+which will have to process one more row.
+
+\subsection{Allocating data}
+
+Now that we have determined how many rows each process has to deal with, each 
+rank must allocate the appropriate memory in heap to store its portion of the 
+grid.
+
+In \texttt{static} evolution, we need to keep two buffers, one for the current 
+generation, and one for the next one. We look at the previous generation as we 
+update the new generation. In \texttt{ordered} evolution, we only have one buffer, 
+and we update each cell inplace as we traverse the array.
+
+As mentioned previously, it is not efficient to allocate a 2D array, although it 
+is more naturally aligned with the problem statement. This is because 2D arrays 
+are not necessarily contiguous in memory and we also have an overhead of 
+following pointers.
+
+Therefore, we allocate 1D arrays which are contiguous in memory and we use 
+a macro to be able to access the array as if it were a 2D structure. 
+
+Lastly, for each process, we need to allocate two additional rows to accomodate 
+the halo rows. Also, to optimize for cache access, we explicitly align the data 
+to the cache line size of THIN and EPYC nodes, which are 64 Bytes.
+
+This can be seen in the following snippet:
+
+\begin{lstlisting}[language=C++]
+// defining cache line size
+#define CACHE_LINE_SIZE 64
+// macro to access data in 2D fashion
+#define DATA(i,j) (data[(i)*cols + (j)])
+
+... 
+
+// aligned allocation
+data = (unsigned char *) aligned_alloc(CACHE_LINE_SIZE, (my_rows + 2) * cols);
+\end{lstlisting}
+
+Of course, for \texttt{static} evolution, we perform two such allocations.
+
+\subsection{PGM Files - Header}
+
+Now that we have discusses how we perform the allocation, we briefly discuss 
+PGM binary files. 
+
+PGM, or Portable Grey Map, are portable binary files composed of a header and 
+of binary data. In our case, the header is the following line: 
+
+\begin{verbatim}
+P5 {rows} {cols} {maxval}\n
+\end{verbatim}
+
+The \texttt{P5} is a magic number that states we are using a PGM file of binary 
+data where each byte corresponds to a pixel in the image. The color 
+is interpreted according to the \texttt{maxval} value. Without going 
+into too much detail, by setting \texttt{maxval} to one, we are establishing that 
+1's will represent be drawn as white (alive) and 0's will be drawn as black 
+(dead).
+
+Whenever we save a snapshot of the evolution, we need to write this header. 
+This will be done by one single process - rank 0. 
+
+Also, as we will see later, to use MPI IO, we need to find out the length of 
+this header in bytes. All these operations are performed in the following snippet:
+
+\begin{lstlisting}[language=C++]
+#define HEADER_FORMAT_STRING "P5 %lf %lf %d\n"
+#define MAX_VAL 1
+
+... 
+
+// We get the header size 
+header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
+
+// allocate the string
+header = malloc(header_size + 1)
+
+// write the header into the string
+sprintf(header, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
+\end{lstlisting}
+
+We will use the header size in MPI IO, in the next section.
+
+\subsection{MPI IO}
+
+As discussed above, MPI IO is the best choice to handle the IO when we are 
+dealing with many processes. It takes advantage of the parallel file system 
+to write in multiple locations at once, while keeping a logically unified 
+view of the file. In this way, we avoid the bottleneck of having to send the grid 
+back to the master or overloading the filesystem with too many posix calls.
+
+Below we list the code snippet that we used and then discuss the relevant details. 
+\begin{lstlisting}[language=C++]
+
+void save_grid(char * restrict fname, MPI_Comm comm, int rank, char * restrict header, unsigned long int header_size, MPI_Offset offset, unsigned char * restrict data, unsigned long int my_rows, unsigned long int cols)
+{
+
+    MPI_File fh;
+
+    // Opening the file in MPI_MODE_WRITEONLY or MPI_MODE_CREATE_ONLY
+    const int err = MPI_File_open(comm, fname, MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
+
+    // Check that the file was opened correctly
+    if(err != MPI_SUCCESS)
+    {
+        fprintf(stderr, "Error opening %s\n", fname);
+        MPI_Abort(MPI_COMM_WORLD, err);
+    }
+    
+    if(rank == 0)
+    {
+        // we specify the file handle, the byte where we write, what we write, 
+        // the length of what we write, the data type of what we write, and the 
+        // status of the writing.
+        MPI_File_write_at(fh, 0, header, header_size, MPI_CHAR, MPI_STATUS_IGNORE);
+    }
+
+    MPI_File_write_at_all(fh, offset, data + cols, my_rows*cols, MPI_CHAR, MPI_STATUS_IGNORE);
+
+    MPI_File_close(&fh);
+}
+
+\end{lstlisting}
+
+First, all processes call the \texttt{MPI\_File\_open()} routine to open the file. 
+The file is opened in \texttt{MPI\_MODE\_WRONLY} for write only and 
+\texttt{MPI\_MODE\_CREATE} to create the file if it does not exist already.
+
+Then, we choose rank 0 to write the header of the PGM file. We use the MPI function
+\texttt{MPI\_File\_write\_at()} which allows us to specify at what position in the 
+file, in bytes, the data must be written. 
+
+For the header, we will write at the beginning of the file, so at byte 0. The 
+rest of the arguments are explained in the snippet.
+
+Finally, for writing the grid, we will use the collective version of 
+\texttt{MPI\_File\_write\_at()}, namely \texttt{MPI\_File\_write\_at\_all()}. 
+This function is called by all the processes. Internally, the MPI 
+implementation will perform this operation in the most efficient way possible.
+
+The arguments are the same as the non-collective version. 
+
+The only thing we need to explain, is how we find the byte offset for each 
+process. 
+
+We first find the \texttt{row} offset, i.e. which row to start writing from, 
+through the following function:
+
+\begin{lstlisting}[language=C++]
+unsigned long int get_my_row_offset(unsigned long int total_rows, int rank, int size)
+{
+    // returns the offset from which the rank must get its rows 
+
+    // for example: for rank 0, the offset will be zero as it will read 
+    // my_rows(of rank 0) from the start. However, rank 1 will have to read 
+    // after the rows that rank 0 handles (accounting for the remaineder), 
+    // and so on.
+
+    // nrows is the interger division between total_rows and size
+    unsigned long int nrows = total_rows/size;
+    unsigned long int remainder = total_rows%size;
+
+    // The idea is the following, if the division was pefect, we would do 
+    // nrows * rank. However, we still need to account for the remainder.
+    // For remainder processors (starting to count from rank 1 because rank 0 
+    // just gets 0 as offset), we simply need to add rank to the offset. 
+    // If we are dealing with a process id which is greater than the remainder, 
+    // then we simply need to add the whole remainder.
+    
+    unsigned long int my_offset = nrows*rank
+        + rank*(((unsigned long int) rank) <= remainder) 
+        + remainder*(((unsigned long int) rank) > remainder);
+
+    return my_offset;
+}
+\end{lstlisting}
+
+We illustrate with a brief example. Suppose we have a $14\times 14$ grid and four 
+ranks. The interger division is $3$ and the remainder is $2$. Since the 
+remainder of the division is $2$, two ranks, 0 and 1, will need to handle an 
+extra row. 
+
+So rank 0 will deal with $3+1=4$ rows, rank 1 will also deal with $3+1=4$ rows, 
+and ranks 2 and 3 will deal with $3$ rows each.
+
+Now, for the offset, rank 0 will just have offset 0. Rank 1 will need to shift 
+by the interger division plus 1 to account for the extra row that rank 0 has. 
+Similarly, rank 2 has to shift by twice the interger division, plus the extra 
+row that rank 0 has and the extra row of rank 1. 
+
+Rank 3 will have to shift by three times the interget division, plus the extra 
+rows of the previous ranks. However, this time, rank 2 did not have an extra 
+row. So rank 3 just needs to account for \textit{total} extra rows, which is 
+equal to the remainder. 
+
+This sounds complicated, but it is simple once one works through a few examples.
+
+Since the offset for the MPI functions is in bytes, to get the final 
+offset, we first multiply the row offset by the number of columns, and by the 
+size of the datatype we use in bytes - for a char this is 1.
+
+Then we need to add the size in bytes of the header.
+
+\begin{lstlisting}[language=C++]
+        ...
+
+        const MPI_Offset header_offset = header_size * sizeof(char);
+
+        const MPI_Offset my_file_offset = my_row_offset * cols * sizeof(char);
+
+        const MPI_Offset my_total_file_offset = my_file_offset + header_offset;
+
+        ...
+\end{lstlisting}
+
+Finally, reading of the file is done in the same exact way, replacing 
+\texttt{MPI\_File\_write\_at\_all} with \texttt{MPI\_File\_read\_at\_all}. 
+
+However, we need to have an additional step to read the header, and this is done 
+through a normal \texttt{fscanf()} call.
+
+\subsection{Updating Cells - Static Evolution}
+
+Now we discuss how we perform the cell update for \texttt{static} evolution. 
+
+The entire evolution process is contained inside a for loop over time steps. 
+At each iteration, we had to use message passing to exchange the halo rows. This 
+is done using non blocking operations to hide the latency of the communication.
+
+\begin{lstlisting}[language=C++]
+// we post send and recv requests for two halo regions.
+// matrix: 
+// ---------------------  row 0 (HALO)
+// 010100011001100100100  row 1
+// 010010000100101001111  row 2             --
+// ...                                        | these rows dont need 
+// 001010111110011000001  row my_rows - 1   __| halo regions
+// 010010010000100101000  row my_rows
+// ---------------------  row my_rows + 1 (HALO)
+
+// send row: 1 to the previous rank
+MPI_Isend(data_prev + cols, cols, MPI_CHAR, prev, prev_tag, MPI_COMM_WORLD, &prev_send_request);
+// send row: my_rows to next rank
+MPI_Isend(data_prev + my_rows_x_cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request);
+
+// receive from prev and put in row 0 (halo region)
+MPI_Irecv(data_prev, cols, MPI_CHAR, prev, next_tag, MPI_COMM_WORLD, &prev_recv_request);
+// receive from next and put in row my_rows + 1 (halo region)
+MPI_Irecv(data_prev + my_rows_x_cols_p_cols, cols, MPI_CHAR, next, prev_tag, MPI_COMM_WORLD, &next_recv_request);
+\end{lstlisting}
+
+Where \texttt{data\_prev} and \texttt{data} are the buffers for the previous 
+and next generation, respectively. 
+
+Next, while messages are exchanged, each process can process the internal portion of 
+its grid.
+
+Two versions were used to do this: one using a double for loop over rows and columns, 
+and the other using a single for loop over cells. Later, when we tie everything 
+together, we will explain the reason for these two versions.
+
+\begin{lstlisting}[language=C++]
+... 
+
+// note we start from row 2 and finish at row my_rows - 1
+for(unsigned long int row = 2; row < my_rows; ++row)
+{
+    for(unsigned long int col = 0; col < cols; ++col)
+    {
+        upgrade_cell_static(data_prev, data, row, col);
+    }
+}
+
+...
+\end{lstlisting}
+
+\begin{lstlisting}[language=C++]
+for(unsigned long int cell = 2*cols; cell< my_rows*cols; ++cell)
+{
+        unsigned long int i = cell/cols;
+        unsigned long int j = cell - i*cols;
+        upgrade_cell_static(data_prev, data, i, j);
+}
+\end{lstlisting}
+
+Finally, at this point, there is nothing left to do, but wait until we receive 
+the halo cells.
+
+\begin{lstlisting}[language=C++]
+MPI_Wait(&prev_recv_request, MPI_STATUS_IGNORE);
+MPI_Wait(&next_recv_request, MPI_STATUS_IGNORE);
+MPI_Request_free(&prev_send_request);
+MPI_Request_free(&next_send_request);
+\end{lstlisting}
+
+We then process the first and last row of the grid (internal ones).
+
+\begin{lstlisting}[language=C++]
+for(unsigned long int col=0; col<cols; ++col)
+{
+    upgrade_cell_static(data_prev, data, 1, col);
+}
+// we only do this if we have more than one row 
+for(unsigned long int col=0; col<cols*(my_rows>1); ++col)
+{
+    upgrade_cell_static(data_prev, data, my_rows, col);
+}
+\end{lstlisting}
+
+Then, if we need to save the grid we save using MPI IO, and then we swap the 
+pointers and repeat.
+
+Apart from a few differences that we introduce with OMP later, these are the 
+fundamental steps of our evolution.
+
+The last thing is to discuss the update function itself:
+
+\begin{lstlisting}[language=C++]
+void upgrade_cell_static(unsigned char * restrict data_prev, unsigned char * restrict data, unsigned long int i, unsigned long int j)
+{
+    DATA(i,j) = DEAD;
+
+    // we use ternary operators to avoid branches
+    // as well as the register keyword to signal to the compiler to 
+    // keep this data close
+
+    // compute coordinates of neighbors with wrap around of dimensions
+    register unsigned long int jm1 = j==0 ? cols-1 : j-1;
+    register unsigned long int jp1 = j==(cols-1) ? 0 : j+1;
+    // for rows, wrapping is ensured by the presence of halos
+    register unsigned long int im1 = i-1;
+    register unsigned long int ip1 = i+1;
+    
+    // we fetch the neighbors with 8 different instructions to saturate pipelines.
+    // We access first the neighbors that are already most likely already 
+    // in cache due to previous updates.
+    unsigned char tmp0=DATA_PREV(im1, jm1);
+    unsigned char tmp3=DATA_PREV(i,jm1);
+    unsigned char tmp5=DATA_PREV(ip1,jm1);
+
+    unsigned char tmp1=DATA_PREV(im1,j);
+    unsigned char tmp2=DATA_PREV(im1,jp1);
+
+    unsigned char tmp4=DATA_PREV(i,jp1);
+
+    unsigned char tmp6=DATA_PREV(ip1,j);
+    unsigned char tmp7=DATA_PREV(ip1,jp1);
+
+    unsigned char n_alive_cells = tmp0+tmp1+tmp2+tmp3+tmp4+tmp5+tmp6+tmp7;
+
+    DATA(i,j) = ALIVE*(n_alive_cells==3) + DATA_PREV(i,j)*(n_alive_cells==2);
+}
+\end{lstlisting}
+
+The function is very simple. First, we set the cell to be dead regardless, since 
+if there are less than two and more than 3 live neighbors, it dies.
+
+Then, we calculate the coordinates of the neighbors using ternary operators to 
+ensure that we wrap around the dimensions. 
+
+Then, we use separate instructions for each neighbor to encourage pipeline 
+saturation.
+
+We aggregate the state of all the neighbors, and apply the rules. 
+This version of the rules may seem off at first, but it is completely 
+equivalent to the one we described, although in this way, it's a bit more efficient.
+
+Finally, notice the \texttt{restrict} keyword for the two pointers so that the 
+compiler can optimize better since it knows it will never encounter memory 
+aliasing.
+
+\subsection{Updating Cells - Ordered Evolution}
+
+For \texttt{ordered} evolution, the idea is more complex.   
+
+We need to make sure that ranks process their parts of the grid in an ordered 
+fashion. We first show the commented snippet and then comment:
+
+\begin{lstlisting}[language=C++]
+// for ordered evolution, we cannot parallelize, and each process 
+// must work on their part of the grid in serial order. 
+
+// first, each process posts a non blocking receive operation for 
+// the top halo row and the bottom halo row. 
+// Since we have ordered evolution each process will then wait 
+// until the top halo row has been received to start working on 
+// its grid.
+MPI_Irecv(data, cols, MPI_CHAR, prev, next_tag, MPI_COMM_WORLD, &prev_recv_request);
+MPI_Irecv(data + my_rows_x_cols_p_cols, cols, MPI_CHAR, next, prev_tag, MPI_COMM_WORLD, &next_recv_request);
+
+// however, each process will also have to send its top row 
+// (the bottom halo row for the previous process) which is necessary 
+// for the previous process to calculate the grid.
+// This excludes rank 0, because it needs to send its first
+// row to rank size-1 row only AFTER it has been updated 
+if(rank != 0){ MPI_Isend(data + cols, cols, MPI_CHAR, prev, prev_tag, MPI_COMM_WORLD, &prev_send_request);}
+
+// to get things started for rank 0, this is the first forward 
+// message of the top halo row.
+if(rank == size-1) { MPI_Isend(data + my_rows_x_cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request); }
+
+// All processes will wait until receive of top halo row is complete 
+// (since they need it to start ordered evolution)
+//
+// the first time, only process 0 should pass.
+MPI_Wait(&prev_recv_request, MPI_STATUS_IGNORE);
+
+// Since we have received the top halo row, we can process all 
+// data EXCEPT the last row, since we are not sure that we have 
+// received the bottom halo yet.
+for(unsigned long int row = 1; row < my_rows; ++row)
+{
+    for(unsigned long int col = 0; col < cols; ++col)
+    {
+        upgrade_cell_ordered(data, row, col);
+    }
+}
+// Based on how many rows we have, we behave differently
+if(my_rows>1)
+{
+    // in this case, the for loop above has been executed and 
+    // now that the first row has been processed, rank 0 can send it 
+    // to rank size-1
+    if(rank == 0){ MPI_Isend(data + cols, cols, MPI_CHAR, prev, prev_tag, MPI_COMM_WORLD, &prev_send_request);}
+
+    // We have finished processing all our grid except for last row. 
+    // For this, we need to make sure that bottom halo has been received.
+
+    // wait for receive of bottom halo
+    MPI_Wait(&next_recv_request, MPI_STATUS_IGNORE);
+
+    // process last row
+    for(unsigned long int col=0; col<cols; ++col)
+    {
+        upgrade_cell_ordered(data, my_rows, col);
+    }
+
+    // now that we have computed the last row, we need to send it 
+    // to the next process. This will be the top halo for the next 
+    // process, which in turn will finally pass the wait statement 
+    // above.
+    
+    // all except process n-1 because this will be taken care of in the 
+    // next iteration of the for loop
+    if(rank<(size-1)){ MPI_Isend(data + my_rows_x_cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request);}
+
+}
+else
+{
+    // in this case we have skipped the for loop
+    // we need to wait to receive the bottom halo from next
+    MPI_Wait(&next_recv_request, MPI_STATUS_IGNORE);
+    
+    // we process row 1
+    for(unsigned long int col=0; col<cols; ++col)
+    {
+        upgrade_cell_ordered(data, my_rows, col);
+    }
+
+    // rank zero sends this row to rank n-1
+    if(rank == 0){ MPI_Isend(data + cols, cols, MPI_CHAR, prev, prev_tag, MPI_COMM_WORLD, &prev_send_request);}
+
+    // all ranks except last, send their last row (the same one )
+    // to the next rank
+    if(rank<(size-1)){ MPI_Isend(data + my_rows_x_cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request);}
+}
+
+// we put a barrier since all processes need to wait before until the whole grid 
+// is processed before checking if they need to save it
+MPI_Barrier(MPI_COMM_WORLD);
+
+// Free the send operations
+MPI_Request_free(&prev_send_request);
+MPI_Request_free(&next_send_request);
+
+\end{lstlisting}
+
+The snippet is commented very thoroughly, however, we briefly explain the idea. 
+To process its part of the grid, each rank needs to wait for the previous rank 
+to process its last row, and send it over to be placed in top halo row. 
+
+Hence, by placing a wait request for the top halo row, we ensure that the ranks 
+process the cell in correct order, one at a time.
+
+Furthermore, each rank also needs the last halo row to process its last internal
+row. We can send this in the beginning with a non-blocking operation.
+
+Finally, to get things started, we rank size - 1 sends its last row to rank 0, which 
+will be the first one to receive a top halo row, and pass through the receive operation.
+
+From there, we simply update rows 1 to the second to last, wait until we receive 
+the bottom halo, process the last row, and then send it to the next rank so it 
+can pass the wait request.
+
+There is a small consideration to make in the case we have only one row, but 
+conceptually, it is the same.
+
+Lastly, we show the update function:
+
+\begin{lstlisting}[language=C++]
+void upgrade_cell_ordered(unsigned char * data, unsigned long int i, unsigned long int j)
+{
+    register unsigned long int jm1 = j==0 ? cols-1 : j-1;
+    register unsigned long int jp1 = j==(cols-1) ? 0 : j+1;
+    register unsigned long int im1 = i-1;
+    register unsigned long int ip1 = i+1;
+
+    unsigned char tmp0=DATA(im1, jm1);
+    unsigned char tmp3=DATA(i,jm1);
+    unsigned char tmp5=DATA(ip1,jm1);
+
+    unsigned char tmp1=DATA(im1,j);
+    unsigned char tmp2=DATA(im1,jp1);
+
+    unsigned char tmp4=DATA(i,jp1);
+
+    unsigned char tmp6=DATA(ip1,j);
+    unsigned char tmp7=DATA(ip1,jp1);
+
+    register unsigned char n_alive_cells = tmp0+tmp1+tmp2+tmp3+tmp4+tmp5+tmp6+tmp7;
+
+    DATA(i,j) = ALIVE*(n_alive_cells==3) + DATA(i,j)*(n_alive_cells==2);
+}
+\end{lstlisting}
+The function is virtually the same, with the only difference that we operate on 
+a single buffer.
+
+\subsection{OMP Integration - Hybrid V1}
+
+In this section, we tie everything together to show the final implementation. 
+As mentioned before, we have two implementations for \texttt{static} evolution.
+
+Here we comment on the first one.
+
+For the first implementation, we create a single parallel region \texttt{outside} 
+of the for loop over the evolution time steps. Furthermore, we use MPI Multiple 
+mode, where each thread can make an MPI call contemporarily:
+
+The idea behind this, is to avoid the creation of a parallel region every time 
+we iterate over the time steps. To do this, we need to initialize MPI slightly 
+differently, as shown below:
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=10cm, height=6cm]{./other_images/mpi_multiple.png}
+\caption{\label{fig:mpi_multiple} Visualization of MPI Multiple mode. Each OMP 
+thread can make MPI calls.}
+\end{figure}
+
+\begin{lstlisting}[language=C++]
+int provided_thread_level;
+MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided_thread_level);
+if(provided_thread_level<MPI_THREAD_MULTIPLE)
+{
+    printf("Can't do thread multiple mode... Aborting");
+    MPI_Finalize();
+}
+\end{lstlisting}
+
+Then, the for loop over the evolution time steps looks like this:
+\begin{lstlisting}[language=C++]
+#pragma omp parallel
+for(unsigned long int t = 1; t < n+1; ++t)
+{
+
+    // no barrier at the end
+    #pragma omp single nowait
+    MPI_Irecv(data_prev, cols, MPI_CHAR, prev, next_tag, MPI_COMM_WORLD, &prev_recv_request);
+    #pragma omp single nowait
+    MPI_Irecv(data_prev + my_rows_x_cols_p_cols, cols, MPI_CHAR, next, prev_tag, MPI_COMM_WORLD, &next_recv_request);
+    #pragma omp single nowait
+    MPI_Isend(data_prev + cols, cols, MPI_CHAR, prev, prev_tag, MPI_COMM_WORLD, &prev_send_request);
+    #pragma omp single nowait
+    MPI_Isend(data_prev + my_rows_x_cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request);
+
+    // remaining threads in the meantime start to work on internal part 
+    // of grid. We need to keep the implied barrier because waiting can 
+    // only happen if operations have been posted
+    #pragma omp for schedule(dynamic, chunk)
+    for(unsigned long int cell = 2*cols; cell< my_rows_x_cols; ++cell)
+    {
+            unsigned long int i = cell/cols;
+            unsigned long int j = cell - i*cols;
+            upgrade_cell_static(data_prev, data, i, j);
+    }//barrier. Needed, otherwise, if threads havent finished posting 
+     //send and receive, the next operation will be an error.
+
+    #pragma omp single
+    {
+        MPI_Wait(&prev_recv_request, MPI_STATUS_IGNORE);
+        MPI_Wait(&next_recv_request, MPI_STATUS_IGNORE);
+        MPI_Request_free(&prev_send_request);
+        MPI_Request_free(&next_send_request);
+    } //barrier needed because we need to get halo cells to process 
+      //next rows
+
+    // threads can split a row further 
+    #pragma omp for schedule(dynamic, small_chunk) nowait
+    for(unsigned long int col=0; col<cols; ++col)
+    {
+        upgrade_cell_static(data_prev, data, 1, col);
+    }
+
+    // once done with row above, threads will start immediately on this
+    #pragma omp for schedule(dynamic, small_chunk)
+    for(unsigned long int col=0; col<cols*(my_rows>1); ++col)
+    {
+        upgrade_cell_static(data_prev, data, my_rows, col);
+    }// barrier since I need to wait for all of them to finish before 
+     // saving and swapping
+
+    // implied barrier at the end to finish saving and swapping
+    #pragma omp single
+    {
+        ++save_counter;
+        if(s>0 && save_counter == s && t<100000)
+        {
+            sprintf(snapshot_name, "snapshot_%05ld", t);
+            save_grid(snapshot_name, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data, my_rows, cols);
+            save_counter = 0;
+        }
+
+        tmp_data = data;
+        data = data_prev;
+        data_prev = tmp_data;
+        tmp_data = NULL;
+    }// barrier
+} // barrier
+\end{lstlisting}
+
+
+
+\subsection{OMP Integration - Hybrid V2}
+
+\subsection{Software Stack}
+\subsection{Running the Code}
+
+\section{Bonus - Algorithm 2}
 \section{Results and Discussion}
 
+\subsection{Strong OMP Scalability}
+\subsection{Strong MPI Scalability}
+\subsection{Weak MPI Scalability}
+
 \section{Conclusions}
-
-\subsection{How to add Tables}
-
-% Use the table and tabular environments for basic tables --- see Table~\ref{tab:widgets}, for example. For more information, please see this help article on \href{https://www.overleaf.com/learn/latex/tables}{tables}. 
-%
-% \begin{table}
-% \centering
-% \begin{tabular}{l|r}
-% Item & Quantity \\\hline
-% Widgets & 42 \\
-% Gadgets & 13
-% \end{tabular}
-% \caption{\label{tab:widgets}An example table.}
-% \end{table}
-%
-% \subsection{How to add Comments and Track Changes}
-%
-% Comments can be added to your project by highlighting some text and clicking ``Add comment'' in the top right of the editor pane. To view existing comments, click on the Review menu in the toolbar above. To reply to a comment, click on the Reply button in the lower right corner of the comment. You can close the Review pane by clicking its name on the toolbar when you're done reviewing for the time being.
-%
-% Track changes are available on all our \href{https://www.overleaf.com/user/subscription/plans}{premium plans}, and can be toggled on or off using the option at the top of the Review pane. Track changes allow you to keep track of every change made to the document, along with the person making the change. 
-%
-% \subsection{How to add Lists}
-%
-% You can make lists with automatic numbering \dots
-%
-% \begin{enumerate}
-% \item Like this,
-% \item and like this.
-% \end{enumerate}
-% \dots or bullet points \dots
-% \begin{itemize}
-% \item Like this,
-% \item and like this.
-% \end{itemize}
-%
-% \subsection{How to write Mathematics}
-%
-% \LaTeX{} is great at typesetting mathematics. Let $X_1, X_2, \ldots, X_n$ be a sequence of independent and identically distributed random variables with $\text{E}[X_i] = \mu$ and $\text{Var}[X_i] = \sigma^2 < \infty$, and let
-% \[S_n = \frac{X_1 + X_2 + \cdots + X_n}{n}
-%       = \frac{1}{n}\sum_{i}^{n} X_i\]
-% denote their mean. Then as $n$ approaches infinity, the random variables $\sqrt{n}(S_n - \mu)$ converge in distribution to a normal $\mathcal{N}(0, \sigma^2)$.
-%
-%
-% \subsection{How to change the margins and paper size}
-%
-% Usually the template you're using will have the page margins and paper size set correctly for that use-case. For example, if you're using a journal article template provided by the journal publisher, that template will be formatted according to their requirements. In these cases, it's best not to alter the margins directly.
-%
-% If however you're using a more general template, such as this one, and would like to alter the margins, a common way to do so is via the geometry package. You can find the geometry package loaded in the preamble at the top of this example file, and if you'd like to learn more about how to adjust the settings, please visit this help article on \href{https://www.overleaf.com/learn/latex/page_size_and_margins}{page size and margins}.
-%
-% \subsection{How to change the document language and spell check settings}
-%
-% Overleaf supports many different languages, including multiple different languages within one document. 
-%
-% To configure the document language, simply edit the option provided to the babel package in the preamble at the top of this example project. To learn more about the different options, please visit this help article on \href{https://www.overleaf.com/learn/latex/International_language_support}{international language support}.
-%
-% To change the spell check language, simply open the Overleaf menu at the top left of the editor window, scroll down to the spell check setting, and adjust accordingly.
-%
-% \subsection{How to add Citations and a References List}
-%
-% You can simply upload a \verb|.bib| file containing your BibTeX entries, created with a tool such as JabRef. You can then cite entries from it, like this: \cite{greenwade93}. Just remember to specify a bibliography style, as well as the filename of the \verb|.bib|. You can find a \href{https://www.overleaf.com/help/97-how-to-include-a-bibliography-using-bibtex}{video tutorial here} to learn more about BibTeX.
-%
-% If you have an \href{https://www.overleaf.com/user/subscription/plans}{upgraded account}, you can also import your Mendeley or Zotero library directly as a \verb|.bib| file, via the upload menu in the file-tree.
-%
-% \subsection{Good luck!}
-%
-% We hope you find Overleaf useful, and do take a look at our \href{https://www.overleaf.com/learn}{help library} for more tutorials and user guides! Please also let us know if you have any feedback using the Contact Us link at the bottom of the Overleaf menu --- or use the contact form at \url{https://www.overleaf.com/contact}.
 
 \printbibliography
 

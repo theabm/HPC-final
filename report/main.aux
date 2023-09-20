@@ -81,15 +81,36 @@
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
 \@writefile{toc}{\contentsline {section}{\numberline {2.1}Introduction}{13}{section.2.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2.2}Methodology}{13}{section.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.2}Methodology}{14}{section.2.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.2.1}Decomposition}{14}{subsection.2.2.1}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {2.1}{\ignorespaces  Decomposition of an array among three processes. Although the array is conceptualized as a 2D structure, internally, for efficiency, it is represented as a 1D contigous block of memory.}}{14}{figure.2.1}\protected@file@percent }
 \newlabel{fig:decomposition}{{2.1}{14}{Decomposition of an array among three processes. Although the array is conceptualized as a 2D structure, internally, for efficiency, it is represented as a 1D contigous block of memory}{figure.2.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.2}MPI IO}{15}{subsection.2.2.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2.3}Implementation}{15}{section.2.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2.4}Results and Discussion}{15}{section.2.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2.5}Conclusions}{15}{section.2.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.1}How to add Tables}{15}{subsection.2.5.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2.2}{\ignorespaces  2D decomposition of a grid. As we can see, each process needs to deal with non-contiguous memory.}}{15}{figure.2.2}\protected@file@percent }
+\newlabel{fig:2ddecomposition}{{2.2}{15}{2D decomposition of a grid. As we can see, each process needs to deal with non-contiguous memory}{figure.2.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.3}{\ignorespaces  On the figure in the left, we can see that we can process cells that are internal with no problem. However, at the boundary we need information that belongs to another process. Therefore, we allocate some extra space and do a halo exchange as shown in the figure on the right.}}{15}{figure.2.3}\protected@file@percent }
+\newlabel{fig:haloexchange}{{2.3}{15}{On the figure in the left, we can see that we can process cells that are internal with no problem. However, at the boundary we need information that belongs to another process. Therefore, we allocate some extra space and do a halo exchange as shown in the figure on the right}{figure.2.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.2}MPI IO}{16}{subsection.2.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.3}Mixing MPI and OMP}{16}{subsection.2.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.3}Implementation}{16}{section.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.1}State representation}{16}{subsection.2.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.2}Distributing the grid among MPI processes}{17}{subsection.2.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.3}Allocating data}{17}{subsection.2.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.4}PGM Files - Header}{17}{subsection.2.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.5}MPI IO}{18}{subsection.2.3.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.6}Updating Cells - Static Evolution}{19}{subsection.2.3.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.7}Updating Cells - Ordered Evolution}{21}{subsection.2.3.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.8}OMP Integration - Hybrid V1}{24}{subsection.2.3.8}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2.4}{\ignorespaces  Visualization of MPI Multiple mode. Each OMP thread can make MPI calls.}}{24}{figure.2.4}\protected@file@percent }
+\newlabel{fig:mpi_multiple}{{2.4}{24}{Visualization of MPI Multiple mode. Each OMP thread can make MPI calls}{figure.2.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.9}OMP Integration - Hybrid V2}{25}{subsection.2.3.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.10}Software Stack}{25}{subsection.2.3.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.11}Running the Code}{25}{subsection.2.3.11}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.4}Bonus - Algorithm 2}{25}{section.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.5}Results and Discussion}{25}{section.2.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.1}Strong OMP Scalability}{25}{subsection.2.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.2}Strong MPI Scalability}{25}{subsection.2.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.3}Weak MPI Scalability}{25}{subsection.2.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.6}Conclusions}{25}{section.2.6}\protected@file@percent }
 \abx@aux@read@bbl@mdfivesum{978ACCDC8C7AFB9ECBFDA75631EA8E7C}
 \abx@aux@defaultrefcontext{0}{arch}{none/global//global/global}
 \abx@aux@defaultrefcontext{0}{conway}{none/global//global/global}
@@ -97,4 +118,4 @@
 \abx@aux@defaultrefcontext{0}{pgm}{none/global//global/global}
 \abx@aux@defaultrefcontext{0}{mpi}{none/global//global/global}
 \abx@aux@defaultrefcontext{0}{omp}{none/global//global/global}
-\gdef \@abspage@last{17}
+\gdef \@abspage@last{27}
