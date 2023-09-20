@@ -331,7 +331,7 @@ int main(int argc, char **argv)
                     unsigned long int i = cell/cols;
                     unsigned long int j = cell - i*cols;
                     upgrade_cell_static(data_prev, data, i, j);
-                }//barrier
+                }//barrier because the next step requires the halo rows
                 
                 #pragma omp single nowait
                 for(unsigned long int col=0; col<cols; ++col)

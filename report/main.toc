@@ -28,12 +28,12 @@
 \contentsline {subsection}{\numberline {2.3.6}Updating Cells - Static Evolution}{19}{subsection.2.3.6}%
 \contentsline {subsection}{\numberline {2.3.7}Updating Cells - Ordered Evolution}{21}{subsection.2.3.7}%
 \contentsline {subsection}{\numberline {2.3.8}OMP Integration - Hybrid V1}{24}{subsection.2.3.8}%
-\contentsline {subsection}{\numberline {2.3.9}OMP Integration - Hybrid V2}{25}{subsection.2.3.9}%
-\contentsline {subsection}{\numberline {2.3.10}Software Stack}{25}{subsection.2.3.10}%
-\contentsline {subsection}{\numberline {2.3.11}Running the Code}{25}{subsection.2.3.11}%
-\contentsline {section}{\numberline {2.4}Bonus - Algorithm 2}{25}{section.2.4}%
-\contentsline {section}{\numberline {2.5}Results and Discussion}{25}{section.2.5}%
-\contentsline {subsection}{\numberline {2.5.1}Strong OMP Scalability}{25}{subsection.2.5.1}%
-\contentsline {subsection}{\numberline {2.5.2}Strong MPI Scalability}{25}{subsection.2.5.2}%
-\contentsline {subsection}{\numberline {2.5.3}Weak MPI Scalability}{25}{subsection.2.5.3}%
-\contentsline {section}{\numberline {2.6}Conclusions}{25}{section.2.6}%
+\contentsline {subsection}{\numberline {2.3.9}OMP Integration - Hybrid V2}{26}{subsection.2.3.9}%
+\contentsline {subsection}{\numberline {2.3.10}Software Stack - Running the code}{27}{subsection.2.3.10}%
+\contentsline {subsection}{\numberline {2.3.11}Miscellaneous}{27}{subsection.2.3.11}%
+\contentsline {section}{\numberline {2.4}Bonus - Algorithm 2}{28}{section.2.4}%
+\contentsline {section}{\numberline {2.5}Results and Discussion}{28}{section.2.5}%
+\contentsline {subsection}{\numberline {2.5.1}Strong OMP Scalability}{28}{subsection.2.5.1}%
+\contentsline {subsection}{\numberline {2.5.2}Strong MPI Scalability}{31}{subsection.2.5.2}%
+\contentsline {subsection}{\numberline {2.5.3}Weak MPI Scalability}{32}{subsection.2.5.3}%
+\contentsline {section}{\numberline {2.6}Conclusions}{33}{section.2.6}%

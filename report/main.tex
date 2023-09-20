@@ -1416,16 +1416,16 @@ For the first implementation, we create a single parallel region \texttt{outside
 of the for loop over the evolution time steps. Furthermore, we use MPI Multiple 
 mode, where each thread can make an MPI call contemporarily:
 
-The idea behind this, is to avoid the creation of a parallel region every time 
-we iterate over the time steps. To do this, we need to initialize MPI slightly 
-differently, as shown below:
-
 \begin{figure}[H]
-\centering
-\includegraphics[width=10cm, height=6cm]{./other_images/mpi_multiple.png}
-\caption{\label{fig:mpi_multiple} Visualization of MPI Multiple mode. Each OMP 
-thread can make MPI calls.}
+    \centering
+    \includegraphics[width=10cm, height=6cm]{./other_images/mpi_multiple.png}
+    \caption{\label{fig:mpi_multiple} Visualization of MPI Multiple mode. Each OMP 
+    thread can make MPI calls.}
 \end{figure}
+
+The idea behind this, is to avoid the creation of a parallel region every time 
+we iterate over the time steps and have multiple threads make MPI calls contemporarily. 
+To do this, we need to initialize MPI slightly differently, as shown below:
 
 \begin{lstlisting}[language=C++]
 int provided_thread_level;
@@ -1438,24 +1438,32 @@ if(provided_thread_level<MPI_THREAD_MULTIPLE)
 \end{lstlisting}
 
 Then, the for loop over the evolution time steps looks like this:
+
 \begin{lstlisting}[language=C++]
+// single parallel region
 #pragma omp parallel
 for(unsigned long int t = 1; t < n+1; ++t)
 {
 
-    // no barrier at the end
+    // multiple threads make MPI calls
+
+    // nowait eliminates barrier at the end
     #pragma omp single nowait
     MPI_Irecv(data_prev, cols, MPI_CHAR, prev, next_tag, MPI_COMM_WORLD, &prev_recv_request);
+
     #pragma omp single nowait
     MPI_Irecv(data_prev + my_rows_x_cols_p_cols, cols, MPI_CHAR, next, prev_tag, MPI_COMM_WORLD, &next_recv_request);
+
     #pragma omp single nowait
     MPI_Isend(data_prev + cols, cols, MPI_CHAR, prev, prev_tag, MPI_COMM_WORLD, &prev_send_request);
+
     #pragma omp single nowait
     MPI_Isend(data_prev + my_rows_x_cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request);
 
     // remaining threads in the meantime start to work on internal part 
-    // of grid. We need to keep the implied barrier because waiting can 
-    // only happen if operations have been posted
+    // of grid. We need to keep the implied barrier at the end of the for loop 
+    // because the next operation of waiting can only happen if send and recv 
+    // have been posted
     #pragma omp for schedule(dynamic, chunk)
     for(unsigned long int cell = 2*cols; cell< my_rows_x_cols; ++cell)
     {
@@ -1465,6 +1473,7 @@ for(unsigned long int t = 1; t < n+1; ++t)
     }//barrier. Needed, otherwise, if threads havent finished posting 
      //send and receive, the next operation will be an error.
 
+     // we wait until we receive halo rows
     #pragma omp single
     {
         MPI_Wait(&prev_recv_request, MPI_STATUS_IGNORE);
@@ -1472,21 +1481,22 @@ for(unsigned long int t = 1; t < n+1; ++t)
         MPI_Request_free(&prev_send_request);
         MPI_Request_free(&next_send_request);
     } //barrier needed because we need to get halo cells to process 
-      //next rows
+      //next rows. Now we can process the first and last row.
 
-    // threads can split a row further 
+    // threads can split row 1 further. Note the nowait clause.
     #pragma omp for schedule(dynamic, small_chunk) nowait
     for(unsigned long int col=0; col<cols; ++col)
     {
         upgrade_cell_static(data_prev, data, 1, col);
     }
 
-    // once done with row above, threads will start immediately on this
+    // once done with row above, threads will start immediately 
+    // on the last row.
     #pragma omp for schedule(dynamic, small_chunk)
     for(unsigned long int col=0; col<cols*(my_rows>1); ++col)
     {
         upgrade_cell_static(data_prev, data, my_rows, col);
-    }// barrier since I need to wait for all of them to finish before 
+    }// barrier since I need to wait for all threads to finish before 
      // saving and swapping
 
     // implied barrier at the end to finish saving and swapping
@@ -1508,19 +1518,354 @@ for(unsigned long int t = 1; t < n+1; ++t)
 } // barrier
 \end{lstlisting}
 
+The snippet is well commented and explained. However, we briefly touch on some 
+important points. Since we create a single parallel region, we will need to 
+be careful with the synchronization. For example, after the for loop on the 
+internal cells, we have an implied barrier that we cannot elimiate otherwise the 
+wait operation may give an error (if execute before the recv has been posted).
 
+There is another implied barrier after the wait clauses, since we need to wait 
+to receive the halo rows before processing the first and last rows.
+
+There is another implied barrier after we process the last row, since 
+we need to process the whole grid before possibly saving. Finally, there is another 
+implied barrier before going on to the next step of the evolution, otherwise the 
+data regions may not have been swapped.
+
+In total, we have four implied barriers, which, as we will see later, kills  
+performance.
 
 \subsection{OMP Integration - Hybrid V2}
 
-\subsection{Software Stack}
-\subsection{Running the Code}
+The second versions tries to be as simple as possible. 
+
+During our development path for this project, we wrote a serial version, several
+pure OMP versions, and pure MPI version before writing the hybrid version. 
+This is one of the first implementations we had attempted but discared for being 
+too simple. Finally, we decided to come back to it because of its simplicity. 
+
+The idea is to add simply put a pragma parallel for construct on top of the 
+first for loop over the rows. In this way, each thread updates a subset of the 
+rows - similar to how each MPI process gets its part of the grid.
+
+The code is shown below:
+
+\begin{lstlisting}[language=C++]
+for(unsigned long int t = 1; t < n+1; ++t)
+{
+
+    MPI_Isend(data_prev + cols, cols, MPI_CHAR, prev, prev_tag, MPI_COMM_WORLD, &prev_send_request);
+
+    MPI_Isend(data_prev + my_rows_x_cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request);
+
+    MPI_Irecv(data_prev, cols, MPI_CHAR, prev, next_tag, MPI_COMM_WORLD, &prev_recv_request);
+
+    MPI_Irecv(data_prev + my_rows_x_cols_p_cols, cols, MPI_CHAR, next, prev_tag, MPI_COMM_WORLD, &next_recv_request);
+
+    #pragma omp parallel for schedule(dynamic, chunk)
+    for(unsigned long int row = 2; row < my_rows; ++row)
+    {
+        for(unsigned long int col = 0; col < cols; ++col)
+        {
+            upgrade_cell_static(data_prev, data, row, col);
+        }
+    }
+
+    MPI_Wait(&prev_recv_request, MPI_STATUS_IGNORE);
+    MPI_Wait(&next_recv_request, MPI_STATUS_IGNORE);
+    MPI_Request_free(&prev_send_request);
+    MPI_Request_free(&next_send_request);
+
+    for(unsigned long int col=0; col<cols; ++col)
+    {
+        upgrade_cell_static(data_prev, data, 1, col);
+    }
+
+    for(unsigned long int col=0; col<cols*(my_rows>1); ++col)
+    {
+        upgrade_cell_static(data_prev, data, my_rows, col);
+    }
+
+    ++save_counter;
+    if(s>0 && save_counter == s && t<100000)
+    {
+        sprintf(snapshot_name, "snapshot_%05ld", t);
+        save_grid(snapshot_name, MPI_COMM_WORLD, rank, header, header_size, my_total_file_offset, data, my_rows, cols);
+        save_counter = 0;
+    }
+
+    tmp_data = data;
+    data = data_prev;
+    data_prev = tmp_data;
+    tmp_data = NULL;
+}
+\end{lstlisting}
+
+The code is virtually the same, so we briefly comment the most significant 
+details. First, we create a parallel region at \textit{each} time step. 
+Second, we only paralellize the outer for loop over the rows, which means that 
+in the extreme case where we have 1 row per process, the multhreading wont do 
+anything. However, this is a very unlikely scenario, since to do this, we need 
+as many processes and rows, and in this case, the issue will be with communication 
+rather than lack of multithreading.
+
+Finally, we explain \textit{why} we initially got rid of this version, and then 
+came back to it, calling it \texttt{V2}.
+
+As mentioned above, we first developed some serial and pure OMP versions before 
+doing the hybrid version. Originally one of our main preoccupations was that this 
+version introduced a lot of overhead due to the creation of the parallel regions 
+each time. This eventually led to putting the pragma construct outside of the 
+for loop over the time steps and developing the mpi multiple mode. 
+
+Furthermore, another preoccupation, was that in the case of one row per process, 
+this version would not paralellize using OMP. It seemed much more practical and 
+elegant that the OMP would \textit{always} help by splitting up whatever each 
+process had to do. 
+
+However, we realized that by putting the parallel region outside, we needed to 
+insert more barriers. Running some quick tests on pure OMP versions on our machine 
+also didn't seem to yield substantial differences.
+
+Finally, we decided to test it out, just to see how it would perform.
+
+\subsection{Software Stack - Running the code}
+On Orfeo, we always used the Open MPI module compiled against gcc version 12.2.1. 
+
+To compile the code, we provided a Makefile, which automatically compiles the 
+source code. We used as many error flags as possible, such as \-Wall, \-Werror, and 
+\-Wextra. Finally, to optimize as much as possible we compiled with \-O3 and 
+\-march\=native. 
+
+The binaries for THIN nodes and for EPYC nodes can be found in the aptly named  
+folders.
+
+To run the code we have the following options:
+
+\begin{lstlisting}[language=bash]
+$mpirun [mpi_opt] conway_hybrid_pgm.out -i -f fname -k K 
+$mpirun [mpi_opt] conway_hybrid_pgm.out -r -f fname -n N -s S -e E
+\end{lstlisting}
+The first option is used to initialize and save a random playground of size 
+$k \times k$ with name \texttt{fname}.
+The second option loads a grid named \texttt{fname} and evolves it for N 
+timesteps, saving every S steps, with modality E. For the modality, 0 stands 
+for ordered evolution, while 1 stands for static.
+
+\subsection{Miscellaneous}
+
+We briefly discuss some additional miscellaneous details. 
+
+To time the code, we used \texttt{MPI\_Wtime()}, along with a reduction 
+operation to compute the mean among all processes. This was inserted right 
+before and right after the for loop over the time steps to avoid including the 
+serial overhead of setting up everything for the evolution. 
+
+To check for correctness of our code, we created a bash script called 
+\texttt{check.sh}. This bash script runs all the implementations we have created 
+with two famous examples, the glider gun and the snark loop, and compares the 
+snapshots created at the end among the different versions. 
+
+Since we have created a very simple serial version which we are sure is correct, 
+this gives us some security in the correctness of the other implementations. 
+However, if one wanted to be more thorough, it would be better to create various 
+unit tests for each of the rule of conway and test against these.
+
+Lastly, we briegly talk about the contents of our folder. We have many implementations.
+Some of these were developed along the way to test some personal curiosities and 
+to better guide us in the development of our final hybrid code. 
+
+In particular, we have a serial version we used mainly to be sure of the correctness 
+of our results. We have three pure OMP implementations, which we used to test 
+different ways to parallelize using OMP and to see some differences with respect 
+to where we place the parallel regions and other things. Finally, we also have a 
+pure MPI version which we initially implemented to begin thinking in parallel and 
+we used as a base for the hybrid code. 
+
+In the \texttt{patterns\_pgm} directory we find the PGM files for the gosper glider gun and 
+for the snark loop. Furthermore, in the \texttt{pattern\_gifs} we find small videos 
+that we produced on our local machine to visualize the results of our evolution 
+using the ffmpeg utility. The snippet below shows how to do this: 
+
+\begin{lstlisting}[language=bash]
+    $mpirun -np 8 conway_hybrid_pgm.v2.out -r -f snark_loop.pgm -n 400 -s 1 -e 1 
+    $ffmpeg -framerate 100 -f image2 -vcodec pgm -i snapshot_%05d my_gif.mkv
+    $mpv my_gif.mkv
+\end{lstlisting}
 
 \section{Bonus - Algorithm 2}
 \section{Results and Discussion}
 
+As mentioned in the introduction, we analyzed different scenarios. 
+Each of these was repeated on both EPYC and THIN nodes when possible. 
+However, since THIN nodes were generally less occupied, most of our 
+results were taken for this architecture. 
+
 \subsection{Strong OMP Scalability}
+
+In this section, we use a single THIN of EPYC node, and fixed the number of MPI 
+tasks to 2, pinning each to one socket. Then, we slowly increased the 
+number of OMP threads by changing the \texttt{OMP\_NUM\_THREADS} environment 
+variable. This was done until we saturated each socket, i.e. 12 threads for THIN 
+and 64 threads for EPYC. The matrix size was initially fixed to a random 
+$10k \times 10k$ matrix and we evolved for 200 steps, saving only at the end.
+We use \texttt{OMP\_PLACES=cores} and \texttt{OMP\_PROC\_BIND=close}.
+
+We repeated the measurements 10 times to obtain a statistical average and standard 
+deviation. Below are the results:
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=14cm, height=7cm]{./images/strong_OMP_thin_hybrid_grid_010k.pdf}
+\caption{\label{fig:strongomp10kspeedupthin} something in here}
+\end{figure}
+
+As we can see, version 1 (V1) takes almost three times the amount of time of 
+version 2 (V2). This leads confirms our initial supposition that all the barriers 
+that were introduced in V1 killed the performance. 
+
+We also decided to test our implementation on bigger matrices. However, due to 
+limitation on job times, we limited our study to V2 for bigger matrices. 
+We repeated our measurements for matrices of size $20k\times 20k$ and $40k\times 40k$. 
+Below we show the results: 
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=14cm, height=7cm]{./images/strong_OMP_thin_hybrid_v2.pdf}
+\caption{\label{fig:strongompv2thin} something}
+\end{figure}
+
+Below we show the speedup for all of these runs.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=10cm, height=8cm]{./images/strong_OMP_thin_hybrid_speedup.pdf}
+\caption{\label{fig:strongompspeedupthin} something}
+\end{figure}
+
+As we can see, the speedup of version V2 is almost perfect. On the other hand, 
+V1 is not scaling well. This is a final indicator that this implementation is not 
+the best, due to the various barriers that were introduced. 
+
+Furthermore, we see that V2 is able to scale just as well with problem sizes 
+that are 4 and 16 times as big as the original one. This is a good indicator that 
+our code is written well, scalable, and efficient.   
+
+Now we repeat the same experiments with an EPYC node.
+
+In this case however, we only ran experiments with the $10k$ grid. However, we 
+played with the OMP policy. Initially, we used \texttt{OMP\_PROC\_BIND=close} as 
+we did for thin. Then, we remembered that EPYC nodes have a particular architecture.
+They have two sockets, like THIN, however, inside each socket, they have 2 NUMA 
+regions. Therefore, we hypothesized that using a \texttt{OMP\_PROC\_BIND=spread} 
+would give better results since each thread would intially be mapped within the 
+socket, into different NUMA regions and exploit the cache better.
+
+Below we show the results with both policies of the time and the speedup.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=14cm, height=7cm]{./images/strong_OMP_epyc_hybrid_grid_010k.pdf}
+\caption{\label{fig:strongomp10kepyc} somethng}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=10cm, height=8cm]{./images/strong_OMP_epyc_hybrid_grid_010k_speedup.pdf}
+\caption{\label{fig:strongomp10kspeedupepyc} something}
+\end{figure}
+
+First, we notice that the OMP policy barely changes the results. This leads us 
+to think that using different NUMA regions is not as beneficial as we thought. 
+However, considering the results of the previous chapter, it may be the case 
+that with much bigger matrix sizes, we may obtain some benefits.
+
+Furthermore, once again, we see that V1 does not scale well, regardless of the 
+OMP policy that we use. On the other hand, V2 seems to achieve scale well until 
+we start to use half of each socket (32 threads per process). A possible explanation 
+for this is that when we start to use more threads we begin to incur in more 
+overhead for creation of the regions, management of the threads, and so on. 
+
+However, when we use the full node, we still achieve $\sim 64\%$ of the theoretical 
+speedup, which is not a terrible result.
+
+It would be interesting to run the same experiments with much bigger grids, 
+such as $50k \time 50k$.
+
 \subsection{Strong MPI Scalability}
+
+In this section, we fix the number of OMP threads per MPI process to 1, and we 
+continuously increase the number of MPI tasks across the most nodes we can get 
+for each architecture. 
+
+For these experiments, we wanted to use much bigger grids to test the limits 
+of our implementation. However, given the poor results for V1, we 
+decided to test only V2. This choice was also made for practical time 
+constraints as the V1 version took too long to execute on these larger grids. 
+
+On THIN, we used 3 nodes and grids of sizes $50k$, $70k$, and $100k$. The last 
+one is approximately 10 GBytes of data. On EPYC, we only used the $100k$ grid.
+
+Results were taken 5 times to get an average.
+
+Below we show the results for THIN:
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=14cm, height=7cm]{./images/strong_MPI_thin_hybrid.pdf}
+\caption{\label{fig:strongmpithinhybrid} somethng}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=10cm, height=8cm]{./images/strong_MPI_thin_hybrid_speedup.pdf}
+\caption{\label{fig:strongmpithinhybridspeedup} somethng}
+\end{figure}
+
+As we can see, ... 
+
+Now, we show the results for EPYC nodes.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=14cm, height=7cm]{./images/strong_MPI_epyc_hybrid_grid_100k.pdf}
+\caption{\label{fig:strongmpiepychybrid} somethng}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=10cm, height=8cm]{./images/strong_MPI_epyc_hybrid_grid_100k_speedup.pdf}
+\caption{\label{fig:strongmpiepychybridspeedup} somethng}
+\end{figure}
+
 \subsection{Weak MPI Scalability}
+
+In this section, we fixed the number of OMP threads to completely saturate a 
+socket, i.e 12 for THIN and 64 for EPYC. Then, we slowly increased the number 
+of MPI tasks, pinning them to sockets, across as many nodes as possible. However, 
+as we increased the number of MPI tasks, we also increased the grid size to 
+keep the workload per MPI task the same. In other words, if we doubled the number 
+of tasks, we had to multiply the size of the matrix by a factor of $\sqrt{2}$.
+
+Below we show a table with the dimensions we used:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{c|c|c|c|c|c|}
+    Size & MPI Tasks & Work per core \\\hline
+    10000 &    1     & $\frac{10^8}{12}=8,333,333$ \\
+    14142 &    2     & $\frac{199996164}{24}=8,333,173$\\
+    17320 &    3     & $\frac{299982400}{36}=8,332,844$ \\
+    20000 &    4     & $\frac{4*10^8}{48}=8,333,333$\\
+    22360 &    5     & $\frac{499969600}{60}=8,332,826$\\
+    24494 &    6     & $\frac{599956046}{72}=8,332,722$\\
+    26457 &    7     & $\frac{699972849}{84}=8,333,010$\\
+    28284 &    8     & $\frac{799984656}{96}=8,333,173$\\
+\end{tabular}
+\caption{\label{tab:weak}}
+\end{table}
+
+
 
 \section{Conclusions}
 
