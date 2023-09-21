@@ -43,6 +43,6 @@ strong MPI, and weak MPI scalability will be conducted in the report.
 Exercise 2 consists of benchmarking the level 3 math function `gemm` for matrix-matrix 
 multiplication for three HPC math libraries, namely, MKL, OpenBLAS, and BLIS. 
 We compare the obtained GFLOPS with the expected peak performance for the two types 
-of architectures in Orfeo. 
+of architectures in Orfeo in two scenarios.  
 
 
