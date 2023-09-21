@@ -1,6 +1,5 @@
 # Foundations of High Performance Computing - Final Exam 
 ## DSSC - A.A 2022-2023 
----
 
 This repostory contains the implementation, data, scripts, and report 
 for the final assignment for the course of High Performance Computing. 
@@ -36,13 +35,11 @@ Where:
 
 
 # Exercise 1
---- 
 Exercise 1 consists in the implementation of a scalable, hybrid MPI + OMP 
 version of Conway's game of life. Furthermore, an analysis of the strong OMP, 
 strong MPI, and weak MPI scalability will be conducted in the report.
 
 # Exercise 2 
---- 
 Exercise 2 consists of benchmarking the level 3 math function `gemm` for matrix-matrix 
 multiplication for three HPC math libraries, namely, MKL, OpenBLAS, and BLIS. 
 We compare the obtained GFLOPS with the expected peak performance for the two types 
