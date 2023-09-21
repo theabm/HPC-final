@@ -1,10 +1,10 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2023.6.1)  21 SEP 2023 01:23
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2023.6.1)  21 SEP 2023 12:10
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
-**/home/andres/hpc/Foundations_of_HPC_2022/Assignment/my_assignment/report/main.tex
-(/home/andres/hpc/Foundations_of_HPC_2022/Assignment/my_assignment/report/main.tex
+**main.tex
+(./main.tex
 LaTeX2e <2021-11-15> patch level 1
 L3 programming layer <2022-01-21> (/usr/share/texlive/texmf-dist/tex/latex/base/report.cls
 Document Class: report 2021/10/04 v1.4n Standard LaTeX document class
@@ -220,7 +220,8 @@ package with kernel methods
 Package hyperref Info: Driver (autodetected): hpdftex.
  (/usr/share/texlive/texmf-dist/tex/latex/hyperref/hpdftex.def
 File: hpdftex.def 2021-06-07 v7.00m Hyperref driver for pdfTeX
- (/usr/share/texlive/texmf-dist/tex/latex/base/atveryend-ltx.sty
+
+(/usr/share/texlive/texmf-dist/tex/latex/base/atveryend-ltx.sty
 Package: atveryend-ltx 2020/08/19 v1.0a Emulation of the original atveryend package
 with kernel methods
 )
@@ -533,7 +534,8 @@ File: listings.cfg 2020/03/24 1.8d listings configuration
 Package: listings 2020/03/24 1.8d (Carsten Heinz)
  (/usr/share/texlive/texmf-dist/tex/latex/xcolor/xcolor.sty
 Package: xcolor 2021/10/31 v2.13 LaTeX color extensions (UK)
- (/usr/share/texlive/texmf-dist/tex/latex/graphics-cfg/color.cfg
+
+(/usr/share/texlive/texmf-dist/tex/latex/graphics-cfg/color.cfg
 File: color.cfg 2016/01/02 v1.6 sample color configuration
 )
 Package xcolor Info: Driver file: pdftex.def on input line 227.
@@ -687,274 +689,274 @@ File: ts1cmtt.fd 2019/12/16 v2.5j Standard LaTeX font definitions
 <./images/fixed_cores_thin_float_gflops.pdf, id=224, 752.8125pt x 376.52669pt>
 File: ./images/fixed_cores_thin_float_gflops.pdf Graphic file (type pdf)
 <use ./images/fixed_cores_thin_float_gflops.pdf>
-Package pdftex.def Info: ./images/fixed_cores_thin_float_gflops.pdf  used on input line 248.
+Package pdftex.def Info: ./images/fixed_cores_thin_float_gflops.pdf  used on input line 249.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 <./images/fixed_cores_thin_float_gflops_ratio.pdf, id=225, 752.8125pt x 376.52669pt>
 File: ./images/fixed_cores_thin_float_gflops_ratio.pdf Graphic file (type pdf)
 <use ./images/fixed_cores_thin_float_gflops_ratio.pdf>
-Package pdftex.def Info: ./images/fixed_cores_thin_float_gflops_ratio.pdf  used on input line 249.
+Package pdftex.def Info: ./images/fixed_cores_thin_float_gflops_ratio.pdf  used on input line 250.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 
-Overfull \hbox (58.79898pt too wide) in paragraph at lines 247--252
+Overfull \hbox (58.79898pt too wide) in paragraph at lines 248--253
 []|  [] []
  []
 
 [4pdfTeX warning (ext4): destination with the same identifier (name{table.1.1}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.259 
+l.260 
       pdfTeX warning (ext4): destination with the same identifier (name{figure.1.1}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.259 
+l.260 
        <./images/fixed_cores_thin_float_gflops.pdf> <./images/fixed_cores_thin_float_gflops_ratio.pdf>]
 <./images/fixed_cores_thin_double_gflops.pdf, id=257, 752.8125pt x 376.52669pt>
 File: ./images/fixed_cores_thin_double_gflops.pdf Graphic file (type pdf)
 <use ./images/fixed_cores_thin_double_gflops.pdf>
-Package pdftex.def Info: ./images/fixed_cores_thin_double_gflops.pdf  used on input line 270.
+Package pdftex.def Info: ./images/fixed_cores_thin_double_gflops.pdf  used on input line 271.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 <./images/fixed_cores_thin_double_gflops_ratio.pdf, id=258, 752.8125pt x 376.52669pt>
 File: ./images/fixed_cores_thin_double_gflops_ratio.pdf Graphic file (type pdf)
 <use ./images/fixed_cores_thin_double_gflops_ratio.pdf>
-Package pdftex.def Info: ./images/fixed_cores_thin_double_gflops_ratio.pdf  used on input line 271.
+Package pdftex.def Info: ./images/fixed_cores_thin_double_gflops_ratio.pdf  used on input line 272.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 
-Overfull \hbox (58.79898pt too wide) in paragraph at lines 269--274
+Overfull \hbox (58.79898pt too wide) in paragraph at lines 270--275
 []|  [] []
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 282--289
+Underfull \hbox (badness 10000) in paragraph at lines 283--290
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 308--313
+Underfull \hbox (badness 10000) in paragraph at lines 309--314
 
  []
 
 <./images/fixed_cores_epyc_float_gflops.pdf, id=259, 752.8125pt x 376.52669pt>
 File: ./images/fixed_cores_epyc_float_gflops.pdf Graphic file (type pdf)
 <use ./images/fixed_cores_epyc_float_gflops.pdf>
-Package pdftex.def Info: ./images/fixed_cores_epyc_float_gflops.pdf  used on input line 317.
+Package pdftex.def Info: ./images/fixed_cores_epyc_float_gflops.pdf  used on input line 318.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 <./images/fixed_cores_epyc_float_gflops_ratio.pdf, id=260, 752.8125pt x 376.52669pt>
 File: ./images/fixed_cores_epyc_float_gflops_ratio.pdf Graphic file (type pdf)
 <use ./images/fixed_cores_epyc_float_gflops_ratio.pdf>
-Package pdftex.def Info: ./images/fixed_cores_epyc_float_gflops_ratio.pdf  used on input line 318.
+Package pdftex.def Info: ./images/fixed_cores_epyc_float_gflops_ratio.pdf  used on input line 319.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 
-Overfull \hbox (58.79898pt too wide) in paragraph at lines 316--322
+Overfull \hbox (58.79898pt too wide) in paragraph at lines 317--323
 []|  [] []
  []
 
 [5pdfTeX warning (ext4): destination with the same identifier (name{figure.1.2}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.324 
+l.325 
        <./images/fixed_cores_thin_double_gflops.pdf> <./images/fixed_cores_thin_double_gflops_ratio.pdf>]
-Underfull \hbox (badness 10000) in paragraph at lines 325--329
+Underfull \hbox (badness 10000) in paragraph at lines 326--330
 
  []
 
 <./images/fixed_cores_epyc_double_gflops.pdf, id=287, 752.8125pt x 376.52669pt>
 File: ./images/fixed_cores_epyc_double_gflops.pdf Graphic file (type pdf)
 <use ./images/fixed_cores_epyc_double_gflops.pdf>
-Package pdftex.def Info: ./images/fixed_cores_epyc_double_gflops.pdf  used on input line 338.
+Package pdftex.def Info: ./images/fixed_cores_epyc_double_gflops.pdf  used on input line 339.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 <./images/fixed_cores_epyc_double_gflops_ratio.pdf, id=288, 752.8125pt x 376.52669pt>
 File: ./images/fixed_cores_epyc_double_gflops_ratio.pdf Graphic file (type pdf)
 <use ./images/fixed_cores_epyc_double_gflops_ratio.pdf>
-Package pdftex.def Info: ./images/fixed_cores_epyc_double_gflops_ratio.pdf  used on input line 339.
+Package pdftex.def Info: ./images/fixed_cores_epyc_double_gflops_ratio.pdf  used on input line 340.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 
-Overfull \hbox (58.79898pt too wide) in paragraph at lines 337--342
+Overfull \hbox (58.79898pt too wide) in paragraph at lines 338--343
 []|  [] []
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 345--350
+Underfull \hbox (badness 10000) in paragraph at lines 346--351
 
  []
 
 [6pdfTeX warning (ext4): destination with the same identifier (name{figure.1.3}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.366 
+l.367 
       pdfTeX warning (ext4): destination with the same identifier (name{figure.1.4}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.366 
+l.367 
        <./images/fixed_cores_epyc_float_gflops.pdf> <./images/fixed_cores_epyc_float_gflops_ratio.pdf> <./images/fixed_cores_epyc_double_gflops.pdf> <./images/fixed_cores_epyc_double_gflops_ratio.pdf>]
 <./images/fixed_size_thin_float_gflops_close.pdf, id=338, 752.8125pt x 376.52669pt>
 File: ./images/fixed_size_thin_float_gflops_close.pdf Graphic file (type pdf)
 <use ./images/fixed_size_thin_float_gflops_close.pdf>
-Package pdftex.def Info: ./images/fixed_size_thin_float_gflops_close.pdf  used on input line 390.
+Package pdftex.def Info: ./images/fixed_size_thin_float_gflops_close.pdf  used on input line 391.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 <./images/fixed_size_thin_float_gflops_close_ratio.pdf, id=339, 752.8125pt x 376.52669pt>
 File: ./images/fixed_size_thin_float_gflops_close_ratio.pdf Graphic file (type pdf)
 <use ./images/fixed_size_thin_float_gflops_close_ratio.pdf>
-Package pdftex.def Info: ./images/fixed_size_thin_float_gflops_close_ratio.pdf  used on input line 391.
+Package pdftex.def Info: ./images/fixed_size_thin_float_gflops_close_ratio.pdf  used on input line 392.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 
-Overfull \hbox (58.79898pt too wide) in paragraph at lines 389--394
+Overfull \hbox (58.79898pt too wide) in paragraph at lines 390--395
 []|  [] []
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 407--410
+Underfull \hbox (badness 10000) in paragraph at lines 408--411
 
  []
 
 <./images/fixed_size_thin_float_gflops_spread.pdf, id=340, 752.8125pt x 376.52669pt>
 File: ./images/fixed_size_thin_float_gflops_spread.pdf Graphic file (type pdf)
 <use ./images/fixed_size_thin_float_gflops_spread.pdf>
-Package pdftex.def Info: ./images/fixed_size_thin_float_gflops_spread.pdf  used on input line 416.
+Package pdftex.def Info: ./images/fixed_size_thin_float_gflops_spread.pdf  used on input line 417.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 <./images/fixed_size_thin_float_gflops_spread_ratio.pdf, id=341, 752.8125pt x 376.52669pt>
 File: ./images/fixed_size_thin_float_gflops_spread_ratio.pdf Graphic file (type pdf)
 <use ./images/fixed_size_thin_float_gflops_spread_ratio.pdf>
-Package pdftex.def Info: ./images/fixed_size_thin_float_gflops_spread_ratio.pdf  used on input line 417.
+Package pdftex.def Info: ./images/fixed_size_thin_float_gflops_spread_ratio.pdf  used on input line 418.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 
-Overfull \hbox (58.79898pt too wide) in paragraph at lines 415--420
+Overfull \hbox (58.79898pt too wide) in paragraph at lines 416--421
 []|  [] []
  []
 
 [7pdfTeX warning (ext4): destination with the same identifier (name{figure.1.5}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.422 
+l.423 
        <./images/fixed_size_thin_float_gflops_close.pdf> <./images/fixed_size_thin_float_gflops_close_ratio.pdf>]
-Underfull \hbox (badness 10000) in paragraph at lines 428--434
+Underfull \hbox (badness 10000) in paragraph at lines 429--435
 
  []
 
 <./images/fixed_size_thin_double_gflops_close.pdf, id=368, 752.8125pt x 376.52669pt>
 File: ./images/fixed_size_thin_double_gflops_close.pdf Graphic file (type pdf)
 <use ./images/fixed_size_thin_double_gflops_close.pdf>
-Package pdftex.def Info: ./images/fixed_size_thin_double_gflops_close.pdf  used on input line 439.
+Package pdftex.def Info: ./images/fixed_size_thin_double_gflops_close.pdf  used on input line 440.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 <./images/fixed_size_thin_double_gflops_close_ratio.pdf, id=369, 752.8125pt x 376.52669pt>
 File: ./images/fixed_size_thin_double_gflops_close_ratio.pdf Graphic file (type pdf)
 <use ./images/fixed_size_thin_double_gflops_close_ratio.pdf>
-Package pdftex.def Info: ./images/fixed_size_thin_double_gflops_close_ratio.pdf  used on input line 440.
+Package pdftex.def Info: ./images/fixed_size_thin_double_gflops_close_ratio.pdf  used on input line 441.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 
-Overfull \hbox (58.79898pt too wide) in paragraph at lines 438--443
+Overfull \hbox (58.79898pt too wide) in paragraph at lines 439--444
 []|  [] []
  []
 
 <./images/fixed_size_thin_double_gflops_spread.pdf, id=370, 752.8125pt x 376.52669pt>
 File: ./images/fixed_size_thin_double_gflops_spread.pdf Graphic file (type pdf)
 <use ./images/fixed_size_thin_double_gflops_spread.pdf>
-Package pdftex.def Info: ./images/fixed_size_thin_double_gflops_spread.pdf  used on input line 456.
+Package pdftex.def Info: ./images/fixed_size_thin_double_gflops_spread.pdf  used on input line 457.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 <./images/fixed_size_thin_double_gflops_spread_ratio.pdf, id=371, 752.8125pt x 376.52669pt>
 File: ./images/fixed_size_thin_double_gflops_spread_ratio.pdf Graphic file (type pdf)
 <use ./images/fixed_size_thin_double_gflops_spread_ratio.pdf>
-Package pdftex.def Info: ./images/fixed_size_thin_double_gflops_spread_ratio.pdf  used on input line 457.
+Package pdftex.def Info: ./images/fixed_size_thin_double_gflops_spread_ratio.pdf  used on input line 458.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 
-Overfull \hbox (58.79898pt too wide) in paragraph at lines 455--459
+Overfull \hbox (58.79898pt too wide) in paragraph at lines 456--460
 []|  [] []
  []
 
 [8pdfTeX warning (ext4): destination with the same identifier (name{figure.1.6}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.461 
+l.462 
       pdfTeX warning (ext4): destination with the same identifier (name{figure.1.7}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.461 
+l.462 
        <./images/fixed_size_thin_float_gflops_spread.pdf> <./images/fixed_size_thin_float_gflops_spread_ratio.pdf> <./images/fixed_size_thin_double_gflops_close.pdf> <./images/fixed_size_thin_double_gflops_close_ratio.pdf>]
 <./images/fixed_size_epyc_float_gflops_close.pdf, id=418, 752.8125pt x 376.52669pt>
 File: ./images/fixed_size_epyc_float_gflops_close.pdf Graphic file (type pdf)
 <use ./images/fixed_size_epyc_float_gflops_close.pdf>
-Package pdftex.def Info: ./images/fixed_size_epyc_float_gflops_close.pdf  used on input line 489.
+Package pdftex.def Info: ./images/fixed_size_epyc_float_gflops_close.pdf  used on input line 490.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 <./images/fixed_size_epyc_float_gflops_close_ratio.pdf, id=419, 752.8125pt x 376.52669pt>
 File: ./images/fixed_size_epyc_float_gflops_close_ratio.pdf Graphic file (type pdf)
 <use ./images/fixed_size_epyc_float_gflops_close_ratio.pdf>
-Package pdftex.def Info: ./images/fixed_size_epyc_float_gflops_close_ratio.pdf  used on input line 490.
+Package pdftex.def Info: ./images/fixed_size_epyc_float_gflops_close_ratio.pdf  used on input line 491.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 
-Overfull \hbox (58.79898pt too wide) in paragraph at lines 488--493
+Overfull \hbox (58.79898pt too wide) in paragraph at lines 489--494
 []|  [] []
  []
 
 [9pdfTeX warning (ext4): destination with the same identifier (name{figure.1.8}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.501 
+l.502 
       pdfTeX warning (ext4): destination with the same identifier (name{figure.1.9}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.501 
+l.502 
        <./images/fixed_size_thin_double_gflops_spread.pdf> <./images/fixed_size_thin_double_gflops_spread_ratio.pdf> <./images/fixed_size_epyc_float_gflops_close.pdf> <./images/fixed_size_epyc_float_gflops_close_ratio.pdf>]
 <./images/fixed_size_epyc_float_gflops_spread.pdf, id=468, 752.8125pt x 376.52669pt>
 File: ./images/fixed_size_epyc_float_gflops_spread.pdf Graphic file (type pdf)
 <use ./images/fixed_size_epyc_float_gflops_spread.pdf>
-Package pdftex.def Info: ./images/fixed_size_epyc_float_gflops_spread.pdf  used on input line 519.
+Package pdftex.def Info: ./images/fixed_size_epyc_float_gflops_spread.pdf  used on input line 520.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 <./images/fixed_size_epyc_float_gflops_spread_ratio.pdf, id=469, 752.8125pt x 376.52669pt>
 File: ./images/fixed_size_epyc_float_gflops_spread_ratio.pdf Graphic file (type pdf)
 <use ./images/fixed_size_epyc_float_gflops_spread_ratio.pdf>
-Package pdftex.def Info: ./images/fixed_size_epyc_float_gflops_spread_ratio.pdf  used on input line 520.
+Package pdftex.def Info: ./images/fixed_size_epyc_float_gflops_spread_ratio.pdf  used on input line 521.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 
-Overfull \hbox (58.79898pt too wide) in paragraph at lines 518--522
+Overfull \hbox (58.79898pt too wide) in paragraph at lines 519--523
 []|  [] []
  []
 
 <./images/fixed_size_epyc_double_gflops_close.pdf, id=470, 752.8125pt x 376.52669pt>
 File: ./images/fixed_size_epyc_double_gflops_close.pdf Graphic file (type pdf)
 <use ./images/fixed_size_epyc_double_gflops_close.pdf>
-Package pdftex.def Info: ./images/fixed_size_epyc_double_gflops_close.pdf  used on input line 542.
+Package pdftex.def Info: ./images/fixed_size_epyc_double_gflops_close.pdf  used on input line 543.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 <./images/fixed_size_epyc_double_gflops_close_ratio.pdf, id=471, 752.8125pt x 376.52669pt>
 File: ./images/fixed_size_epyc_double_gflops_close_ratio.pdf Graphic file (type pdf)
 <use ./images/fixed_size_epyc_double_gflops_close_ratio.pdf>
-Package pdftex.def Info: ./images/fixed_size_epyc_double_gflops_close_ratio.pdf  used on input line 543.
+Package pdftex.def Info: ./images/fixed_size_epyc_double_gflops_close_ratio.pdf  used on input line 544.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 
-Overfull \hbox (58.79898pt too wide) in paragraph at lines 541--546
+Overfull \hbox (58.79898pt too wide) in paragraph at lines 542--547
 []|  [] []
  []
 
 [10pdfTeX warning (ext4): destination with the same identifier (name{figure.1.10}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.548 
+l.549 
        <./images/fixed_size_epyc_float_gflops_spread.pdf> <./images/fixed_size_epyc_float_gflops_spread_ratio.pdf>]
-Underfull \hbox (badness 10000) in paragraph at lines 549--553
+Underfull \hbox (badness 10000) in paragraph at lines 550--554
 
  []
 
 <./images/fixed_size_epyc_double_gflops_spread.pdf, id=497, 752.8125pt x 376.52669pt>
 File: ./images/fixed_size_epyc_double_gflops_spread.pdf Graphic file (type pdf)
 <use ./images/fixed_size_epyc_double_gflops_spread.pdf>
-Package pdftex.def Info: ./images/fixed_size_epyc_double_gflops_spread.pdf  used on input line 559.
+Package pdftex.def Info: ./images/fixed_size_epyc_double_gflops_spread.pdf  used on input line 560.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 <./images/fixed_size_epyc_double_gflops_spread_ratio.pdf, id=498, 752.8125pt x 376.52669pt>
 File: ./images/fixed_size_epyc_double_gflops_spread_ratio.pdf Graphic file (type pdf)
 <use ./images/fixed_size_epyc_double_gflops_spread_ratio.pdf>
-Package pdftex.def Info: ./images/fixed_size_epyc_double_gflops_spread_ratio.pdf  used on input line 560.
+Package pdftex.def Info: ./images/fixed_size_epyc_double_gflops_spread_ratio.pdf  used on input line 561.
 (pdftex.def)             Requested size: 284.53246pt x 170.71664pt.
 
-Overfull \hbox (58.79898pt too wide) in paragraph at lines 558--562
+Overfull \hbox (58.79898pt too wide) in paragraph at lines 559--563
 []|  [] []
  []
 
 [11pdfTeX warning (ext4): destination with the same identifier (name{figure.1.11}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.589 
+l.590 
       pdfTeX warning (ext4): destination with the same identifier (name{figure.1.12}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.589 
+l.590 
        <./images/fixed_size_epyc_double_gflops_close.pdf> <./images/fixed_size_epyc_double_gflops_close_ratio.pdf> <./images/fixed_size_epyc_double_gflops_spread.pdf> <./images/fixed_size_epyc_double_gflops_spread_ratio.pdf>] [12]
 Chapter 2.
 [13
@@ -963,36 +965,36 @@ Chapter 2.
 <./other_images/arraydecomposition.jpg, id=574, 722.7pt x 414.54875pt>
 File: ./other_images/arraydecomposition.jpg Graphic file (type jpg)
 <use ./other_images/arraydecomposition.jpg>
-Package pdftex.def Info: ./other_images/arraydecomposition.jpg  used on input line 710.
+Package pdftex.def Info: ./other_images/arraydecomposition.jpg  used on input line 711.
 (pdftex.def)             Requested size: 284.53154pt x 142.2604pt.
  [14pdfTeX warning (ext4): destination with the same identifier (name{figure.2.1}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.727 I
+l.728 I
        f we do a 1D split, each process will work on a thick strip of data w... <./other_images/arraydecomposition.jpg>]
 <./other_images/2d_decomposition.png, id=584, 1176.395pt x 246.9225pt>
 File: ./other_images/2d_decomposition.png Graphic file (type png)
 <use ./other_images/2d_decomposition.png>
-Package pdftex.def Info: ./other_images/2d_decomposition.png  used on input line 737.
+Package pdftex.def Info: ./other_images/2d_decomposition.png  used on input line 738.
 (pdftex.def)             Requested size: 341.43303pt x 113.80801pt.
 <./other_images/stencil.png, id=586, 556.0775pt x 268.00125pt>
 File: ./other_images/stencil.png Graphic file (type png)
 <use ./other_images/stencil.png>
-Package pdftex.def Info: ./other_images/stencil.png  used on input line 758.
+Package pdftex.def Info: ./other_images/stencil.png  used on input line 759.
 (pdftex.def)             Requested size: 113.80995pt x 85.3573pt.
 <./other_images/halo_exchange.png, id=587, 542.025pt x 443.6575pt>
 File: ./other_images/halo_exchange.png Graphic file (type png)
 <use ./other_images/halo_exchange.png>
-Package pdftex.def Info: ./other_images/halo_exchange.png  used on input line 759.
+Package pdftex.def Info: ./other_images/halo_exchange.png  used on input line 760.
 (pdftex.def)             Requested size: 227.62413pt x 142.25761pt.
  [15pdfTeX warning (ext4): destination with the same identifier (name{figure.2.2}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.781 T
+l.782 T
        he simplest way is for each process to write its part of the grid to apdfTeX warning (ext4): destination with the same identifier (name{figure.2.3}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.781 T
+l.782 T
        he simplest way is for each process to write its part of the grid to a <./other_images/2d_decomposition.png> <./other_images/stencil.png> <./other_images/halo_exchange.png>] [16] (/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2020/03/24 1.8d listings language file
 ) (/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
@@ -1000,7 +1002,7 @@ File: lstlang1.sty 2020/03/24 1.8d listings language file
 ) (/usr/share/texlive/texmf-dist/tex/latex/listings/lstmisc.sty
 File: lstmisc.sty 2020/03/24 1.8d (Carsten Heinz)
 ) [17]
-Overfull \hbox (31.31914pt too wide) in paragraph at lines 1009--1012
+Overfull \hbox (31.31914pt too wide) in paragraph at lines 1010--1013
 []\OT1/cmr/m/n/10 Then, we choose rank 0 to write the header of the PGM file. We use the MPI func-tion \OT1/cmtt/m/n/10 MPI[]File[]write[]at()
  []
 
@@ -1008,108 +1010,128 @@ Overfull \hbox (31.31914pt too wide) in paragraph at lines 1009--1012
 <./other_images/mpi_multiple.png, id=938, 1087.06125pt x 617.30624pt>
 File: ./other_images/mpi_multiple.png Graphic file (type png)
 <use ./other_images/mpi_multiple.png>
-Package pdftex.def Info: ./other_images/mpi_multiple.png  used on input line 1421.
+Package pdftex.def Info: ./other_images/mpi_multiple.png  used on input line 1422.
 (pdftex.def)             Requested size: 284.5202pt x 170.71579pt.
  [24pdfTeX warning (ext4): destination with the same identifier (name{figure.2.4}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.1466  
+l.1467  
            // have been posted <./other_images/mpi_multiple.png>] [25] [26] [27]
 <./images/strong_OMP_thin_hybrid_grid_010k.pdf, id=1101, 752.8125pt x 376.52669pt>
 File: ./images/strong_OMP_thin_hybrid_grid_010k.pdf Graphic file (type pdf)
 <use ./images/strong_OMP_thin_hybrid_grid_010k.pdf>
-Package pdftex.def Info: ./images/strong_OMP_thin_hybrid_grid_010k.pdf  used on input line 1719.
+Package pdftex.def Info: ./images/strong_OMP_thin_hybrid_grid_010k.pdf  used on input line 1729.
 (pdftex.def)             Requested size: 398.34544pt x 199.17325pt.
 <./images/strong_OMP_thin_hybrid_v2.pdf, id=1102, 752.8125pt x 376.52669pt>
 File: ./images/strong_OMP_thin_hybrid_v2.pdf Graphic file (type pdf)
 <use ./images/strong_OMP_thin_hybrid_v2.pdf>
-Package pdftex.def Info: ./images/strong_OMP_thin_hybrid_v2.pdf  used on input line 1734.
+Package pdftex.def Info: ./images/strong_OMP_thin_hybrid_v2.pdf  used on input line 1747.
 (pdftex.def)             Requested size: 398.34544pt x 199.17325pt.
  [28pdfTeX warning (ext4): destination with the same identifier (name{figure.2.5}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.1737 
+l.1751 
         <./images/strong_OMP_thin_hybrid_grid_010k.pdf>]
-<./images/strong_OMP_thin_hybrid_speedup.pdf, id=1118, 752.8125pt x 602.25pt>
+<./images/strong_OMP_thin_hybrid_speedup.pdf, id=1123, 752.8125pt x 602.25pt>
 File: ./images/strong_OMP_thin_hybrid_speedup.pdf Graphic file (type pdf)
 <use ./images/strong_OMP_thin_hybrid_speedup.pdf>
-Package pdftex.def Info: ./images/strong_OMP_thin_hybrid_speedup.pdf  used on input line 1742.
+Package pdftex.def Info: ./images/strong_OMP_thin_hybrid_speedup.pdf  used on input line 1756.
 (pdftex.def)             Requested size: 284.53246pt x 227.62596pt.
-<./images/strong_OMP_epyc_hybrid_grid_010k.pdf, id=1119, 752.8125pt x 376.52669pt>
-File: ./images/strong_OMP_epyc_hybrid_grid_010k.pdf Graphic file (type pdf)
-<use ./images/strong_OMP_epyc_hybrid_grid_010k.pdf>
-Package pdftex.def Info: ./images/strong_OMP_epyc_hybrid_grid_010k.pdf  used on input line 1768.
-(pdftex.def)             Requested size: 398.34544pt x 199.17325pt.
  [29pdfTeX warning (ext4): destination with the same identifier (name{figure.2.6}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.1771 
-       pdfTeX warning (ext4): destination with the same identifier (name{figure.2.7}) has been already used, duplicate ignored
+l.1780 T
+        herefore, we hypothesized that using \texttt{OMP\_PROC\_BIND=spread}pdfTeX warning (ext4): destination with the same identifier (name{figure.2.7}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.1771 
-        <./images/strong_OMP_thin_hybrid_v2.pdf> <./images/strong_OMP_thin_hybrid_speedup.pdf>]
-<./images/strong_OMP_epyc_hybrid_grid_010k_speedup.pdf, id=1146, 752.8125pt x 602.25pt>
+l.1780 T
+        herefore, we hypothesized that using \texttt{OMP\_PROC\_BIND=spread} <./images/strong_OMP_thin_hybrid_v2.pdf> <./images/strong_OMP_thin_hybrid_speedup.pdf>]
+<./images/strong_OMP_epyc_hybrid_grid_010k.pdf, id=1150, 752.8125pt x 376.52669pt>
+File: ./images/strong_OMP_epyc_hybrid_grid_010k.pdf Graphic file (type pdf)
+<use ./images/strong_OMP_epyc_hybrid_grid_010k.pdf>
+Package pdftex.def Info: ./images/strong_OMP_epyc_hybrid_grid_010k.pdf  used on input line 1789.
+(pdftex.def)             Requested size: 398.34544pt x 199.17325pt.
+<./images/strong_OMP_epyc_hybrid_grid_010k_speedup.pdf, id=1151, 752.8125pt x 602.25pt>
 File: ./images/strong_OMP_epyc_hybrid_grid_010k_speedup.pdf Graphic file (type pdf)
 <use ./images/strong_OMP_epyc_hybrid_grid_010k_speedup.pdf>
-Package pdftex.def Info: ./images/strong_OMP_epyc_hybrid_grid_010k_speedup.pdf  used on input line 1774.
+Package pdftex.def Info: ./images/strong_OMP_epyc_hybrid_grid_010k_speedup.pdf  used on input line 1797.
 (pdftex.def)             Requested size: 284.53246pt x 227.62596pt.
  [30pdfTeX warning (ext4): destination with the same identifier (name{figure.2.8}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.1801 F
-        or these experiments, we wanted to use much bigger grids to test the...pdfTeX warning (ext4): destination with the same identifier (name{figure.2.9}) has been already used, duplicate ignored
+l.1812 H
+        owever, when we use the full node, we still achieve $\sim 64\%$ of t...pdfTeX warning (ext4): destination with the same identifier (name{figure.2.9}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.1801 F
-        or these experiments, we wanted to use much bigger grids to test the... <./images/strong_OMP_epyc_hybrid_grid_010k.pdf> <./images/strong_OMP_epyc_hybrid_grid_010k_speedup.pdf>]
-<./images/strong_MPI_thin_hybrid.pdf, id=1174, 752.8125pt x 376.52669pt>
+l.1812 H
+        owever, when we use the full node, we still achieve $\sim 64\%$ of t... <./images/strong_OMP_epyc_hybrid_grid_010k.pdf> <./images/strong_OMP_epyc_hybrid_grid_010k_speedup.pdf>]
+<./images/strong_MPI_thin_hybrid.pdf, id=1179, 752.8125pt x 376.52669pt>
 File: ./images/strong_MPI_thin_hybrid.pdf Graphic file (type pdf)
 <use ./images/strong_MPI_thin_hybrid.pdf>
-Package pdftex.def Info: ./images/strong_MPI_thin_hybrid.pdf  used on input line 1815.
+Package pdftex.def Info: ./images/strong_MPI_thin_hybrid.pdf  used on input line 1839.
 (pdftex.def)             Requested size: 398.34544pt x 199.17325pt.
-<./images/strong_MPI_thin_hybrid_speedup.pdf, id=1175, 752.8125pt x 602.25pt>
+<./images/strong_MPI_thin_hybrid_speedup.pdf, id=1180, 752.8125pt x 602.25pt>
 File: ./images/strong_MPI_thin_hybrid_speedup.pdf Graphic file (type pdf)
 <use ./images/strong_MPI_thin_hybrid_speedup.pdf>
-Package pdftex.def Info: ./images/strong_MPI_thin_hybrid_speedup.pdf  used on input line 1821.
+Package pdftex.def Info: ./images/strong_MPI_thin_hybrid_speedup.pdf  used on input line 1845.
 (pdftex.def)             Requested size: 284.53246pt x 227.62596pt.
-<./images/strong_MPI_epyc_hybrid_grid_100k.pdf, id=1176, 752.8125pt x 376.52669pt>
-File: ./images/strong_MPI_epyc_hybrid_grid_100k.pdf Graphic file (type pdf)
-<use ./images/strong_MPI_epyc_hybrid_grid_100k.pdf>
-Package pdftex.def Info: ./images/strong_MPI_epyc_hybrid_grid_100k.pdf  used on input line 1831.
-(pdftex.def)             Requested size: 398.34544pt x 199.17325pt.
  [31pdfTeX warning (ext4): destination with the same identifier (name{figure.2.10}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.1834 
-       pdfTeX warning (ext4): destination with the same identifier (name{figure.2.11}) has been already used, duplicate ignored
-<argument> ...shipout:D \box_use:N \l_shipout_box 
-                                                  \__shipout_drop_firstpage_...
-l.1834 
-        <./images/strong_MPI_thin_hybrid.pdf> <./images/strong_MPI_thin_hybrid_speedup.pdf>]
-<./images/strong_MPI_epyc_hybrid_grid_100k_speedup.pdf, id=1203, 752.8125pt x 602.25pt>
+l.1848 
+        <./images/strong_MPI_thin_hybrid.pdf>]
+<./images/strong_MPI_epyc_hybrid_grid_100k.pdf, id=1196, 752.8125pt x 376.52669pt>
+File: ./images/strong_MPI_epyc_hybrid_grid_100k.pdf Graphic file (type pdf)
+<use ./images/strong_MPI_epyc_hybrid_grid_100k.pdf>
+Package pdftex.def Info: ./images/strong_MPI_epyc_hybrid_grid_100k.pdf  used on input line 1855.
+(pdftex.def)             Requested size: 398.34544pt x 199.17325pt.
+<./images/strong_MPI_epyc_hybrid_grid_100k_speedup.pdf, id=1197, 752.8125pt x 602.25pt>
 File: ./images/strong_MPI_epyc_hybrid_grid_100k_speedup.pdf Graphic file (type pdf)
 <use ./images/strong_MPI_epyc_hybrid_grid_100k_speedup.pdf>
-Package pdftex.def Info: ./images/strong_MPI_epyc_hybrid_grid_100k_speedup.pdf  used on input line 1837.
+Package pdftex.def Info: ./images/strong_MPI_epyc_hybrid_grid_100k_speedup.pdf  used on input line 1861.
 (pdftex.def)             Requested size: 284.53246pt x 227.62596pt.
- [32pdfTeX warning (ext4): destination with the same identifier (name{figure.2.12}) has been already used, duplicate ignored
+ [32pdfTeX warning (ext4): destination with the same identifier (name{figure.2.11}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.1867 
-       pdfTeX warning (ext4): destination with the same identifier (name{figure.2.13}) has been already used, duplicate ignored
+l.1864 
+       pdfTeX warning (ext4): destination with the same identifier (name{figure.2.12}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.1867 
-        <./images/strong_MPI_epyc_hybrid_grid_100k.pdf> <./images/strong_MPI_epyc_hybrid_grid_100k_speedup.pdf>] [33pdfTeX warning (ext4): destination with the same identifier (name{table.2.1}) has been already used, duplicate ignored
+l.1864 
+        <./images/strong_MPI_thin_hybrid_speedup.pdf> <./images/strong_MPI_epyc_hybrid_grid_100k.pdf>]
+<./images/weak_MPI_thin_hybrid.pdf, id=1225, 752.8125pt x 376.52669pt>
+File: ./images/weak_MPI_thin_hybrid.pdf Graphic file (type pdf)
+<use ./images/weak_MPI_thin_hybrid.pdf>
+Package pdftex.def Info: ./images/weak_MPI_thin_hybrid.pdf  used on input line 1899.
+(pdftex.def)             Requested size: 398.34544pt x 199.17325pt.
+ [33pdfTeX warning (ext4): destination with the same identifier (name{figure.2.13}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.1873 
-       ]
-Overfull \hbox (8.58035pt too wide) in paragraph at lines 1873--1873
+l.1902 
+       pdfTeX warning (ext4): destination with the same identifier (name{table.2.1}) has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  \__shipout_drop_firstpage_...
+l.1902 
+        <./images/strong_MPI_epyc_hybrid_grid_100k_speedup.pdf>]
+<./images/weak_MPI_epyc_hybrid.pdf, id=1242, 752.8125pt x 376.52669pt>
+File: ./images/weak_MPI_epyc_hybrid.pdf Graphic file (type pdf)
+<use ./images/weak_MPI_epyc_hybrid.pdf>
+Package pdftex.def Info: ./images/weak_MPI_epyc_hybrid.pdf  used on input line 1907.
+(pdftex.def)             Requested size: 398.34544pt x 199.17325pt.
+ [34pdfTeX warning (ext4): destination with the same identifier (name{figure.2.14}) has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  \__shipout_drop_firstpage_...
+l.1914 
+       pdfTeX warning (ext4): destination with the same identifier (name{figure.2.15}) has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  \__shipout_drop_firstpage_...
+l.1914 
+        <./images/weak_MPI_thin_hybrid.pdf> <./images/weak_MPI_epyc_hybrid.pdf>]
+Overfull \hbox (8.58035pt too wide) in paragraph at lines 1914--1914
 []\OT1/cmr/m/n/10 LifeWiki. \  Cat-e-gory: Pat-terns." (), [On-line]. Avail-able: [][]$\OT1/cmtt/m/n/10 https : / / conwaylife . com / wiki / Category :
  []
 
-[34
+[35
 
 ] (./main.aux)
 Package rerunfilecheck Info: File `main.out' has not changed.
@@ -1119,18 +1141,18 @@ Package logreq Info: Writing requests to 'main.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 22052 strings out of 478287
- 382358 string characters out of 5849290
- 1614312 words of memory out of 5000000
- 39391 multiletter control sequences out of 15000+600000
+ 22098 strings out of 478287
+ 383112 string characters out of 5849290
+ 1614870 words of memory out of 5000000
+ 39428 multiletter control sequences out of 15000+600000
  477168 words of font info for 56 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 60i,10n,68p,1131b,1950s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/usr/share/texmf/fonts/enc/dvips/cm-super/cm-super-ts1.enc}</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt8.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfrm1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt0800.pfb>
-Output written on main.pdf (35 pages, 813874 bytes).
+ 60i,10n,68p,1058b,1950s stack positions out of 5000i,500n,10000p,200000b,80000s
+{/usr/share/texmf/fonts/enc/dvips/cm-super/cm-super-ts1.enc}</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt8.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfrm1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt0800.pfb>
+Output written on main.pdf (36 pages, 829278 bytes).
 PDF statistics:
- 1442 PDF objects out of 1728 (max. 8388607)
- 1252 compressed objects within 13 object streams
- 584 named destinations out of 1000 (max. 500000)
- 463 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1471 PDF objects out of 1728 (max. 8388607)
+ 1276 compressed objects within 13 object streams
+ 592 named destinations out of 1000 (max. 500000)
+ 473 words of extra memory for PDF output out of 10000 (max. 10000000)
 

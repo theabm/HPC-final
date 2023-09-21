@@ -221,10 +221,11 @@ Therefore, we obtain:
 
 \begin{table}[H]
 \centering
-\begin{tabular}{c|c|c|c|c|c|}
+\begin{tabular}{|c|c|c|c|c|c|}
+    \hline
     Node Type & Total Cores & IPC (SP) & IPC (DP) & $T_{pp}$ (SP) & $T_{pp}$ (DP)\\\hline
     THIN      &     24      &    64    &   32     & $\sim 4$ TFLOPS & $\sim 2$ TFLOPS \\
-    EPYC      &    128      &    32    &   16     & $\sim 10.6$ TFLOPS & $\sim 5.3$ TFLOPS \\
+    EPYC      &    128      &    32    &   16     & $\sim 10.6$ TFLOPS & $\sim 5.3$ TFLOPS \\ \hline
 \end{tabular}
 \caption{\label{tab:perf}Performance table of THIN and EPYC node architectures.}
 \end{table}
@@ -1703,36 +1704,49 @@ results were taken for this architecture.
 
 \subsection{Strong OMP Scalability}
 
-In this section, we use a single THIN of EPYC node, and fixed the number of MPI 
+In this section, we use a single THIN of EPYC node, and fix the number of MPI 
 tasks to 2, pinning each to one socket. Then, we slowly increased the 
 number of OMP threads by changing the \texttt{OMP\_NUM\_THREADS} environment 
 variable. This was done until we saturated each socket, i.e. 12 threads for THIN 
-and 64 threads for EPYC. The matrix size was initially fixed to a random 
-$10k \times 10k$ matrix and we evolved for 200 steps, saving only at the end.
-We use \texttt{OMP\_PLACES=cores} and \texttt{OMP\_PROC\_BIND=close}.
+and 64 threads for EPYC. We used a randomly initialized grid with size fixed to 
+$10k \times 10k$. We used 200 evolution steps and saved only at the end. 
+We used \texttt{OMP\_PLACES=cores} and \texttt{OMP\_PROC\_BIND=close}.
+
+This corresponds to using the following setup:  
+
+\begin{lstlisting}[language=bash]
+$export OMP_NUM_THREADS={NUM}
+$export OMP_PLACES=cores
+$export OMP_PROC_BIND=close
+$mpirun --map-by socket -np 2 conway_hybrid_pgm.v2.c -r -f grid_010k -n 200 -s 0 -e 1
+\end{lstlisting}
 
 We repeated the measurements 10 times to obtain a statistical average and standard 
-deviation. Below are the results:
+deviation. Below are the results for THIN nodes:
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=14cm, height=7cm]{./images/strong_OMP_thin_hybrid_grid_010k.pdf}
-\caption{\label{fig:strongomp10kspeedupthin} something in here}
+\caption{\label{fig:strongomp10kspeedupthin} Time for THIN nodes with a 
+random grid of size $10k \times 10k$. V1 takes almost three times as long as V2.}
 \end{figure}
 
 As we can see, version 1 (V1) takes almost three times the amount of time of 
-version 2 (V2). This leads confirms our initial supposition that all the barriers 
+version 2 (V2). This confirms our initial supposition that all the barriers 
 that were introduced in V1 killed the performance. 
 
 We also decided to test our implementation on bigger matrices. However, due to 
-limitation on job times, we limited our study to V2 for bigger matrices. 
-We repeated our measurements for matrices of size $20k\times 20k$ and $40k\times 40k$. 
+limitations on job times, we limited our study to V2 for bigger matrices. 
+We repeated the approach for matrices of size $20k\times 20k$ and $40k\times 40k$. 
+However, this time, the sample size for $20k$ and $50k$ were 5 and 3, respectively.
+
 Below we show the results: 
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=14cm, height=7cm]{./images/strong_OMP_thin_hybrid_v2.pdf}
-\caption{\label{fig:strongompv2thin} something}
+\caption{\label{fig:strongompv2thin} Time for THIN nodes for V2 with increasingly
+bigger grids.}
 \end{figure}
 
 Below we show the speedup for all of these runs.
@@ -1740,33 +1754,42 @@ Below we show the speedup for all of these runs.
 \begin{figure}[H]
 \centering
 \includegraphics[width=10cm, height=8cm]{./images/strong_OMP_thin_hybrid_speedup.pdf}
-\caption{\label{fig:strongompspeedupthin} something}
+\caption{\label{fig:strongompspeedupthin} Speedup for strong OMP scalability using 
+increasingly bigger grid sizes for V2. As we can see, V1 scales poorly due to the 
+barriers that were introduced. V1 scales very well, indicating that our code 
+is well implemented.}
 \end{figure}
 
 As we can see, the speedup of version V2 is almost perfect. On the other hand, 
 V1 is not scaling well. This is a final indicator that this implementation is not 
 the best, due to the various barriers that were introduced. 
 
-Furthermore, we see that V2 is able to scale just as well with problem sizes 
-that are 4 and 16 times as big as the original one. This is a good indicator that 
-our code is written well, scalable, and efficient.   
+Furthermore, we see that V2 is able to scale well with increasingly bigger 
+problem sizes that are 4 and 16 times as big as the original one. 
+This is a good indicator that our code is written well, scalable, and efficient.   
 
 Now we repeat the same experiments with an EPYC node.
 
-In this case however, we only ran experiments with the $10k$ grid. However, we 
-played with the OMP policy. Initially, we used \texttt{OMP\_PROC\_BIND=close} as 
-we did for thin. Then, we remembered that EPYC nodes have a particular architecture.
-They have two sockets, like THIN, however, inside each socket, they have 2 NUMA 
-regions. Therefore, we hypothesized that using a \texttt{OMP\_PROC\_BIND=spread} 
-would give better results since each thread would intially be mapped within the 
+In this we only ran experiments with the $10k$ grid. However, given the more 
+complex architecture of EPYC nodes, we decided to experiment with the OMP policy.
+
+Initially, we used \texttt{OMP\_PROC\_BIND=close} as we did for THIN. Then, we 
+remembered that EPYC nodes have a particular architecture. They have two 
+sockets, like THIN, however, inside each socket, they have 2 NUMA regions. 
+
+Therefore, we hypothesized that using \texttt{OMP\_PROC\_BIND=spread} 
+would give better results since each thread would intially be mapped, within the 
 socket, into different NUMA regions and exploit the cache better.
 
-Below we show the results with both policies of the time and the speedup.
+Below we show the results for both hybrid versions, with both policies. We show 
+both the time and the speedup.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=14cm, height=7cm]{./images/strong_OMP_epyc_hybrid_grid_010k.pdf}
-\caption{\label{fig:strongomp10kepyc} somethng}
+\caption{\label{fig:strongomp10kepyc} Time for EPYC nodes using a random grid of size 
+$10k$ and both \texttt{OMP\_PROC\_BIND=close} and \texttt{OMP\_PROC\_BIND=spread}. 
+Results for both V1 and V2 are shown.}
 \end{figure}
 
 \begin{figure}[H]
@@ -1804,7 +1827,8 @@ decided to test only V2. This choice was also made for practical time
 constraints as the V1 version took too long to execute on these larger grids. 
 
 On THIN, we used 3 nodes and grids of sizes $50k$, $70k$, and $100k$. The last 
-one is approximately 10 GBytes of data. On EPYC, we only used the $100k$ grid.
+one is approximately 10 GBytes of data. On EPYC, we used 4 nodes and used the 
+same grid sizes, to have a comparison.
 
 Results were taken 5 times to get an average.
 
@@ -1845,27 +1869,44 @@ socket, i.e 12 for THIN and 64 for EPYC. Then, we slowly increased the number
 of MPI tasks, pinning them to sockets, across as many nodes as possible. However, 
 as we increased the number of MPI tasks, we also increased the grid size to 
 keep the workload per MPI task the same. In other words, if we doubled the number 
-of tasks, we had to multiply the size of the matrix by a factor of $\sqrt{2}$.
+of tasks, we had to double the workload. Below we show the dimensions we used and 
+the workload per MPI task.
 
 Below we show a table with the dimensions we used:
 
 \begin{table}[H]
 \centering
-\begin{tabular}{c|c|c|c|c|c|}
-    Size & MPI Tasks & Work per core \\\hline
-    10000 &    1     & $\frac{10^8}{12}=8,333,333$ \\
-    14142 &    2     & $\frac{199996164}{24}=8,333,173$\\
-    17320 &    3     & $\frac{299982400}{36}=8,332,844$ \\
-    20000 &    4     & $\frac{4*10^8}{48}=8,333,333$\\
-    22360 &    5     & $\frac{499969600}{60}=8,332,826$\\
-    24494 &    6     & $\frac{599956046}{72}=8,332,722$\\
-    26457 &    7     & $\frac{699972849}{84}=8,333,010$\\
-    28284 &    8     & $\frac{799984656}{96}=8,333,173$\\
+\begin{tabular}{|c|c|c|c|c|c|}
+    \hline
+    Size & MPI Tasks & Work per MPI task \\\hline
+    10000 &    1     & $\frac{10000^2}{1}=1.00000\times 10^8$ \\
+    14142 &    2     & $\frac{14142^2}{2}=0.99998\times 10^8$\\
+    17320 &    3     & $\frac{17320^2}{3}=0.99994\times 10^8$ \\
+    20000 &    4     & $\frac{20000^2}{4}=1.00000\times 10^8$\\
+    22360 &    5     & $\frac{22360^2}{5}=0.99993\times 10^8$\\
+    24494 &    6     & $\frac{24494^2}{6}=0.99992\times 10^8$\\
+    26457 &    7     & $\frac{26457^2}{7}=0.99996\times 10^8$\\
+    28284 &    8     & $\frac{28284^2}{8}=0.99998\times 10^8$\\ \hline
 \end{tabular}
 \caption{\label{tab:weak}}
 \end{table}
 
+For THIN nodes, we only used three nodes. Below we show the results for the 
+weak efficiency:
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=14cm, height=7cm]{./images/weak_MPI_thin_hybrid.pdf}
+\caption{\label{fig:weakmpithinhybrid} somethng}
+\end{figure}
+
+Now we show the results for EPYC nodes. In this case, we used four nodes in total.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=14cm, height=7cm]{./images/weak_MPI_epyc_hybrid.pdf}
+\caption{\label{fig:weakmpiepychybrid} somethng}
+\end{figure}
 
 \section{Conclusions}
 
