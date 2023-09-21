@@ -619,7 +619,7 @@ int main(int argc, char **argv)
         for(unsigned long int t = 1; t < n+1; ++t)
         {
 
-            // the idea is the same as omp.v2, however, whenever we 
+            // the idea is the same as serial version, however, whenever we 
             // say "copy row 0 to row n" etc, we mean make a communication
             //
             // the steps can be summarized as follows:
