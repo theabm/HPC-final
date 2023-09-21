@@ -2443,8 +2443,6 @@ of THIN nodes. However, in this case we have slightly worse efficiency, which
 could be due to the fact that we have much more thread overhead per task compared 
 to THIN nodes.
 
-
-
 \section{Conclusions}
 
 In conclusion, our V2 implementation scaled well when we considered strong scaling, 
@@ -2495,8 +2493,37 @@ don't expect much of a speedup. If anything, the additional overhead will slow
 down the new implementation compared to the classical one. However, for the 
 second grid, we expect that algorithm 2 will perform much better. 
 
-Below we show the results of the serial implementations for both grids:
+Below we show the results of the serial implementations for both grids. We ran 
+all experiments 10 times to obtain a mean and standard deviation.
 
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|}
+    \hline
+    Algorithm                      &   Random Grid 10k       & Glider 10k             \\ \hline
+    conway\_serial\_pgm.out        &   $85.15 \pm 0.10$ (s)  & $84.93 \pm 0.02$ (s)   \\
+    algo2\_conway\_serial\_pgm.out &   $101.03 \pm 0.01$ (s) & $25.15 \pm 0.01$ (s)   \\ \hline
+                                   &   $0.84$x slower        & $ 3.5$x faster         \\ \hline
+\end{tabular}
+\caption{\label{tab:a2serial}}
+\end{table}
+
+%TO DO: comment on better results.
+
+Next, using the same grids, we fixed \texttt{OMP\_NUM\_THREADS=1} and ran the 
+hybrid V2 implementation as we increased the number of MPI tasks across 3 THIN 
+nodes. We repeated the same procedure with the pure MPI implementation for 
+algorithm 2.
+
+Below we show the results of the execution time and the speedup.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=14cm, height=7cm]{./images/a1_v_a2_static_grid_010k.pdf}
+\caption{\label{fig:strongmpiepychybrid} Time for algorithm 1 hybrid V2 implementation 
+vs pure MPI implementation of algorithm 2, using a random grid and a sparse glider grid. When 
+using a sparse grid, we obtain a considerable speedup.}
+\end{figure}
 
 
 \printbibliography

@@ -1004,6 +1004,11 @@ INPUT ./images/weak_MPI_epyc_hybrid.pdf
 INPUT ./images/weak_MPI_epyc_hybrid.pdf
 INPUT ./images/weak_MPI_epyc_hybrid.pdf
 INPUT ./images/weak_MPI_epyc_hybrid.pdf
+INPUT ./images/a1_v_a2_static_grid_010k.pdf
+INPUT ./images/a1_v_a2_static_grid_010k.pdf
+INPUT ./images/a1_v_a2_static_grid_010k.pdf
+INPUT ./images/a1_v_a2_static_grid_010k.pdf
+INPUT ./images/a1_v_a2_static_grid_010k.pdf
 INPUT main.aux
 INPUT ./main.out
 INPUT ./main.out
