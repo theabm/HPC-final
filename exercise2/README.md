@@ -37,7 +37,7 @@ the BLIS library. The MKL and OpenBLAS libraries were already installed in Orfeo
 
 # To run the code
 
-To run the code with N OMP threads using matrices of size K, select the 
+To run the code with `n` OMP threads, using matrices of size `K`, select the 
 appropriate executable and run: 
 ```
 $export OMP_NUM_THREADS=N 
