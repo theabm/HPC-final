@@ -55,9 +55,9 @@
 
 \section{Introduction}
 
-In this exercise we compare the performance of three High Performance Libraries
-(HPC): MKL, OpenBLAS, and BLIS. In particular, we focus on the level 3 BLAS 
-function called \texttt{gemm}, which multiples an $m \times k$ matrix $A$ times 
+In this exercise we compare the performance of three High Performance Computing 
+Libraries (HPC): MKL, OpenBLAS, and BLIS. In particular, we focus on the level 3 BLAS 
+function called \texttt{gemm}, which multiples an $m \times k$ matrix $A$ with 
 a $k \times n$ matrix $B$ and stores the result in an $m \times n$ matrix $C$. 
 
 This function comes in two types, one for single 
@@ -67,14 +67,15 @@ calculations, provided that we have the required computational resources.
 
 Using squared matrices only, we perform a scalability study in two scenarios. 
 In the first scenario, we fix the number of cores, and increase the size of the
-matrices from $2000$ to $20000$. In the second scenario, we fix the matrix size 
-to $10000$ and increase the number of cores that \texttt{gemm} can use by 
-modifying the \texttt{OMP\_NUM\_THREADS} environment variable.
+matrices from $2k$ to $20k$. In the second scenario, we fix the matrix size 
+to $10k$ and increase the number of cores that \texttt{gemm} can use by 
+modifying the \texttt{OMP\_NUM\_THREADS} environment variable. We start with one 
+core and end with the maximum number available in the node.
 
 In both scenarios, we repeat the measurements for both single and double
-precision, for both THIN and EPYC nodes, using the maximum number of cores.
+precision, for both THIN and EPYC nodes.
 
-Furthermore, for the second scenario, we also modify the thread affinity policy 
+Furthermore, for the second scenario, we also modify the thread allocation policy 
 of OMP in order to observe any differences.
 
 \section{Methodology}
@@ -91,10 +92,10 @@ We begin by downloading the BLIS library by using the following commands:
     $make install
 \end{lstlisting}
 
-Where \texttt{NODE} can be specified as either \texttt{THIN} or \texttt{EPYC} and 
-\texttt{P} are the available cores for each node, $24$ and $128$ respectively.
+Where \texttt{NODE} can be specified as either THIN or EPYC and 
+\texttt{P} are the available cores for each node, which are $24$ and $128$, respectively.
 
-With these commands, we have compiled the BLIS library for the desired 
+With these commands, we compile the BLIS library for the desired 
 architecture.
 
 Next, we specify the flag in the Makefile to compile for float or double using 
@@ -107,8 +108,8 @@ Next, we specify the flag in the Makefile to compile for float or double using
     $srun -n1 make cpu
 \end{lstlisting}
 
-Which will generate the binaries for the desired architecture, with floar or 
-double precision, depending on the flag we used.
+Which will generate the binaries for the desired architecture with float or 
+double precision, depending on the flag we use.
 
 To run, we use: 
 \begin{lstlisting}[language=bash]
@@ -118,7 +119,7 @@ To run, we use:
 \end{lstlisting}
 
 At the end of this procedure, we should have the appropriate binaries for each 
-architecture, and for each type of precision, double or float.
+architecture, and for each type of precision.
 
 We now detail the steps to obtain the measurements for both scenarios.
 
@@ -130,50 +131,42 @@ and 128, respectively.
 Since we only use squared matrices, we can describe the dimensions of the matrices 
 with a single number, which we call "size". 
 
-For both architectures, we start with a size of $2000$ and end with a size of 
-$20000$, with jumps of $2000$ for a total of $10$ sizes. For each size, 
+For both architectures, we start with a size of $2k$ and end with a size of 
+$20k$, with jumps of $2k$ for a total of $10$ sizes. For each size, 
 we repeat the measurement $10$ times and report the average and standard 
-deviation.
+deviation. Finally, we repeat the measurements for both floating and double point precision.
 
-Finally, we repeat the measurements for both floating point precision and double 
-point precision.
-
-The scripts that were used can be found in the folder \texttt{exercise2/scripts}, 
-under the name \texttt{es2\_1\_thin.sh} and \texttt{es2\_1\_epyc.sh}.
+The scripts that were used can be found in the folder \texttt{exercise2/scripts}.
 
 It is important to observe that in this section, since we are using the entire 
-node, there is little possibility to play with combinations of thread affinity.
+node, there is little possibility to play with combinations of thread allocation policies.
 
 This will be done for the next section.
 
-Furthermore, contrary to the guidelines for the exercise, we decided to use the 
-entire node to benchmark its full capacity, and also to avoid wasting 
+Furthermore, contrary to the guidelines of the exercise, we decided to use the 
+entire node to benchmark its full capacity and also to avoid wasting 
 resources. 
 
 In fact, to obtain an accurate benchmark, we need to reserve the whole node, 
 regardless of the number of cores we decide to use. This is because if other 
-people began to use the other half of the node, this could introduce additional 
+people begin to use the other half of the node, this could introduce additional 
 workloads which interfere with the benchmark. 
 
 \subsection{Using a fixed matrix size}
 
-For this section, we fix the size of the matrices to $10000$. Then, we slowly 
-increase the number of cores to be used, until we reach the maximum. 
-
-To set the number of cores, we change the environment variable 
+For this section, we fix the size of the matrices to $10k$. Then, we slowly 
+increase the number of cores to be used, until we reach the maximum. To set the number of cores, we change the environment variable 
 \texttt{OMP\_NUM\_THREADS} to the desired value.
 
-For THIN nodes, which have $24$ cores, we start using $1$ core, then $2$ and 
+For THIN nodes, which have $24$ cores, we start using $1$ core, then $2$, and 
 then we increase by steps of $2$, for a total of 13 points.
 
-For EPYC nodes, which have $128$ cores, we start from $1$, then $10$ and then 
+For EPYC nodes, which have $128$ cores, we start from $1$, then $10$, and then 
 we increase by steps of $10$ until $120$. We also use $128$ cores, to see what 
 happens at full capacity. We obtain a total of $14$ points.
 
 We repeat all measurements $10$ times and report the average and standard 
-deviation.
-
-As usual, we repeat this process for both floating and double point precision.
+deviation. We repeat this process for both floating and double point precision.
 
 In this section, we have the liberty to explore different thread allocation 
 policies since we are not always using the whole node. 
@@ -184,36 +177,34 @@ We decided to use following combinations:
     \item \texttt{OMP\_PLACES=cores} and \texttt{OMP\_PROC\_BIND=spread} 
 \end{enumerate}
 
-The scripts that were used can be found in the folder \texttt{exercise2/scripts}, 
-under the names \texttt{es2\_2\_close\_thin.sh}, \texttt{es2\_2\_close\_epyc.sh}, 
-\texttt{es2\_2\_spread\_thin.sh}, and \texttt{es2\_2\_spread\_epyc.sh}.
+The scripts that were used can be found in the folder \texttt{exercise2/scripts}.
 
 \section{Results and Discussion}
 
 Before we discuss the results of both exercises individually, we briefly 
 introduce the equation to calculate the theoretical peak performance ($T_{pp}$) 
-of a machine:
+of a machine using $\mathcal{C}$ cores:
 
 \begin{equation}\label{eq:perf}
-    T_{pp} = \text{Core Count}\times \text{clock freq.} \times \text{IPC}
+    T_{pp} = \mathcal{C}\times \text{clock freq.} \times \text{IPC}
 \end{equation}
 
 Where \texttt{IPC} is the instructions per cycle that the architecture 
 is capable of executing.
 
 This equation is very intuitive. The clock frequency tells us how many cycles 
-per second a single core is able to achieve. The ipc factor tells us how many 
+per second a single core is able to achieve. The \texttt{IPC} factor tells us how many 
 instructions per cycle the core can execute. This number is different for 
 single precision (SP) and double precision (DP) operations. Finally, we need 
 to multiple this by the number of cores that our machine has. 
 
-On orfeo, THIN and EPYC nodes are composed of: 
+On Orfeo, THIN and EPYC nodes are composed of: 
 \begin{itemize}
     \item THIN: $24$ Intel(R) Xeon(R) Gold $6126$ CPU's at $2.60$GHz - Skylake
     \item EPYC: $128$ EPYC AMD 7H12 CPU's at $2.60$GHz - Zen 2 (7002 a.k.a "Rome")
 \end{itemize}
 
-Skylake architecture is reported\cite{arch} to be able to execute $64$ SP FLOP per cycle 
+Skylake architecture is reported\cite{arch} to execute $64$ SP FLOP per cycle 
 and $32$ DP FLOP per cycle. On the other hand, Zen 2 is reported\cite{arch} to execute 
 $32$ SP FLOP per cycle and $16$ DP FLOP per cycle.
 
@@ -236,8 +227,7 @@ Now we can proceed to discuss the results of the exercise.
 
 As mentioned above, in this section we keep the number of cores fixed to the 
 maximum available in the node, namely 24 for THIN and 128 for EPYC, and we 
-slowly increase the size of the matrices being multiplied from $m=2000$ to 
-$m=20000$. 
+slowly increase the size of the matrices from $m=2k$ to $m=20k$. 
 
 We first show the results for THIN and then for EPYC nodes.
 
@@ -263,7 +253,7 @@ that for small matrix sizes, none of the libraries are able to fully exploit
 the theoretical peak performance of the machine. This is most likely because the 
 problem size is so small, that the majority of cores are starving for data rather 
 than crunching numbers. In fact, we are able to reach the best performance when 
-dealing with matrices of size $20000$. 
+dealing with matrices of size $20k$. 
 
 \begin{figure}[H]
 % \centering
@@ -281,9 +271,9 @@ $\sim75\%$ of $T_{pp}$, respectively. On the other hand, \texttt{BLIS} arrives t
 $\sim1.3$ TFLOPS, which is $\sim65\%$ of $T_{pp}$.
 
 Furthermore, since double precision is a heavier computation compared to single 
-precision, we see that the libraries perform much better than the their single precision 
+precision, we see that the libraries perform better than the their single precision 
 counterparts.
-For example, looking at the plot for single precision, for matrix size of $4000$, 
+For example, looking at the plot for single precision, for a matrix size of $4k$, 
 we obtain on average around $40\%$ of $T_{pp}$. On the other hand, for double precision, 
 looking at the same size, we are already at $50\%$ of $T_{pp}$.
 \\
@@ -309,7 +299,7 @@ is based on the original implementation of Kazushige Goto, and is able to achiev
 Now we show the results on EPYC nodes, which have a $T_{pp}$ of $10.6$ TFLOPS 
 for SP and $5.3$ TFLOPS for DP.
 \\\\
-We first show the results of matrix-matrix multiplication for single point 
+We first show the results of matrix-matrix multiplication for SP 
 precision.
 
 \begin{figure}[H]
@@ -325,7 +315,7 @@ performs the worst.}
 
 In this case, none of the libraries are able to reach more than $18\%$ of $T_{pp}$.
 This could be an indication that to properly exploit a full EPYC node, we need 
-to multiply much bigger matrices.
+to use bigger matrices.
 \\
 
 We also notice that for matrices of size $\leq 9000$, \texttt{MKL} and \texttt{BLIS} 
@@ -354,13 +344,13 @@ it is better to use \texttt{BLIS}, while for SP, it is very dependent on the
 size of the matrices. For large matrices, we should use \texttt{OpenBLAS}
 while for smaller ones, we should use \texttt{MKL}. 
 Furthermore, evidence suggests that to fully exploit and EPYC node, we need to 
-deal with much bigger matrices. So if we are multiplying matrices of size up to 
-$20000$, it is much more convenient to just use a THIN node to get more 
+deal with bigger matrices. So if we are multiplying matrices of size up to 
+$20k$, it is more convenient to just use a THIN node to get more 
 performance.
 
 \subsection{Using a fixed matrix size}
 
-In this section, we fix the matrix size to $10000$ and we slowly increase the 
+In this section, we fix the matrix size to $10k$ and we slowly increase the 
 amount of cores that the libraries can exploit for multithreading through OMP. 
 For THIN nodes, we arrive to $24$ cores, while for EPYC nodes, we arrive to 
 $128$ cores.
@@ -377,10 +367,9 @@ placed as spread apart as possible, most likely on different sockets.
 In both cases, when we use the full node, we expect the results to be the same.
 
 Furthermore, in contrast to the previous part of the exercise, we compare the 
-GFLOPS obtained with the $T_{pp}$ calculated with the cores that are being used. 
-In other words, in equation\ref{eq:perf}, instead of using the full 24 or 128 
-to calculate $T_{pp}$ for the whole node, we use the number of cores we are using 
-for that calculation.
+GFLOPS obtained with the $T_{pp}$ for the cores being used. 
+In other words, in equation \ref{eq:perf}, we substitute the number of cores 
+we are using for that calculation.
 
 We first analyze THIN and then EPYC nodes.
 
@@ -401,13 +390,11 @@ hand, \texttt{BLIS} is able to achieve $\sim 60\%$ of $T_{pp}$. With $24$ cores
 this figure decreases to $55\%$. 
 
 Interestingly, we notice that with $2$ cores, there is a significant performance 
-drop. This is most likely explained by the fact that both cores are mapped to the 
-same socket due to the close policy and must share resources such as the higher 
-level caches, causing some contention.
+drop. This is most likely explained by the fact that, with a close policy, both cores are mapped to the 
+same socket, and must share resources, causing some contention.
 
-Furtermore, once again, we notice that the best performing library is 
+Furthermore, once again, we notice that the best performing library is 
 \texttt{MKL} which is Intel-based, closely followed by \texttt{OpenBLAS}.
-\\
 
 Now we analyze the results using a spread policy.
 
@@ -429,9 +416,8 @@ each core is mapped to its own socket and there is no contention for resources.
 In fact, we notice that on average, the performance is slightly better than the 
 close policy counterpart, and this is probably due to better resource usage 
 from the beginning, since threads don't have to compete for resources immediately.
-This highlights the importance of using the correct mapping policy to obtain 
+This highlights the importance of using the correct allocation policy to obtain 
 better performance.
-\\
 
 Now we briefly analyze the results obtained for double precision.
 \begin{figure}[H]
@@ -462,8 +448,7 @@ as the number of cores increase, using spread policy.}
 
 The analysis and discussion is very similar to the case of single point precision. 
 We no longer see the drop at 2 cores, which is due to better resource usage from 
-the beginning. Compared to the close policy, there is a slightly better performance 
-for this scenario.
+the beginning. Compared to the close policy, there is a slightly better performance.
 
 As usual, \texttt{MKL}, which is Intel-based, performs the best, 
 closely followed by \texttt{OpenBLAS}, and finally, \texttt{BLIS}, which performs the worst. 
@@ -475,11 +460,12 @@ Finally, we analyze EPYC nodes.
 Considering the results obtained in the first part of the exercise, we expect 
 that \texttt{MKL} won't be the dominating library anymore since we are using 
 an AMD architecture. We also expect some more fluctuation in performance among 
-the libraries, similarly to how there was a dependency on the matrix size. 
+the libraries, similarly to how there was a dependency on the matrix size in the 
+earlier exercise. 
 
-Furthermore, since we obtained low performance with matrices up to $20000$, using 
-all 128 cores, we don't expect an asymptotic improvement. What may happen however,
-is that when we use less cores, the performance will be much better compared 
+Furthermore, since we obtained low performance with matrices up to $20k$, using 
+all 128 cores, we don't expect an improvement. What may happen however,
+is that when we use less cores, the performance will be better compared 
 to the theoretical peak performance (per number of cores this time).
 
 We begin by analyzing the SP case with close policy.
@@ -496,16 +482,16 @@ by \texttt{OpenBLAS} with 40 cores.}
 
 Looking at the graph, we see that the best absolute performance is obtained by 
 \texttt{OpenBLAS} at $40$ cores, however, this is only $\sim60\%$ of $T_{pp}$. 
-On the other hand, for $10-20$ cores, the performance almost on part with $T_{pp}$. 
-This tells us that to fully exploit the machine as intended, with a matrices of size 
-$10000$, we only need a handful of cores.
+On the other hand, for $10-20$ cores, the performance is almost on part with $T_{pp}$. 
+This tells us that to fully exploit the resources we use, with a matrices of size 
+$10k$, we only need a handful of cores.
 
 This information is consistent with our previous hypothesis that to fully exploit 
-an EPYC node, we need to consider much larger matrices. 
+an EPYC node, we need to consider larger matrices. 
 
-An immediate consequence of this observation, is that as we use more and more cores, 
+An immediate consequence of this observation is that as we use more and more cores, 
 the performance deteriorates considerably. When we use the full node, the 
-performance is $\sim20\%$ of $T_{pp}$, which is higher than what we obtained for 
+performance is $\sim20\%$ of $T_{pp}$, which is slightly higher than what we obtained for 
 the first part of the exercise.
 
 Contrary to what happens in THIN, we do not notice any severe drops in performance 
@@ -529,26 +515,22 @@ performance, although it suffers from considerable fluctuations. Furthermore,
 all three libraries.
 
 We also notice that using the spread policy causes both \texttt{MKL} and \texttt{BLIS}
-to improve and \texttt{OpenBLAS} to worsen. This is interesting because it seems 
-to suggest that the latter library is better able to handle resource contention 
-while the first two are better at fully exploiting resources.
+to improve and \texttt{OpenBLAS} to worsen. Once again, we notice that as we use more cores, we get worse performance.
 
-Once again, we notice that as we use more cores, we get worse performance.
-\\
 Now we look at the DP case with close policy.
 
 \begin{figure}[H]
 % \centering
 \hspace*{-2.5cm}
-\includegraphics[width=10cm, height=6cm]{./images/fixed_size_epyc_double_gflops_close.pdf}
-\includegraphics[width=10cm, height=6cm]{./images/fixed_size_epyc_double_gflops_close_ratio.pdf}
+\includegraphics[width=10cm, height=5cm]{./images/fixed_size_epyc_double_gflops_close.pdf}
+\includegraphics[width=10cm, height=5cm]{./images/fixed_size_epyc_double_gflops_close_ratio.pdf}
 \caption{\label{fig:fixed_size_epyc_double_close} Results of DP matrix-matrix multiplication 
 as the number of cores increase, using close policy. The best performance is 
 obtained by \texttt{BLIS}, followed by \texttt{OpenBLAS}.}
 \end{figure}
 
 For double precision, using a close policy, we observe that \texttt{BLIS} 
-performs the best for many cores, while for the first 64 cores, it performs close 
+performs the best for cores $\geq 60$, while cores $\leq60$, it performs close 
 to \texttt{OpenBLAS}, which is the best. \texttt{MKL} peforms the worst.
 \\
 
@@ -570,8 +552,8 @@ peformance compared to the theoretical peak is deteriorating.
 
 \section{Conclusion}
 
-After analyzing the results, we can state many conclusions. The first and most 
-obvious one, is that it is better to use Intel-based implementations for Intel 
+After analyzing the results, we can state multiple conclusions. The first and most 
+obvious one is that it is better to use Intel-based implementations for Intel 
 machines. This is evidenced by the fact that \texttt{MKL} consistently performed
 the best in all scenarios for THIN, although it was closely followed by 
 \texttt{OpenBLAS}. 
@@ -579,18 +561,18 @@ the best in all scenarios for THIN, although it was closely followed by
 Next, if we are dealing with non-Intel architecures, such as EPYC, it is not 
 advisable to use \texttt{MKL}, as it consistenly underperforms compared to 
 \texttt{OpenBLAS} and \texttt{BLIS}. We also notice that \texttt{OpenBLAS} and 
-\texttt{BLIS} behave completely differently, depending on the mapping policy we 
-use.
+\texttt{BLIS} behave completely differently, depending on the thread allocation
+policy we use.
 
-We find that for matrices up to $20000$, THIN nodes are able to achieve 
-$\sim 75\%$ of $T_{pp}$, with \texttt{MKL} and \texttt{OpenBLAS}. However, 
-such matrix dimensions are to small to be able to fully exploit an EPYC node 
-which has 128 cores. In fact, in all of our experiments, we are unable to obtain 
-more than $20\%$ of the $T_{pp}$ of the full node.
+We find that for matrices up to $20k$, THIN nodes are able to achieve 
+$\sim 75\%$ of $T_{pp}$ with \texttt{MKL} and \texttt{OpenBLAS}. However, 
+such matrix dimensions are too small to be able to fully exploit an EPYC node. 
+In fact, in all of our experiments, we were unable to obtain 
+more than $20\%$ of the $T_{pp}$ of the full EPYC node.
 
 Finally, as an improvement to this exercise, it would be very interesting to 
-analyze what happens with an EPYC node, using matrices of size $50000$ or bigger 
-perhaps, to understand whether we can obtain better performance in this case.
+analyze what happens with an EPYC node using matrices of size $50k$ or bigger, 
+to understand whether we can obtain better performance in this case.
 
 \chapter{Conway's Game of Life}
 

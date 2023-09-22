@@ -28,12 +28,12 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {1.2.1}Compiling BLIS and obtaining binaries}{2}{subsection.1.2.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {1.2.2}Using a fixed number of cores}{3}{subsection.1.2.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {1.2.3}Using a fixed matrix size}{3}{subsection.1.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {1.3}Results and Discussion}{3}{section.1.3}\protected@file@percent }
+\newlabel{eq:perf}{{1.1}{3}{Results and Discussion}{equation.1.3.1}{}}
 \abx@aux@cite{0}{arch}
 \abx@aux@segm{0}{0}{arch}
 \abx@aux@cite{0}{arch}
 \abx@aux@segm{0}{0}{arch}
-\@writefile{toc}{\contentsline {section}{\numberline {1.3}Results and Discussion}{4}{section.1.3}\protected@file@percent }
-\newlabel{eq:perf}{{1.1}{4}{Results and Discussion}{equation.1.3.1}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {1.1}{\ignorespaces Performance table of THIN and EPYC node architectures.}}{4}{table.1.1}\protected@file@percent }
 \newlabel{tab:perf}{{1.1}{4}{Performance table of THIN and EPYC node architectures}{table.1.1}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {1.3.1}Using a fixed number of cores}{4}{subsection.1.3.1}\protected@file@percent }
@@ -62,8 +62,8 @@
 \newlabel{fig:fixed_size_epyc_float_close}{{1.9}{9}{Results of SP matrix-matrix multiplication as the number of cores increase, using close policy. The best performance is obtained by \texttt {OpenBLAS} with 40 cores}{figure.1.9}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {1.10}{\ignorespaces  Results of SP matrix-matrix multiplication as the number of cores increase, using spread policy.}}{10}{figure.1.10}\protected@file@percent }
 \newlabel{fig:fixed_size_epyc_float_spread}{{1.10}{10}{Results of SP matrix-matrix multiplication as the number of cores increase, using spread policy}{figure.1.10}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.11}{\ignorespaces  Results of DP matrix-matrix multiplication as the number of cores increase, using close policy. The best performance is obtained by \texttt  {BLIS}, followed by \texttt  {OpenBLAS}.}}{11}{figure.1.11}\protected@file@percent }
-\newlabel{fig:fixed_size_epyc_double_close}{{1.11}{11}{Results of DP matrix-matrix multiplication as the number of cores increase, using close policy. The best performance is obtained by \texttt {BLIS}, followed by \texttt {OpenBLAS}}{figure.1.11}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1.11}{\ignorespaces  Results of DP matrix-matrix multiplication as the number of cores increase, using close policy. The best performance is obtained by \texttt  {BLIS}, followed by \texttt  {OpenBLAS}.}}{10}{figure.1.11}\protected@file@percent }
+\newlabel{fig:fixed_size_epyc_double_close}{{1.11}{10}{Results of DP matrix-matrix multiplication as the number of cores increase, using close policy. The best performance is obtained by \texttt {BLIS}, followed by \texttt {OpenBLAS}}{figure.1.11}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {1.12}{\ignorespaces  Results of DP matrix-matrix multiplication as the number of cores increase, using spread policy.}}{11}{figure.1.12}\protected@file@percent }
 \newlabel{fig:fixed_size_epyc_double_spread}{{1.12}{11}{Results of DP matrix-matrix multiplication as the number of cores increase, using spread policy}{figure.1.12}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {1.4}Conclusion}{11}{section.1.4}\protected@file@percent }
@@ -77,83 +77,83 @@
 \abx@aux@segm{0}{0}{mpi}
 \abx@aux@cite{0}{omp}
 \abx@aux@segm{0}{0}{omp}
-\@writefile{toc}{\contentsline {chapter}{\numberline {2}Conway's Game of Life}{13}{chapter.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {2}Conway's Game of Life}{12}{chapter.2}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{\numberline {2.1}Introduction}{13}{section.2.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2.2}Methodology}{14}{section.2.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.1}Decomposition}{14}{subsection.2.2.1}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {2.1}{\ignorespaces  Decomposition of an array among three processes. Although the array is conceptualized as a 2D structure, internally, for efficiency, it is represented as a 1D contigous block of memory.}}{14}{figure.2.1}\protected@file@percent }
-\newlabel{fig:decomposition}{{2.1}{14}{Decomposition of an array among three processes. Although the array is conceptualized as a 2D structure, internally, for efficiency, it is represented as a 1D contigous block of memory}{figure.2.1}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.2}{\ignorespaces  2D decomposition of a grid. As we can see, each process needs to deal with non-contiguous memory.}}{15}{figure.2.2}\protected@file@percent }
-\newlabel{fig:2ddecomposition}{{2.2}{15}{2D decomposition of a grid. As we can see, each process needs to deal with non-contiguous memory}{figure.2.2}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.3}{\ignorespaces  On the figure in the left, we can see that we can process cells that are internal with no problem. However, at the boundary we need information that belongs to another process. Therefore, we allocate some extra space and do a halo exchange as shown in the figure on the right.}}{15}{figure.2.3}\protected@file@percent }
-\newlabel{fig:haloexchange}{{2.3}{15}{On the figure in the left, we can see that we can process cells that are internal with no problem. However, at the boundary we need information that belongs to another process. Therefore, we allocate some extra space and do a halo exchange as shown in the figure on the right}{figure.2.3}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.2}MPI IO}{16}{subsection.2.2.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.3}Mixing MPI and OMP}{16}{subsection.2.2.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2.3}Implementation}{16}{section.2.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.1}State representation}{16}{subsection.2.3.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.2}Distributing the grid among MPI processes}{17}{subsection.2.3.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.3}Allocating data}{17}{subsection.2.3.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.4}PGM Files - Header}{17}{subsection.2.3.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.5}MPI IO}{18}{subsection.2.3.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.6}Updating Cells - Static Evolution}{19}{subsection.2.3.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.7}Updating Cells - Ordered Evolution}{21}{subsection.2.3.7}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.8}OMP Integration - Hybrid V1}{24}{subsection.2.3.8}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {2.4}{\ignorespaces  Visualization of MPI Multiple mode. Each OMP thread can make MPI calls.}}{24}{figure.2.4}\protected@file@percent }
-\newlabel{fig:mpi_multiple}{{2.4}{24}{Visualization of MPI Multiple mode. Each OMP thread can make MPI calls}{figure.2.4}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.9}OMP Integration - Hybrid V2}{26}{subsection.2.3.9}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.10}Software Stack - Running the code}{27}{subsection.2.3.10}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.11}Miscellaneous}{27}{subsection.2.3.11}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2.4}Optional - Algorithm 2}{28}{section.2.4}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {2.5}{\ignorespaces  The cell representation we use for this algorithm. }}{28}{figure.2.5}\protected@file@percent }
-\newlabel{fig:mpi_multiple}{{2.5}{28}{The cell representation we use for this algorithm}{figure.2.5}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.1}Algorithm 2 - Serial Implementation}{28}{subsection.2.4.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.2}Algorithm 2 - MPI Implementation}{32}{subsection.2.4.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.3}Algorithm 2 - OMP version}{34}{subsection.2.4.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2.5}Results and Discussion}{34}{section.2.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.1}Strong OMP Scalability}{35}{subsection.2.5.1}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {2.6}{\ignorespaces  Time for THIN nodes with a random grid of size $10k \times 10k$. V1 takes almost three times as long as V2.}}{35}{figure.2.6}\protected@file@percent }
-\newlabel{fig:strongomp10kspeedupthin}{{2.6}{35}{Time for THIN nodes with a random grid of size $10k \times 10k$. V1 takes almost three times as long as V2}{figure.2.6}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.7}{\ignorespaces  Time for THIN nodes for V2 with increasingly bigger grids.}}{36}{figure.2.7}\protected@file@percent }
-\newlabel{fig:strongompv2thin}{{2.7}{36}{Time for THIN nodes for V2 with increasingly bigger grids}{figure.2.7}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.8}{\ignorespaces  Speedup for strong OMP scalability using increasingly bigger grid sizes for V2. As we can see, V1 scales poorly due to the barriers that were introduced. V1 scales very well, indicating that our code is well implemented.}}{36}{figure.2.8}\protected@file@percent }
-\newlabel{fig:strongompspeedupthin}{{2.8}{36}{Speedup for strong OMP scalability using increasingly bigger grid sizes for V2. As we can see, V1 scales poorly due to the barriers that were introduced. V1 scales very well, indicating that our code is well implemented}{figure.2.8}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.9}{\ignorespaces  Time for EPYC nodes using a random grid of size $10k$ and both \texttt  {OMP\_PROC\_BIND=close} and \texttt  {OMP\_PROC\_BIND=spread}. Results for both V1 and V2 are shown.}}{37}{figure.2.9}\protected@file@percent }
-\newlabel{fig:strongomp10kepyc}{{2.9}{37}{Time for EPYC nodes using a random grid of size $10k$ and both \texttt {OMP\_PROC\_BIND=close} and \texttt {OMP\_PROC\_BIND=spread}. Results for both V1 and V2 are shown}{figure.2.9}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.10}{\ignorespaces  Speedup for strong OMP scalability using a random grid of $10k$ with \texttt  {OMP\_PROC\_BIND=close} and \texttt  {OMP\_PROC\_BIND=spread}. Results for both V1 and V2 are shown.}}{37}{figure.2.10}\protected@file@percent }
-\newlabel{fig:strongomp10kspeedupepyc}{{2.10}{37}{Speedup for strong OMP scalability using a random grid of $10k$ with \texttt {OMP\_PROC\_BIND=close} and \texttt {OMP\_PROC\_BIND=spread}. Results for both V1 and V2 are shown}{figure.2.10}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.11}{\ignorespaces  Time for EPYC nodes using a random grid of size $50k$ and both \texttt  {OMP\_PROC\_BIND=close} and \texttt  {OMP\_PROC\_BIND=spread}. Only results for V2 were taken.}}{38}{figure.2.11}\protected@file@percent }
-\newlabel{fig:strongomp10kepyc}{{2.11}{38}{Time for EPYC nodes using a random grid of size $50k$ and both \texttt {OMP\_PROC\_BIND=close} and \texttt {OMP\_PROC\_BIND=spread}. Only results for V2 were taken}{figure.2.11}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.12}{\ignorespaces Speedup for strong OMP scalability using a random grid of $50k$ with \texttt  {OMP\_PROC\_BIND=close} and \texttt  {OMP\_PROC\_BIND=spread}. }}{38}{figure.2.12}\protected@file@percent }
-\newlabel{fig:strongomp10kspeedupepyc}{{2.12}{38}{Speedup for strong OMP scalability using a random grid of $50k$ with \texttt {OMP\_PROC\_BIND=close} and \texttt {OMP\_PROC\_BIND=spread}}{figure.2.12}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.2}Strong MPI Scalability}{39}{subsection.2.5.2}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {2.13}{\ignorespaces  Time for THIN nodes using random grids of size $50k$, $70k$, and $100k$ using 3 nodes and one thread per MPI task. }}{39}{figure.2.13}\protected@file@percent }
-\newlabel{fig:strongmpithinhybrid}{{2.13}{39}{Time for THIN nodes using random grids of size $50k$, $70k$, and $100k$ using 3 nodes and one thread per MPI task}{figure.2.13}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.14}{\ignorespaces  Speedup for strong MPI scalability for random grids of size $50k$, $70k$, and $100k$ across 3 nodes. The scalability is superlinear.}}{39}{figure.2.14}\protected@file@percent }
-\newlabel{fig:strongmpithinhybridspeedup}{{2.14}{39}{Speedup for strong MPI scalability for random grids of size $50k$, $70k$, and $100k$ across 3 nodes. The scalability is superlinear}{figure.2.14}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.15}{\ignorespaces  Time for EPYC nodes using random grids of size $50k$, $70k$, and $100k$ using 4 nodes and one thread per MPI task. }}{40}{figure.2.15}\protected@file@percent }
-\newlabel{fig:strongmpiepychybrid}{{2.15}{40}{Time for EPYC nodes using random grids of size $50k$, $70k$, and $100k$ using 4 nodes and one thread per MPI task}{figure.2.15}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.16}{\ignorespaces  Speedup for strong MPI scalability for random grids of size $50k$, $70k$, and $100k$ across 4 nodes. The practically linear across all grid sizes.}}{40}{figure.2.16}\protected@file@percent }
-\newlabel{fig:strongmpiepychybridspeedup}{{2.16}{40}{Speedup for strong MPI scalability for random grids of size $50k$, $70k$, and $100k$ across 4 nodes. The practically linear across all grid sizes}{figure.2.16}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.3}Weak MPI Scalability}{41}{subsection.2.5.3}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {2.1}{\ignorespaces }}{41}{table.2.1}\protected@file@percent }
-\newlabel{tab:weak}{{2.1}{41}{}{table.2.1}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.17}{\ignorespaces  Weak efficiency for THIN nodes as we simultaneously increase the number of MPI tasks and the grid size, keeping the workload per process constant.}}{41}{figure.2.17}\protected@file@percent }
-\newlabel{fig:weakmpithinhybrid}{{2.17}{41}{Weak efficiency for THIN nodes as we simultaneously increase the number of MPI tasks and the grid size, keeping the workload per process constant}{figure.2.17}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.18}{\ignorespaces  Weak efficiency for THIN nodes as we simultaneously increase the number of MPI tasks and the grid size, keeping the workload per process constant.}}{42}{figure.2.18}\protected@file@percent }
-\newlabel{fig:weakmpiepychybrid}{{2.18}{42}{Weak efficiency for THIN nodes as we simultaneously increase the number of MPI tasks and the grid size, keeping the workload per process constant}{figure.2.18}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.6}Conclusion}{42}{section.2.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2.7}Optional - Results and Discussion: Algorithm 2}{42}{section.2.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.1}Introduction}{12}{section.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.2}Methodology}{13}{section.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.1}Decomposition}{13}{subsection.2.2.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2.1}{\ignorespaces  Decomposition of an array among three processes. Although the array is conceptualized as a 2D structure, internally, for efficiency, it is represented as a 1D contigous block of memory.}}{13}{figure.2.1}\protected@file@percent }
+\newlabel{fig:decomposition}{{2.1}{13}{Decomposition of an array among three processes. Although the array is conceptualized as a 2D structure, internally, for efficiency, it is represented as a 1D contigous block of memory}{figure.2.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.2}{\ignorespaces  2D decomposition of a grid. As we can see, each process needs to deal with non-contiguous memory.}}{14}{figure.2.2}\protected@file@percent }
+\newlabel{fig:2ddecomposition}{{2.2}{14}{2D decomposition of a grid. As we can see, each process needs to deal with non-contiguous memory}{figure.2.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.3}{\ignorespaces  On the figure in the left, we can see that we can process cells that are internal with no problem. However, at the boundary we need information that belongs to another process. Therefore, we allocate some extra space and do a halo exchange as shown in the figure on the right.}}{14}{figure.2.3}\protected@file@percent }
+\newlabel{fig:haloexchange}{{2.3}{14}{On the figure in the left, we can see that we can process cells that are internal with no problem. However, at the boundary we need information that belongs to another process. Therefore, we allocate some extra space and do a halo exchange as shown in the figure on the right}{figure.2.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.2}MPI IO}{15}{subsection.2.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2.3}Mixing MPI and OMP}{15}{subsection.2.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.3}Implementation}{15}{section.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.1}State representation}{15}{subsection.2.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.2}Distributing the grid among MPI processes}{16}{subsection.2.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.3}Allocating data}{16}{subsection.2.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.4}PGM Files - Header}{16}{subsection.2.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.5}MPI IO}{17}{subsection.2.3.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.6}Updating Cells - Static Evolution}{18}{subsection.2.3.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.7}Updating Cells - Ordered Evolution}{20}{subsection.2.3.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.8}OMP Integration - Hybrid V1}{23}{subsection.2.3.8}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2.4}{\ignorespaces  Visualization of MPI Multiple mode. Each OMP thread can make MPI calls.}}{23}{figure.2.4}\protected@file@percent }
+\newlabel{fig:mpi_multiple}{{2.4}{23}{Visualization of MPI Multiple mode. Each OMP thread can make MPI calls}{figure.2.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.9}OMP Integration - Hybrid V2}{25}{subsection.2.3.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.10}Software Stack - Running the code}{26}{subsection.2.3.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.11}Miscellaneous}{26}{subsection.2.3.11}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.4}Optional - Algorithm 2}{27}{section.2.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2.5}{\ignorespaces  The cell representation we use for this algorithm. }}{27}{figure.2.5}\protected@file@percent }
+\newlabel{fig:mpi_multiple}{{2.5}{27}{The cell representation we use for this algorithm}{figure.2.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.1}Algorithm 2 - Serial Implementation}{27}{subsection.2.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.2}Algorithm 2 - MPI Implementation}{31}{subsection.2.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.3}Algorithm 2 - OMP version}{33}{subsection.2.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.5}Results and Discussion}{33}{section.2.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.1}Strong OMP Scalability}{34}{subsection.2.5.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2.6}{\ignorespaces  Time for THIN nodes with a random grid of size $10k \times 10k$. V1 takes almost three times as long as V2.}}{34}{figure.2.6}\protected@file@percent }
+\newlabel{fig:strongomp10kspeedupthin}{{2.6}{34}{Time for THIN nodes with a random grid of size $10k \times 10k$. V1 takes almost three times as long as V2}{figure.2.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.7}{\ignorespaces  Time for THIN nodes for V2 with increasingly bigger grids.}}{35}{figure.2.7}\protected@file@percent }
+\newlabel{fig:strongompv2thin}{{2.7}{35}{Time for THIN nodes for V2 with increasingly bigger grids}{figure.2.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.8}{\ignorespaces  Speedup for strong OMP scalability using increasingly bigger grid sizes for V2. As we can see, V1 scales poorly due to the barriers that were introduced. V1 scales very well, indicating that our code is well implemented.}}{35}{figure.2.8}\protected@file@percent }
+\newlabel{fig:strongompspeedupthin}{{2.8}{35}{Speedup for strong OMP scalability using increasingly bigger grid sizes for V2. As we can see, V1 scales poorly due to the barriers that were introduced. V1 scales very well, indicating that our code is well implemented}{figure.2.8}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.9}{\ignorespaces  Time for EPYC nodes using a random grid of size $10k$ and both \texttt  {OMP\_PROC\_BIND=close} and \texttt  {OMP\_PROC\_BIND=spread}. Results for both V1 and V2 are shown.}}{36}{figure.2.9}\protected@file@percent }
+\newlabel{fig:strongomp10kepyc}{{2.9}{36}{Time for EPYC nodes using a random grid of size $10k$ and both \texttt {OMP\_PROC\_BIND=close} and \texttt {OMP\_PROC\_BIND=spread}. Results for both V1 and V2 are shown}{figure.2.9}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.10}{\ignorespaces  Speedup for strong OMP scalability using a random grid of $10k$ with \texttt  {OMP\_PROC\_BIND=close} and \texttt  {OMP\_PROC\_BIND=spread}. Results for both V1 and V2 are shown.}}{36}{figure.2.10}\protected@file@percent }
+\newlabel{fig:strongomp10kspeedupepyc}{{2.10}{36}{Speedup for strong OMP scalability using a random grid of $10k$ with \texttt {OMP\_PROC\_BIND=close} and \texttt {OMP\_PROC\_BIND=spread}. Results for both V1 and V2 are shown}{figure.2.10}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.11}{\ignorespaces  Time for EPYC nodes using a random grid of size $50k$ and both \texttt  {OMP\_PROC\_BIND=close} and \texttt  {OMP\_PROC\_BIND=spread}. Only results for V2 were taken.}}{37}{figure.2.11}\protected@file@percent }
+\newlabel{fig:strongomp10kepyc}{{2.11}{37}{Time for EPYC nodes using a random grid of size $50k$ and both \texttt {OMP\_PROC\_BIND=close} and \texttt {OMP\_PROC\_BIND=spread}. Only results for V2 were taken}{figure.2.11}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.12}{\ignorespaces Speedup for strong OMP scalability using a random grid of $50k$ with \texttt  {OMP\_PROC\_BIND=close} and \texttt  {OMP\_PROC\_BIND=spread}. }}{37}{figure.2.12}\protected@file@percent }
+\newlabel{fig:strongomp10kspeedupepyc}{{2.12}{37}{Speedup for strong OMP scalability using a random grid of $50k$ with \texttt {OMP\_PROC\_BIND=close} and \texttt {OMP\_PROC\_BIND=spread}}{figure.2.12}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.2}Strong MPI Scalability}{38}{subsection.2.5.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2.13}{\ignorespaces  Time for THIN nodes using random grids of size $50k$, $70k$, and $100k$ using 3 nodes and one thread per MPI task. }}{38}{figure.2.13}\protected@file@percent }
+\newlabel{fig:strongmpithinhybrid}{{2.13}{38}{Time for THIN nodes using random grids of size $50k$, $70k$, and $100k$ using 3 nodes and one thread per MPI task}{figure.2.13}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.14}{\ignorespaces  Speedup for strong MPI scalability for random grids of size $50k$, $70k$, and $100k$ across 3 nodes. The scalability is superlinear.}}{38}{figure.2.14}\protected@file@percent }
+\newlabel{fig:strongmpithinhybridspeedup}{{2.14}{38}{Speedup for strong MPI scalability for random grids of size $50k$, $70k$, and $100k$ across 3 nodes. The scalability is superlinear}{figure.2.14}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.15}{\ignorespaces  Time for EPYC nodes using random grids of size $50k$, $70k$, and $100k$ using 4 nodes and one thread per MPI task. }}{39}{figure.2.15}\protected@file@percent }
+\newlabel{fig:strongmpiepychybrid}{{2.15}{39}{Time for EPYC nodes using random grids of size $50k$, $70k$, and $100k$ using 4 nodes and one thread per MPI task}{figure.2.15}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.16}{\ignorespaces  Speedup for strong MPI scalability for random grids of size $50k$, $70k$, and $100k$ across 4 nodes. The practically linear across all grid sizes.}}{39}{figure.2.16}\protected@file@percent }
+\newlabel{fig:strongmpiepychybridspeedup}{{2.16}{39}{Speedup for strong MPI scalability for random grids of size $50k$, $70k$, and $100k$ across 4 nodes. The practically linear across all grid sizes}{figure.2.16}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.3}Weak MPI Scalability}{40}{subsection.2.5.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2.1}{\ignorespaces }}{40}{table.2.1}\protected@file@percent }
+\newlabel{tab:weak}{{2.1}{40}{}{table.2.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.17}{\ignorespaces  Weak efficiency for THIN nodes as we simultaneously increase the number of MPI tasks and the grid size, keeping the workload per process constant.}}{40}{figure.2.17}\protected@file@percent }
+\newlabel{fig:weakmpithinhybrid}{{2.17}{40}{Weak efficiency for THIN nodes as we simultaneously increase the number of MPI tasks and the grid size, keeping the workload per process constant}{figure.2.17}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.18}{\ignorespaces  Weak efficiency for THIN nodes as we simultaneously increase the number of MPI tasks and the grid size, keeping the workload per process constant.}}{41}{figure.2.18}\protected@file@percent }
+\newlabel{fig:weakmpiepychybrid}{{2.18}{41}{Weak efficiency for THIN nodes as we simultaneously increase the number of MPI tasks and the grid size, keeping the workload per process constant}{figure.2.18}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.6}Conclusion}{41}{section.2.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.7}Optional - Results and Discussion: Algorithm 2}{41}{section.2.7}\protected@file@percent }
 \abx@aux@cite{0}{glider}
 \abx@aux@segm{0}{0}{glider}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.7.1}Serial comparison}{43}{subsection.2.7.1}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {2.2}{\ignorespaces }}{43}{table.2.2}\protected@file@percent }
-\newlabel{tab:a2serial}{{2.2}{43}{}{table.2.2}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.19}{\ignorespaces  Time for A1 hybrid V2 implementation vs pure MPI implementation of A2, using a random grid and a sparse glider grid. When using a sparse grid, we obtain a considerable speedup.}}{43}{figure.2.19}\protected@file@percent }
-\newlabel{fig:strongmpiepychybrid}{{2.19}{43}{Time for A1 hybrid V2 implementation vs pure MPI implementation of A2, using a random grid and a sparse glider grid. When using a sparse grid, we obtain a considerable speedup}{figure.2.19}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.20}{\ignorespaces  Speedup for strong MPI scalability for A1 hybrid V2 vs pure MPI implementation of A2. We use both a random grid and a sparse grid of size $10k$.}}{44}{figure.2.20}\protected@file@percent }
-\newlabel{fig:strongmpiepychybridspeedup}{{2.20}{44}{Speedup for strong MPI scalability for A1 hybrid V2 vs pure MPI implementation of A2. We use both a random grid and a sparse grid of size $10k$}{figure.2.20}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.7.1}Serial comparison}{42}{subsection.2.7.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2.2}{\ignorespaces }}{42}{table.2.2}\protected@file@percent }
+\newlabel{tab:a2serial}{{2.2}{42}{}{table.2.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.19}{\ignorespaces  Time for A1 hybrid V2 implementation vs pure MPI implementation of A2, using a random grid and a sparse glider grid. When using a sparse grid, we obtain a considerable speedup.}}{42}{figure.2.19}\protected@file@percent }
+\newlabel{fig:strongmpiepychybrid}{{2.19}{42}{Time for A1 hybrid V2 implementation vs pure MPI implementation of A2, using a random grid and a sparse glider grid. When using a sparse grid, we obtain a considerable speedup}{figure.2.19}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.20}{\ignorespaces  Speedup for strong MPI scalability for A1 hybrid V2 vs pure MPI implementation of A2. We use both a random grid and a sparse grid of size $10k$.}}{43}{figure.2.20}\protected@file@percent }
+\newlabel{fig:strongmpiepychybridspeedup}{{2.20}{43}{Speedup for strong MPI scalability for A1 hybrid V2 vs pure MPI implementation of A2. We use both a random grid and a sparse grid of size $10k$}{figure.2.20}{}}
 \abx@aux@read@bbl@mdfivesum{1CB756F9301C7DFECF2210595B6F5E7F}
 \abx@aux@defaultrefcontext{0}{arch}{none/global//global/global}
 \abx@aux@defaultrefcontext{0}{conway}{none/global//global/global}
@@ -161,4 +161,4 @@
 \abx@aux@defaultrefcontext{0}{pgm}{none/global//global/global}
 \abx@aux@defaultrefcontext{0}{mpi}{none/global//global/global}
 \abx@aux@defaultrefcontext{0}{omp}{none/global//global/global}
-\gdef \@abspage@last{46}
+\gdef \@abspage@last{45}

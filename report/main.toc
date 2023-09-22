@@ -5,7 +5,7 @@
 \contentsline {subsection}{\numberline {1.2.1}Compiling BLIS and obtaining binaries}{2}{subsection.1.2.1}%
 \contentsline {subsection}{\numberline {1.2.2}Using a fixed number of cores}{3}{subsection.1.2.2}%
 \contentsline {subsection}{\numberline {1.2.3}Using a fixed matrix size}{3}{subsection.1.2.3}%
-\contentsline {section}{\numberline {1.3}Results and Discussion}{4}{section.1.3}%
+\contentsline {section}{\numberline {1.3}Results and Discussion}{3}{section.1.3}%
 \contentsline {subsection}{\numberline {1.3.1}Using a fixed number of cores}{4}{subsection.1.3.1}%
 \contentsline {subsubsection}{THIN Nodes}{4}{section*.2}%
 \contentsline {subsubsection}{EPYC Nodes}{5}{section*.3}%
@@ -13,32 +13,32 @@
 \contentsline {subsubsection}{THIN Nodes}{7}{section*.4}%
 \contentsline {subsubsection}{EPYC Nodes}{9}{section*.5}%
 \contentsline {section}{\numberline {1.4}Conclusion}{11}{section.1.4}%
-\contentsline {chapter}{\numberline {2}Conway's Game of Life}{13}{chapter.2}%
-\contentsline {section}{\numberline {2.1}Introduction}{13}{section.2.1}%
-\contentsline {section}{\numberline {2.2}Methodology}{14}{section.2.2}%
-\contentsline {subsection}{\numberline {2.2.1}Decomposition}{14}{subsection.2.2.1}%
-\contentsline {subsection}{\numberline {2.2.2}MPI IO}{16}{subsection.2.2.2}%
-\contentsline {subsection}{\numberline {2.2.3}Mixing MPI and OMP}{16}{subsection.2.2.3}%
-\contentsline {section}{\numberline {2.3}Implementation}{16}{section.2.3}%
-\contentsline {subsection}{\numberline {2.3.1}State representation}{16}{subsection.2.3.1}%
-\contentsline {subsection}{\numberline {2.3.2}Distributing the grid among MPI processes}{17}{subsection.2.3.2}%
-\contentsline {subsection}{\numberline {2.3.3}Allocating data}{17}{subsection.2.3.3}%
-\contentsline {subsection}{\numberline {2.3.4}PGM Files - Header}{17}{subsection.2.3.4}%
-\contentsline {subsection}{\numberline {2.3.5}MPI IO}{18}{subsection.2.3.5}%
-\contentsline {subsection}{\numberline {2.3.6}Updating Cells - Static Evolution}{19}{subsection.2.3.6}%
-\contentsline {subsection}{\numberline {2.3.7}Updating Cells - Ordered Evolution}{21}{subsection.2.3.7}%
-\contentsline {subsection}{\numberline {2.3.8}OMP Integration - Hybrid V1}{24}{subsection.2.3.8}%
-\contentsline {subsection}{\numberline {2.3.9}OMP Integration - Hybrid V2}{26}{subsection.2.3.9}%
-\contentsline {subsection}{\numberline {2.3.10}Software Stack - Running the code}{27}{subsection.2.3.10}%
-\contentsline {subsection}{\numberline {2.3.11}Miscellaneous}{27}{subsection.2.3.11}%
-\contentsline {section}{\numberline {2.4}Optional - Algorithm 2}{28}{section.2.4}%
-\contentsline {subsection}{\numberline {2.4.1}Algorithm 2 - Serial Implementation}{28}{subsection.2.4.1}%
-\contentsline {subsection}{\numberline {2.4.2}Algorithm 2 - MPI Implementation}{32}{subsection.2.4.2}%
-\contentsline {subsection}{\numberline {2.4.3}Algorithm 2 - OMP version}{34}{subsection.2.4.3}%
-\contentsline {section}{\numberline {2.5}Results and Discussion}{34}{section.2.5}%
-\contentsline {subsection}{\numberline {2.5.1}Strong OMP Scalability}{35}{subsection.2.5.1}%
-\contentsline {subsection}{\numberline {2.5.2}Strong MPI Scalability}{39}{subsection.2.5.2}%
-\contentsline {subsection}{\numberline {2.5.3}Weak MPI Scalability}{41}{subsection.2.5.3}%
-\contentsline {section}{\numberline {2.6}Conclusion}{42}{section.2.6}%
-\contentsline {section}{\numberline {2.7}Optional - Results and Discussion: Algorithm 2}{42}{section.2.7}%
-\contentsline {subsection}{\numberline {2.7.1}Serial comparison}{43}{subsection.2.7.1}%
+\contentsline {chapter}{\numberline {2}Conway's Game of Life}{12}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Introduction}{12}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Methodology}{13}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.1}Decomposition}{13}{subsection.2.2.1}%
+\contentsline {subsection}{\numberline {2.2.2}MPI IO}{15}{subsection.2.2.2}%
+\contentsline {subsection}{\numberline {2.2.3}Mixing MPI and OMP}{15}{subsection.2.2.3}%
+\contentsline {section}{\numberline {2.3}Implementation}{15}{section.2.3}%
+\contentsline {subsection}{\numberline {2.3.1}State representation}{15}{subsection.2.3.1}%
+\contentsline {subsection}{\numberline {2.3.2}Distributing the grid among MPI processes}{16}{subsection.2.3.2}%
+\contentsline {subsection}{\numberline {2.3.3}Allocating data}{16}{subsection.2.3.3}%
+\contentsline {subsection}{\numberline {2.3.4}PGM Files - Header}{16}{subsection.2.3.4}%
+\contentsline {subsection}{\numberline {2.3.5}MPI IO}{17}{subsection.2.3.5}%
+\contentsline {subsection}{\numberline {2.3.6}Updating Cells - Static Evolution}{18}{subsection.2.3.6}%
+\contentsline {subsection}{\numberline {2.3.7}Updating Cells - Ordered Evolution}{20}{subsection.2.3.7}%
+\contentsline {subsection}{\numberline {2.3.8}OMP Integration - Hybrid V1}{23}{subsection.2.3.8}%
+\contentsline {subsection}{\numberline {2.3.9}OMP Integration - Hybrid V2}{25}{subsection.2.3.9}%
+\contentsline {subsection}{\numberline {2.3.10}Software Stack - Running the code}{26}{subsection.2.3.10}%
+\contentsline {subsection}{\numberline {2.3.11}Miscellaneous}{26}{subsection.2.3.11}%
+\contentsline {section}{\numberline {2.4}Optional - Algorithm 2}{27}{section.2.4}%
+\contentsline {subsection}{\numberline {2.4.1}Algorithm 2 - Serial Implementation}{27}{subsection.2.4.1}%
+\contentsline {subsection}{\numberline {2.4.2}Algorithm 2 - MPI Implementation}{31}{subsection.2.4.2}%
+\contentsline {subsection}{\numberline {2.4.3}Algorithm 2 - OMP version}{33}{subsection.2.4.3}%
+\contentsline {section}{\numberline {2.5}Results and Discussion}{33}{section.2.5}%
+\contentsline {subsection}{\numberline {2.5.1}Strong OMP Scalability}{34}{subsection.2.5.1}%
+\contentsline {subsection}{\numberline {2.5.2}Strong MPI Scalability}{38}{subsection.2.5.2}%
+\contentsline {subsection}{\numberline {2.5.3}Weak MPI Scalability}{40}{subsection.2.5.3}%
+\contentsline {section}{\numberline {2.6}Conclusion}{41}{section.2.6}%
+\contentsline {section}{\numberline {2.7}Optional - Results and Discussion: Algorithm 2}{41}{section.2.7}%
+\contentsline {subsection}{\numberline {2.7.1}Serial comparison}{42}{subsection.2.7.1}%
