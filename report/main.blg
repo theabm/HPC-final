@@ -1,17 +1,15 @@
 [0] Config.pm:307> INFO - This is Biber 2.17
 [0] Config.pm:310> INFO - Logfile is 'main.blg'
-[53] biber:340> INFO - === Fri Sep 22, 2023, 12:43:08
-[64] Biber.pm:418> INFO - Reading 'main.bcf'
-[110] Biber.pm:972> INFO - Found 7 citekeys in bib section 0
-[120] Biber.pm:4383> INFO - Processing section 0
-[128] Biber.pm:4574> INFO - Looking for bibtex file 'bibliography.bib' for section 0
-[129] bibtex.pm:1713> INFO - LaTeX decoding ...
-[132] bibtex.pm:1518> INFO - Found BibTeX data source 'bibliography.bib'
-[152] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
-[152] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
-[152] Biber.pm:4203> INFO - Sorting list 'none/global//global/global' of type 'entry' with template 'none' and locale 'en-US'
-[152] Biber.pm:4209> INFO - No sort tailoring available for locale 'en-US'
-[159] bbl.pm:654> INFO - Writing 'main.bbl' with encoding 'UTF-8'
-[160] bbl.pm:757> INFO - Output to main.bbl
-[161] Biber.pm:130> WARN - I didn't find a database entry for 'glider' (section 0)
-[161] Biber.pm:132> INFO - WARNINGS: 1
+[52] biber:340> INFO - === Fri Sep 22, 2023, 19:36:11
+[62] Biber.pm:418> INFO - Reading 'main.bcf'
+[110] Biber.pm:972> INFO - Found 14 citekeys in bib section 0
+[119] Biber.pm:4383> INFO - Processing section 0
+[126] Biber.pm:4574> INFO - Looking for bibtex file 'bibliography.bib' for section 0
+[127] bibtex.pm:1713> INFO - LaTeX decoding ...
+[131] bibtex.pm:1518> INFO - Found BibTeX data source 'bibliography.bib'
+[169] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[169] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[169] Biber.pm:4203> INFO - Sorting list 'none/global//global/global' of type 'entry' with template 'none' and locale 'en-US'
+[169] Biber.pm:4209> INFO - No sort tailoring available for locale 'en-US'
+[176] bbl.pm:654> INFO - Writing 'main.bbl' with encoding 'UTF-8'
+[179] bbl.pm:757> INFO - Output to main.bbl

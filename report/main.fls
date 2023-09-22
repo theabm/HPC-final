@@ -939,6 +939,11 @@ INPUT ./other_images/new_cell_rep.png
 INPUT ./other_images/new_cell_rep.png
 INPUT ./other_images/new_cell_rep.png
 INPUT ./other_images/new_cell_rep.png
+INPUT ./images/strong_MPI_ordered.pdf
+INPUT ./images/strong_MPI_ordered.pdf
+INPUT ./images/strong_MPI_ordered.pdf
+INPUT ./images/strong_MPI_ordered.pdf
+INPUT ./images/strong_MPI_ordered.pdf
 INPUT ./images/strong_OMP_thin_hybrid_grid_010k.pdf
 INPUT ./images/strong_OMP_thin_hybrid_grid_010k.pdf
 INPUT ./images/strong_OMP_thin_hybrid_grid_010k.pdf

@@ -167,8 +167,208 @@
       \verb https://www.openmp.org/
       \endverb
     \endentry
+    \entry{prace}{online}{}
+      \name{author}{1}{}{%
+        {{hash=bc075b6723e316545fba2cf1501167b0}{%
+           family={Prace},
+           familyi={P\bibinitperiod}}}%
+      }
+      \strng{namehash}{bc075b6723e316545fba2cf1501167b0}
+      \strng{fullhash}{bc075b6723e316545fba2cf1501167b0}
+      \strng{bibnamehash}{bc075b6723e316545fba2cf1501167b0}
+      \strng{authorbibnamehash}{bc075b6723e316545fba2cf1501167b0}
+      \strng{authornamehash}{bc075b6723e316545fba2cf1501167b0}
+      \strng{authorfullhash}{bc075b6723e316545fba2cf1501167b0}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Advanced MPI IO: MPI IO}
+      \verb{urlraw}
+      \verb https://events.prace-ri.eu/event/176/contributions/59/attachments/170/326/Advanced_MPI_II.pdf
+      \endverb
+      \verb{url}
+      \verb https://events.prace-ri.eu/event/176/contributions/59/attachments/170/326/Advanced_MPI_II.pdf
+      \endverb
+    \endentry
+    \entry{glidergun}{online}{}
+      \name{author}{1}{}{%
+        {{hash=af3bf37af7bbe577dff1016c4dbedf9d}{%
+           family={LifeWiki},
+           familyi={L\bibinitperiod}}}%
+      }
+      \strng{namehash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \strng{fullhash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \strng{bibnamehash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \strng{authorbibnamehash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \strng{authornamehash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \strng{authorfullhash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \field{extraname}{3}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Gosper Glider Gun}
+      \verb{urlraw}
+      \verb https://conwaylife.com/wiki/Gosper_glider_gun
+      \endverb
+      \verb{url}
+      \verb https://conwaylife.com/wiki/Gosper_glider_gun
+      \endverb
+    \endentry
+    \entry{snarkloop}{online}{}
+      \name{author}{1}{}{%
+        {{hash=af3bf37af7bbe577dff1016c4dbedf9d}{%
+           family={LifeWiki},
+           familyi={L\bibinitperiod}}}%
+      }
+      \strng{namehash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \strng{fullhash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \strng{bibnamehash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \strng{authorbibnamehash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \strng{authornamehash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \strng{authorfullhash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \field{extraname}{4}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{p43 Snark Loop}
+      \verb{urlraw}
+      \verb https://conwaylife.com/wiki/P43_Snark_loop
+      \endverb
+      \verb{url}
+      \verb https://conwaylife.com/wiki/P43_Snark_loop
+      \endverb
+    \endentry
+    \entry{MPIIOtalk}{online}{}
+      \name{author}{1}{}{%
+        {{hash=b03d5d87c48e93dd79d84711364ed326}{%
+           family={Latham},
+           familyi={L\bibinitperiod},
+           given={Robert},
+           giveni={R\bibinitperiod}}}%
+      }
+      \strng{namehash}{b03d5d87c48e93dd79d84711364ed326}
+      \strng{fullhash}{b03d5d87c48e93dd79d84711364ed326}
+      \strng{bibnamehash}{b03d5d87c48e93dd79d84711364ed326}
+      \strng{authorbibnamehash}{b03d5d87c48e93dd79d84711364ed326}
+      \strng{authornamehash}{b03d5d87c48e93dd79d84711364ed326}
+      \strng{authorfullhash}{b03d5d87c48e93dd79d84711364ed326}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Introduction to MPI IO}
+      \verb{urlraw}
+      \verb https://www.youtube.com/watch?v=huH_-a3qrfA
+      \endverb
+      \verb{url}
+      \verb https://www.youtube.com/watch?v=huH_-a3qrfA
+      \endverb
+    \endentry
+    \entry{conway_implementation}{online}{}
+      \name{author}{1}{}{%
+        {{hash=4b6fa2eb871036f968e718608bb3f7a9}{%
+           family={roblatham00},
+           familyi={r\bibinitperiod}}}%
+      }
+      \strng{namehash}{4b6fa2eb871036f968e718608bb3f7a9}
+      \strng{fullhash}{4b6fa2eb871036f968e718608bb3f7a9}
+      \strng{bibnamehash}{4b6fa2eb871036f968e718608bb3f7a9}
+      \strng{authorbibnamehash}{4b6fa2eb871036f968e718608bb3f7a9}
+      \strng{authornamehash}{4b6fa2eb871036f968e718608bb3f7a9}
+      \strng{authorfullhash}{4b6fa2eb871036f968e718608bb3f7a9}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{hands-on}
+      \verb{urlraw}
+      \verb https://github.com/radix-io/hands-on/tree/main/mpi2tutorial/examples/life
+      \endverb
+      \verb{url}
+      \verb https://github.com/radix-io/hands-on/tree/main/mpi2tutorial/examples/life
+      \endverb
+    \endentry
+    \entry{conway_slides}{online}{}
+      \name{author}{1}{}{%
+        {{hash=232270861ce704a354417bfda0acdb1b}{%
+           family={Gropp},
+           familyi={G\bibinitperiod},
+           given={William},
+           giveni={W\bibinitperiod}}}%
+      }
+      \strng{namehash}{232270861ce704a354417bfda0acdb1b}
+      \strng{fullhash}{232270861ce704a354417bfda0acdb1b}
+      \strng{bibnamehash}{232270861ce704a354417bfda0acdb1b}
+      \strng{authorbibnamehash}{232270861ce704a354417bfda0acdb1b}
+      \strng{authornamehash}{232270861ce704a354417bfda0acdb1b}
+      \strng{authorfullhash}{232270861ce704a354417bfda0acdb1b}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Advanced MPI: I/O and One-Sided Communication}
+      \verb{urlraw}
+      \verb https://www.mcs.anl.gov/research/projects/mpi/tutorial/advmpi/sc2005-advmpi.pdf
+      \endverb
+      \verb{url}
+      \verb https://www.mcs.anl.gov/research/projects/mpi/tutorial/advmpi/sc2005-advmpi.pdf
+      \endverb
+    \endentry
+    \entry{algo2}{online}{}
+      \name{author}{1}{}{%
+        {{hash=b6eaed5eb9b3c64049ed3956fabf64f6}{%
+           family={Abrash},
+           familyi={A\bibinitperiod},
+           given={Michael},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{b6eaed5eb9b3c64049ed3956fabf64f6}
+      \strng{fullhash}{b6eaed5eb9b3c64049ed3956fabf64f6}
+      \strng{bibnamehash}{b6eaed5eb9b3c64049ed3956fabf64f6}
+      \strng{authorbibnamehash}{b6eaed5eb9b3c64049ed3956fabf64f6}
+      \strng{authornamehash}{b6eaed5eb9b3c64049ed3956fabf64f6}
+      \strng{authorfullhash}{b6eaed5eb9b3c64049ed3956fabf64f6}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Michael Abrash’s Graphics Programming Black Book, Special Edition}
+      \verb{urlraw}
+      \verb https://www.jagregory.com/abrash-black-book/\#chapter-17-the-game-of-life
+      \endverb
+      \verb{url}
+      \verb https://www.jagregory.com/abrash-black-book/%5C#chapter-17-the-game-of-life
+      \endverb
+    \endentry
+    \entry{glider}{online}{}
+      \name{author}{1}{}{%
+        {{hash=af3bf37af7bbe577dff1016c4dbedf9d}{%
+           family={LifeWiki},
+           familyi={L\bibinitperiod}}}%
+      }
+      \strng{namehash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \strng{fullhash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \strng{bibnamehash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \strng{authorbibnamehash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \strng{authornamehash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \strng{authorfullhash}{af3bf37af7bbe577dff1016c4dbedf9d}
+      \field{extraname}{5}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Glider}
+      \verb{urlraw}
+      \verb https://conwaylife.com/wiki/Glider
+      \endverb
+      \verb{url}
+      \verb https://conwaylife.com/wiki/Glider
+      \endverb
+    \endentry
   \enddatalist
-  \missing{glider}
 \endrefsection
 \endinput
 

@@ -550,7 +550,7 @@ wider. Also, \texttt{BLIS} seems to be more capable at maintaining the throughpu
 as the number of cores are increasing. Of course, this means however, that the 
 peformance compared to the theoretical peak is deteriorating.
 
-\section{Conclusion}
+\section{Conclusions}
 
 After analyzing the results, we can state multiple conclusions. The first and most 
 obvious one is that it is better to use Intel-based implementations for Intel 
@@ -589,7 +589,7 @@ neighbors and observing the following rules:
 \begin{itemize}
     \item A dead cell with exactly three live neighbors comes to live (\textit{birth}).
     \item A live cell with two or three neighbors stays alive (\textit{survival}).
-    \item A dead or live cell with less than two or more than three neighbors dies 
+    \item A live or dead cell with less than two or more than three neighbors dies 
         or stays dead (\textit{death}).
 \end{itemize}
 
@@ -627,33 +627,32 @@ the computations and be able to process grids of considerably high dimensions.
 Using our implementation, we will perform a study of the scalability of our code 
 in three cases: 
 \begin{enumerate}
-    \item Strong OMP scalability: Using a grid of fixed dimensions, we fix the 
-        number of MPI processes to one per socket and progressively increase 
-        the number of OMP threads.
-    \item Strong MPI scalability: Using a grid of fixed dimensions, we increase 
-        the number of MPI processes, using only 1 OMP thread per process. We use 
-        the largest amount of nodes possible.
-    \item Weak MPI scalability: Changing the grid dimensions to keep the work per 
-        process constant, we use one MPI process per socket, with enough OMP 
-        threads to saturate the cores in the socket, and slowly increase the 
-        number of MPI processes among multiple nodes.
+    \item Strong OMP scalability: Using a grid of fixed dimensions and fixing the 
+        number of MPI processes to one per socket, show the run-time behaviour as 
+        the number of OMP threads per process is slowly increased. 
+    \item Strong MPI scalability: Using a grid of fixed dimensions and fixing 
+        one OMP thread per process, show the run-time behaviour as the number of 
+        MPI tasks is increased across as many nodes as possible.
+    \item Weak MPI scalability: Starting with an initial grid size, show the run-time 
+        behaviour when scaling up from one socket, saturated with OpenMP threads,
+        up to as many sockets as possible, keeping fixed the workload per MPI task.
 \end{enumerate}
 
 \section{Methodology}
 
 In this section, we briefly describe some of the important choices for the 
-implementation, as well as their implications. We will proceed by layers, 
-tackling the more abstract and higher level problems first and then slowly 
+implementation as well as their implications. We will proceed by layers, 
+tackling more abstract problems first and then slowly 
 going into detail about more technical choices. 
 
 The first most important step is to think about how to paralellize the problem 
 in order to use MPI and OMP properly.
 
-Since programs in MPI need to be written completely with paralellization in mind 
+Since programs in MPI need to be written with paralellization in mind 
 from the start, we must begin to conceptualize the problem in an encapsulated 
 manner from the beginning.
 
-At a high abstract level, we must make two important choices: 
+We must make two important choices: 
 
 \begin{enumerate}
     \item How we will decompose the problem. 
@@ -663,7 +662,7 @@ At a high abstract level, we must make two important choices:
 
 How we solve the first problem is of fundamental importance to ensure that our 
 program is scalable and efficient. Also, it has important consequences on the 
-type of paralellism we will need to use. 
+type of paralellism that we will use. 
 On the other hand, the second problem will determine the organizational paradigm 
 that we will use in our code, as we will see later.
 Finally, the third solution will determine the effectiveness of our hybrid code.
@@ -684,8 +683,8 @@ different data (MIMD).
  
 In the case of \texttt{static} evolution, each cell can be updated 
 independently from each other, as long as we have acccess to its neighbors. 
-Therefore, one immediately obviously form of paralellism is for each MPI 
-process to process a "part" of the whole grid. This is an example of \texttt{domain}
+Therefore, one immediately obvious form of paralellism is for each MPI 
+process to work on a "part" of the whole grid. This is an example of \texttt{domain}
 decomposition, and it is shown below:
 
 \begin{figure}[H]
@@ -697,39 +696,39 @@ it is represented as a 1D contigous block of memory.}
 \end{figure}
 
 However, we need to decide how to split the grid. We can do a 1D decomposition by 
-"stripes", as shown in image \ref{fig:decomposition} or a 2D decomposition by 
-"blocks". It is known that a 2D decomposition is more efficient as it 
-can exploit more bandwidth as more workers will send shorter messages 
-contemporarily. However, it is more complicated both from an implementation 
+"stripes", as shown in figure \ref{fig:decomposition} or a 2D decomposition by 
+"blocks", as shown in figure \ref{fig:2ddecomposition}. 
+
+It is known that 2D decomposition is more efficient. However, it is more complicated both from an implementation 
 point of view and worse for memory access.
 
 Let's talk briefly about this second aspect. Although we talk about the 
 grid as a 2D array, internally, for efficiency, it will be represented as a 1D 
 array. 
 
-If we do a 1D split, each process will work on a thick strip of data which 
+If we do a 1D split, each process will work on a strip of data which is 
 continuous in memory. On the other hand, if we do a 2D split, each process will 
 work on a block of memory which is not contiguous and located every certain 
 "jumps" in the 1D array. As a consequence, as each process traverses its block 
 of the grid, it will have more cache misses compared to the 1D case where 
-we perform a simple a linear access. This is more easily visualized in 
+we perform a simple a linear access. This can be visualized in 
 the following image:
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=12cm, height=4cm]{./other_images/2d_decomposition.png}
 \caption{\label{fig:2ddecomposition} 2D decomposition of a grid. As we can see, 
-each process needs to deal with non-contiguous memory.}
+each process needs to deal with non-contiguous memory. Image courtesy of \cite{prace}.}
 \end{figure}
 
 
-Therefore, for reasons stated above, and for simplicity and readability, we 
-decided to use the 1D splitting.
+Therefore, for the reasons stated above, and for simplicity and readability, we 
+decided to use 1D splitting.
 
-Lastly, we must consider how to handle halo regions. Since each process will 
-process a strip - composed of 1 or more rows - of the grid, the rows at the 
-boundary of the strip must be handled with special attention. These rows - 2 per 
-process - need information that is contained in the grid of other processes.
+Lastly, we must consider how to handle "halo" regions. Since each process will 
+work on a strip of the grid, the rows at the boundary of the strip must be handled
+with special attention. These rows - 2 per 
+process - need information that belongs to other processes.
 Therefore, we need to allocate some extra space for these additional rows, and 
 set up message passing between processes to handle the exchange of these 
 boundary rows, also known as \texttt{halo} regions.
@@ -748,12 +747,10 @@ some extra space and do a halo exchange as shown in the figure on the right.}
 
 Finally, in the case of \texttt{ordered} evolution, we cannot update each cell 
 independently, since we modify the elements inplace in an ordered fashion. 
-Therefore, we cannot parallelize this process. The only thing that we can do, is 
-use MPI to be able to process much bigger grids than we could in a conventional 
+Therefore, we cannot parallelize this process. The only thing that we can do is 
+use MPI to be able to process larger grids than we could in a conventional 
 computer. In this case, each process will compute its part of the grid 
-\textit{in order}, rather than in parallel. So process 0 will update its portion, 
-and send the updated row to process 1, and so on. Of course, each process needs 
-the appropriate halo regions. 
+in order, rather than in parallel. 
 
 \subsection{MPI IO}
 
@@ -761,35 +758,28 @@ The problem specifications require that we must save the grid with a certain
 frequency $s$. There are multiple ways to achieve this, and they all have 
 important implications on the scalability of the code. 
 
-The simplest way is for each process to write its part of the grid to a 
+The most naive way is for each process to write its part of the grid to a 
 separate file. This however, is extremely messy as we loose the flexibility 
 of using a different number of processes between separate runs. More importantly, 
 for a large number of processes, the filesystem will not be able to handle all 
-these requests and will be completely overloaded and possibly crash. This means 
-that for $P>>1$ we would have very serious problems, which is undesirable, since 
-we wish to use as many processes as we want/have.
+these requests and will be completely overloaded. 
 
 The second solution, is to use a master-slave approach. In this paradigm, one 
 process is designated as the master process, while all the other are its slaves. 
 The master will coordinate the IO, and with a frequency $s$, it will collect 
-information from all the slaves, and take care of writing everything to a file. 
+information from all the slaves and take care of writing everything to a file. 
 This approach, although very common, is not scalable, as each process needs to 
 send its part of the grid to the master process. So for $P>>1$, the bottleneck 
 will be in the communication. 
 
 Lastly, the third, and best solution, is to use \texttt{MPI IO}, which was meant to handle 
 exactly this problem. The idea behind \texttt{MPI IO} is very similar to message passing. 
-Each process will call a collective function to read/write its part of the grid
-and the MPI implementation will take care of exploiting the parallel filesystem
-and reducing the amount of read and write operations. Furthermore, this is 
-the only solution that takes advantage of the parallel filesystem which allows 
-for a unified logical view of the file, while allowing the file to be stored 
-in physically different locations. This is very advantageous for scalability 
-since many processes can contemporarily write in different physical locations, 
-which increases the throughput of the program. We note that this is a form 
+Each process will call a collective function to read/write its part of the grid.
+The MPI implementation will take care of exploiting the parallel filesystem
+and reducing the amount of read and write operations. This is very advantageous 
+for scalability since many processes can contemporarily write in different physical locations, 
+while still having a unified view of the file. We note that this is a form 
 of \texttt{functional} decomposition.
-
-Notice that this aspect is independent of the type of evolution.
 
 \subsection{Mixing MPI and OMP}
 
@@ -801,46 +791,45 @@ In \texttt{static} evolution, since each process can update its part of the grid
 independently, the most natural approach is to use OMP to parallelize this 
 computation. For this, there are a few options. 
 
-The simplest option, is that each MPI process will spawn a parallel region at 
+The simplest option is that each MPI process will spawn a parallel region at 
 \textit{each} iteration $t$ to accelerate its computations.
 
 Another, more advanced approach, is to use \texttt{MPI\_THREAD\_MULTIPLE}. In 
 this mode, each OMP thread can make an MPI call contemporarily. This mode must 
-be handled with care but it will enable us to create a \texttt{single} parallel
-region, as we will see later. 
+be handled with care but it will enable us to create a single parallel
+region.
 
 We implemented both cases to do some comparisons. 
 
 Finally, for \texttt{ordered} evolution, we cannot use OMP, because the update 
-depends on the order, and it is intrinsically serial.
+depends on the order which is intrinsically serial.
 
 \section{Implementation}
 
 In this section, we discuss the most technical details of our implementation, 
 from the datatypes used, to compiler keywords, to optimization of branches, to 
-memory allocation, and optimization of for loops. We will also describe how to 
+memory allocation, to optimization of for loops. We will also describe how to 
 use the code, what software stack is needed, and what tools were used.
 
-Our implementation was done in C, so we will have to manually handle all 
-memory aspects. This gives us great control in to what we are doing. 
+Our implementation was done in C. 
 
 \subsection{State representation}
 
-We begin by discussing how to represent data. Since each cell can be alive (1) 
-or dead (0), theoretically, we need a single bit to represent the state. This 
+We begin by discussing how to represent data. Since each cell can be alive - 1 -
+or dead - 0 -, theoretically, we need a single bit to represent the state. This 
 means that every byte of data can represent the state of 8 cells. However, 
-this approach is complex since we need to do a lot of bit manipulation to 
-access the information of each cell. This will also make the code less 
+this approach is complex since we need to do bit manipulation to 
+access the information of each cell. As a result, the code will less 
 readable and longer. 
 
 The next best idea, which we used, is to use the smallest datatype possible, 
-i.e a \texttt{char}, which is 1 byte, to represent the state of a single cell.
+i.e a \texttt{char}, which is one byte long, to represent the state of a single cell.
 In this way, we are less memory efficient, but we gain in readability and ease 
 of implementation. In particular, we use an \texttt{unsigned char} which 
 is of the same size, however, in this way, the compiler can possibly optimize 
 the operations since it doesn't need to keep track of the sign.
 
-All of our implementations contain the following macros:
+All of our implementations contain the following definitions:
 \begin{lstlisting}[language=C++]
 #define DEAD 0 
 #define ALIVE 1
@@ -850,8 +839,8 @@ All of our implementations contain the following macros:
 
 Given a $k \times k$ grid, we need to tell each MPI process how many rows it must 
 deal with.
-To do this we can divide the total number of rows by the number of processes, i.e 
-the size of the MPI Communicator, and distribute the remainder among a subset 
+To do this, we can divide the total number of rows by the number of processes - i.e 
+the size of the MPI Communicator - and distribute the remainder among a subset 
 of them.
 
 This is done through a common trick:
@@ -869,8 +858,8 @@ rank must allocate the appropriate memory in heap to store its portion of the
 grid.
 
 In \texttt{static} evolution, we need to keep two buffers, one for the current 
-generation, and one for the next one. We look at the previous generation as we 
-update the new generation. In \texttt{ordered} evolution, we only have one buffer, 
+generation, and one for the next one. 
+In \texttt{ordered} evolution, we only have one buffer, 
 and we update each cell inplace as we traverse the array.
 
 As mentioned previously, it is not efficient to allocate a 2D array, although it 
@@ -878,12 +867,12 @@ is more naturally aligned with the problem statement. This is because 2D arrays
 are not necessarily contiguous in memory and we also have an overhead of 
 following pointers.
 
-Therefore, we allocate 1D arrays which are contiguous in memory and we use 
+Therefore, we allocate 1D arrays, which are contiguous in memory and we use 
 a macro to be able to access the array as if it were a 2D structure. 
 
 Lastly, for each process, we need to allocate two additional rows to accomodate 
-the halo rows. Also, to optimize for cache access, we explicitly align the data 
-to the cache line size of THIN and EPYC nodes, which are 64 Bytes.
+the halo regions. Also, to optimize for cache access, we explicitly align the data 
+to the cache line size of THIN and EPYC nodes, which is 64 Bytes.
 
 This can be seen in the following snippet:
 
@@ -903,21 +892,21 @@ Of course, for \texttt{static} evolution, we perform two such allocations.
 
 \subsection{PGM Files - Header}
 
-Now that we have discusses how we perform the allocation, we briefly discuss 
+Now that we have discussed how we perform the allocation, we briefly discuss 
 PGM binary files. 
 
-PGM, or Portable Grey Map, are portable binary files composed of a header and 
+PGM are portable binary files composed of a header and 
 of binary data. In our case, the header is the following line: 
 
 \begin{verbatim}
 P5 {rows} {cols} {maxval}\n
 \end{verbatim}
 
-The \texttt{P5} is a magic number that states we are using a PGM file of binary 
-data where each byte corresponds to a pixel in the image. The color 
+The \texttt{P5} is a magic number that establishes we are using a PGM file with binary 
+data, where each byte corresponds to a pixel in the image. The color 
 is interpreted according to the \texttt{maxval} value. Without going 
 into too much detail, by setting \texttt{maxval} to one, we are establishing that 
-1's will represent be drawn as white (alive) and 0's will be drawn as black 
+1's will be drawn as white (alive) and 0's will be drawn as black 
 (dead).
 
 Whenever we save a snapshot of the evolution, we need to write this header. 
@@ -933,16 +922,16 @@ this header in bytes. All these operations are performed in the following snippe
 ... 
 
 // We get the header size 
-header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
+unsigned long int header_size = snprintf(NULL, 0, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
 
 // allocate the string
-header = malloc(header_size + 1)
+char * header = malloc(header_size + 1)
 
 // write the header into the string
 sprintf(header, HEADER_FORMAT_STRING, rows, cols, MAX_VAL);
 \end{lstlisting}
 
-We will use the header size in MPI IO, in the next section.
+We will use the header size in MPI IO in the next section.
 
 \subsection{MPI IO}
 
@@ -978,6 +967,7 @@ void save_grid(char * restrict fname, MPI_Comm comm, int rank, char * restrict h
         MPI_File_write_at(fh, 0, header, header_size, MPI_CHAR, MPI_STATUS_IGNORE);
     }
 
+    // collective write operation called by all processes
     MPI_File_write_at_all(fh, offset, data + cols, my_rows*cols, MPI_CHAR, MPI_STATUS_IGNORE);
 
     MPI_File_close(&fh);
@@ -1004,18 +994,16 @@ implementation will perform this operation in the most efficient way possible.
 The arguments are the same as the non-collective version. 
 
 The only thing we need to explain, is how we find the byte offset for each 
-process. 
-
-We first find the \texttt{row} offset, i.e. which row to start writing from, 
+process. We first find the local row offset - i.e. which row to start writing from - 
 through the following function:
 
 \begin{lstlisting}[language=C++]
 unsigned long int get_my_row_offset(unsigned long int total_rows, int rank, int size)
 {
-    // returns the offset from which the rank must get its rows 
+    // returns the row offset from which the rank must start getting its rows 
 
     // for example: for rank 0, the offset will be zero as it will read 
-    // my_rows(of rank 0) from the start. However, rank 1 will have to read 
+    // my_rows from the start. However, rank 1 will have to read 
     // after the rows that rank 0 handles (accounting for the remaineder), 
     // and so on.
 
@@ -1025,8 +1013,8 @@ unsigned long int get_my_row_offset(unsigned long int total_rows, int rank, int 
 
     // The idea is the following, if the division was pefect, we would do 
     // nrows * rank. However, we still need to account for the remainder.
-    // For remainder processors (starting to count from rank 1 because rank 0 
-    // just gets 0 as offset), we simply need to add rank to the offset. 
+    // For n. remainder processes (starting to count from rank 1 because rank 0 
+    // just gets 0 as offset), we simply need to add the rank to the offset. 
     // If we are dealing with a process id which is greater than the remainder, 
     // then we simply need to add the whole remainder.
     
@@ -1043,40 +1031,38 @@ ranks. The interger division is $3$ and the remainder is $2$. Since the
 remainder of the division is $2$, two ranks, 0 and 1, will need to handle an 
 extra row. 
 
-So rank 0 will deal with $3+1=4$ rows, rank 1 will also deal with $3+1=4$ rows, 
-and ranks 2 and 3 will deal with $3$ rows each.
+So rank 0 and rank 1 will deal with $3+1=4$ rows, while ranks 2 and 3 will deal with $3$ rows each.
 
 Now, for the offset, rank 0 will just have offset 0. Rank 1 will need to shift 
-by the interger division plus 1 to account for the extra row that rank 0 has. 
+by the interger division plus 1 to account for the extra row that rank 0 has, so 4. 
 Similarly, rank 2 has to shift by twice the interger division, plus the extra 
-row that rank 0 has and the extra row of rank 1. 
+row that rank 0 has and the extra row of rank 1, so 8. 
 
 Rank 3 will have to shift by three times the interget division, plus the extra 
 rows of the previous ranks. However, this time, rank 2 did not have an extra 
-row. So rank 3 just needs to account for \textit{total} extra rows, which is 
-equal to the remainder. 
+row. So rank 3 just needs to account for \textit{total} extra rows, which are 2.
 
 This sounds complicated, but it is simple once one works through a few examples.
 
-Since the offset for the MPI functions is in bytes, to get the final 
-offset, we first multiply the row offset by the number of columns, and by the 
-size of the datatype we use in bytes - for a char this is 1.
+Since the offset for the MPI IO function calls are in bytes, to get the final 
+offset, we multiply the row offset by the number of columns, and by the 
+size of the datatype we use.
 
-Then we need to add the size in bytes of the header.
+Then, we need to add the size of the header in bytes. This is shown in the snippet below.
 
 \begin{lstlisting}[language=C++]
-        ...
+...
 
-        const MPI_Offset header_offset = header_size * sizeof(char);
+const MPI_Offset header_offset = header_size * sizeof(char);
 
-        const MPI_Offset my_file_offset = my_row_offset * cols * sizeof(char);
+const MPI_Offset my_file_offset = my_row_offset * cols * sizeof(char);
 
-        const MPI_Offset my_total_file_offset = my_file_offset + header_offset;
+const MPI_Offset my_total_file_offset = my_file_offset + header_offset;
 
-        ...
+...
 \end{lstlisting}
 
-Finally, reading of the file is done in the same exact way, replacing 
+Finally, reading the file is done in the same exact way, replacing 
 \texttt{MPI\_File\_write\_at\_all} with \texttt{MPI\_File\_read\_at\_all}. 
 
 However, we need to have an additional step to read the header, and this is done 
@@ -1087,9 +1073,11 @@ through a normal \texttt{fscanf()} call.
 Now we discuss how we perform the cell update for \texttt{static} evolution. 
 
 The entire evolution process is contained inside a for loop over time steps. 
-At each iteration, we had to use message passing to exchange the halo rows. This 
-is done using non blocking operations to hide the latency of the communication.
+At each iteration, we have to use message passing to exchange the halo rows. 
+This is done using non-blocking operations to hide the latency of the communication.
 
+\pagebreak
+The following snippet shows how this is done:
 \begin{lstlisting}[language=C++]
 // we post send and recv requests for two halo regions.
 // matrix: 
@@ -1106,25 +1094,24 @@ MPI_Isend(data_prev + cols, cols, MPI_CHAR, prev, prev_tag, MPI_COMM_WORLD, &pre
 // send row: my_rows to next rank
 MPI_Isend(data_prev + my_rows_x_cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request);
 
-// receive from prev and put in row 0 (halo region)
+// receive from previous rank and put in row 0 (halo region)
 MPI_Irecv(data_prev, cols, MPI_CHAR, prev, next_tag, MPI_COMM_WORLD, &prev_recv_request);
-// receive from next and put in row my_rows + 1 (halo region)
+// receive from next rank and put in row my_rows + 1 (halo region)
 MPI_Irecv(data_prev + my_rows_x_cols_p_cols, cols, MPI_CHAR, next, prev_tag, MPI_COMM_WORLD, &next_recv_request);
 \end{lstlisting}
 
 Where \texttt{data\_prev} and \texttt{data} are the buffers for the previous 
 and next generation, respectively. 
 
-Next, while messages are exchanged, each process can process the internal portion of 
-its grid.
+Next, while messages are being exchanged, each process can start to work on the internal portion of 
+its grid, since it doesn't need the halo rows.
 
 Two versions were used to do this: one using a double for loop over rows and columns, 
-and the other using a single for loop over cells. Later, when we tie everything 
-together, we will explain the reason for these two versions.
-
+and the other using a single for loop over cells. 
 \begin{lstlisting}[language=C++]
 ... 
 
+// using double for loop
 // note we start from row 2 and finish at row my_rows - 1
 for(unsigned long int row = 2; row < my_rows; ++row)
 {
@@ -1138,16 +1125,21 @@ for(unsigned long int row = 2; row < my_rows; ++row)
 \end{lstlisting}
 
 \begin{lstlisting}[language=C++]
+...
+
+// using single for loop
 for(unsigned long int cell = 2*cols; cell< my_rows*cols; ++cell)
 {
         unsigned long int i = cell/cols;
         unsigned long int j = cell - i*cols;
         upgrade_cell_static(data_prev, data, i, j);
 }
+
+...
 \end{lstlisting}
 
-Finally, at this point, there is nothing left to do, but wait until we receive 
-the halo cells.
+Finally, at this point, there is nothing left to do but wait until we receive 
+the halo rows.
 
 \begin{lstlisting}[language=C++]
 MPI_Wait(&prev_recv_request, MPI_STATUS_IGNORE);
@@ -1156,7 +1148,7 @@ MPI_Request_free(&prev_send_request);
 MPI_Request_free(&next_send_request);
 \end{lstlisting}
 
-We then process the first and last row of the grid (internal ones).
+Then, we process the first and last row of the grid.
 
 \begin{lstlisting}[language=C++]
 for(unsigned long int col=0; col<cols; ++col)
@@ -1170,13 +1162,13 @@ for(unsigned long int col=0; col<cols*(my_rows>1); ++col)
 }
 \end{lstlisting}
 
-Then, if we need to save the grid we save using MPI IO, and then we swap the 
+Finally, if we need to save the grid, we save using MPI IO, and then we swap the 
 pointers and repeat.
 
 Apart from a few differences that we introduce with OMP later, these are the 
 fundamental steps of our evolution.
 
-The last thing is to discuss the update function itself:
+The last thing is to discuss is the update function itself:
 
 \begin{lstlisting}[language=C++]
 void upgrade_cell_static(unsigned char * restrict data_prev, unsigned char * restrict data, unsigned long int i, unsigned long int j)
@@ -1215,30 +1207,30 @@ void upgrade_cell_static(unsigned char * restrict data_prev, unsigned char * res
 }
 \end{lstlisting}
 
-The function is very simple. First, we set the cell to be dead regardless, since 
-if there are less than two and more than 3 live neighbors, it dies.
+The function is well commented and explains some of the optimization tricks we used. 
 
-Then, we calculate the coordinates of the neighbors using ternary operators to 
-ensure that we wrap around the dimensions. 
+First, we set the cell to be dead regardless, since 
+if there are less than two or more than 3 live neighbors, it dies.
 
-Then, we use separate instructions for each neighbor to encourage pipeline 
+Then, we calculate the wrapped coordinates of the neighbors using ternary operators to avoid 
+conditional branches. We use separate instructions to fetch each neighbor to encourage pipeline 
 saturation.
 
 We aggregate the state of all the neighbors, and apply the rules. 
-This version of the rules may seem off at first, but it is completely 
+This version of the rules may seem strange at first, but it is completely 
 equivalent to the one we described, although in this way, it's a bit more efficient.
 
-Finally, notice the \texttt{restrict} keyword for the two pointers so that the 
-compiler can optimize better since it knows it will never encounter memory 
-aliasing.
+Finally, notice the \texttt{restrict} keyword for the two pointers in the declaration 
+of the function. This is done so the compiler can optimize better since it knows
+it will never encounter memory aliasing.
 
 \subsection{Updating Cells - Ordered Evolution}
 
 For \texttt{ordered} evolution, the idea is more complex.   
 
 We need to make sure that ranks process their parts of the grid in an ordered 
-fashion. We first show the commented snippet and then comment:
-
+fashion. We first show the code snippet and then comment:
+\pagebreak
 \begin{lstlisting}[language=C++]
 // for ordered evolution, we cannot parallelize, and each process 
 // must work on their part of the grid in serial order. 
@@ -1247,19 +1239,19 @@ fashion. We first show the commented snippet and then comment:
 // the top halo row and the bottom halo row. 
 // Since we have ordered evolution each process will then wait 
 // until the top halo row has been received to start working on 
-// its grid.
+// its part of the grid.
 MPI_Irecv(data, cols, MPI_CHAR, prev, next_tag, MPI_COMM_WORLD, &prev_recv_request);
 MPI_Irecv(data + my_rows_x_cols_p_cols, cols, MPI_CHAR, next, prev_tag, MPI_COMM_WORLD, &next_recv_request);
 
-// however, each process will also have to send its top row 
-// (the bottom halo row for the previous process) which is necessary 
-// for the previous process to calculate the grid.
+// however, each process will also have to send its row 1
+// (the bottom halo for the previous process) which is necessary 
+// for the previous process to process the end of its grid.
 // This excludes rank 0, because it needs to send its first
-// row to rank size-1 row only AFTER it has been updated 
+// row to rank (size-1) only AFTER it has been updated. 
 if(rank != 0){ MPI_Isend(data + cols, cols, MPI_CHAR, prev, prev_tag, MPI_COMM_WORLD, &prev_send_request);}
 
-// to get things started for rank 0, this is the first forward 
-// message of the top halo row.
+// To get things started for rank 0, rank (size - 1) sends the first forward message 
+// of its last row as a top halo.
 if(rank == size-1) { MPI_Isend(data + my_rows_x_cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request); }
 
 // All processes will wait until receive of top halo row is complete 
@@ -1269,8 +1261,9 @@ if(rank == size-1) { MPI_Isend(data + my_rows_x_cols, cols, MPI_CHAR, next, next
 MPI_Wait(&prev_recv_request, MPI_STATUS_IGNORE);
 
 // Since we have received the top halo row, we can process all 
-// data EXCEPT the last row, since we are not sure that we have 
+// data EXCEPT the last row - since we are not sure that we have 
 // received the bottom halo yet.
+// So this for loop goes from 1 to my_rows - 1
 for(unsigned long int row = 1; row < my_rows; ++row)
 {
     for(unsigned long int col = 0; col < cols; ++col)
@@ -1278,6 +1271,7 @@ for(unsigned long int row = 1; row < my_rows; ++row)
         upgrade_cell_ordered(data, row, col);
     }
 }
+
 // Based on how many rows we have, we behave differently
 if(my_rows>1)
 {
@@ -1289,10 +1283,10 @@ if(my_rows>1)
     // We have finished processing all our grid except for last row. 
     // For this, we need to make sure that bottom halo has been received.
 
-    // wait for receive of bottom halo
+    // We wait for receive of bottom halo
     MPI_Wait(&next_recv_request, MPI_STATUS_IGNORE);
 
-    // process last row
+    // We process last row
     for(unsigned long int col=0; col<cols; ++col)
     {
         upgrade_cell_ordered(data, my_rows, col);
@@ -1300,10 +1294,9 @@ if(my_rows>1)
 
     // now that we have computed the last row, we need to send it 
     // to the next process. This will be the top halo for the next 
-    // process, which in turn will finally pass the wait statement 
+    // process, which in turn will finally pass the MPI_Wait() statement 
     // above.
-    
-    // all except process n-1 because this will be taken care of in the 
+    // All except process size-1 because this will be taken care of in the 
     // next iteration of the for loop
     if(rank<(size-1)){ MPI_Isend(data + my_rows_x_cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request);}
 
@@ -1311,20 +1304,20 @@ if(my_rows>1)
 else
 {
     // in this case we have skipped the for loop
-    // we need to wait to receive the bottom halo from next
+    // we need to wait to receive the bottom halo from the next rank 
+    // since we need it to process our only row.
     MPI_Wait(&next_recv_request, MPI_STATUS_IGNORE);
     
-    // we process row 1
+    // Once we receive, we can process row 1
     for(unsigned long int col=0; col<cols; ++col)
     {
         upgrade_cell_ordered(data, my_rows, col);
     }
 
-    // rank zero sends this row to rank n-1
+    // rank 0 sends this row to rank size-1
     if(rank == 0){ MPI_Isend(data + cols, cols, MPI_CHAR, prev, prev_tag, MPI_COMM_WORLD, &prev_send_request);}
 
-    // all ranks except last, send their last row (the same one )
-    // to the next rank
+    // all ranks except last, send their row to the next rank
     if(rank<(size-1)){ MPI_Isend(data + my_rows_x_cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request);}
 }
 
@@ -1336,6 +1329,8 @@ MPI_Barrier(MPI_COMM_WORLD);
 MPI_Request_free(&prev_send_request);
 MPI_Request_free(&next_send_request);
 
+// proceed to check if we need to save and swap pointers and repeat
+
 \end{lstlisting}
 
 The snippet is commented very thoroughly, however, we briefly explain the idea. 
@@ -1343,20 +1338,20 @@ To process its part of the grid, each rank needs to wait for the previous rank
 to process its last row, and send it over to be placed in top halo row. 
 
 Hence, by placing a wait request for the top halo row, we ensure that the ranks 
-process the cell in correct order, one at a time.
+update the grid in the correct order, one at a time.
 
-Furthermore, each rank also needs the last halo row to process its last internal
+Furthermore, each rank also needs the bottom halo row to process its internal
 row. We can send this in the beginning with a non-blocking operation.
 
-Finally, to get things started, we rank size - 1 sends its last row to rank 0, which 
-will be the first one to receive a top halo row, and pass through the receive operation.
+Finally, to get things started, rank size - 1 sends its last row to rank 0, which 
+will be the first one to receive a top halo row and pass through the receive operation.
 
-From there, we simply update rows 1 to the second to last, wait until we receive 
+From there, we simply update rows 1 to (my\_rows - 1), wait until we receive 
 the bottom halo, process the last row, and then send it to the next rank so it 
 can pass the wait request.
 
 There is a small consideration to make in the case we have only one row, but 
-conceptually, it is the same.
+conceptually, the procedure is the the same.
 
 Lastly, we show the update function:
 
@@ -1385,19 +1380,19 @@ void upgrade_cell_ordered(unsigned char * data, unsigned long int i, unsigned lo
     DATA(i,j) = ALIVE*(n_alive_cells==3) + DATA(i,j)*(n_alive_cells==2);
 }
 \end{lstlisting}
-The function is virtually the same, with the only difference that we operate on 
-a single buffer.
+
+The function is virtually the same as the static case, with the only difference 
+that we operate on a single buffer.
 
 \subsection{OMP Integration - Hybrid V1}
 
-In this section, we tie everything together to show the final implementation. 
+In this section, we tie everything together to show the final hybrid implementation. 
 As mentioned before, we have two implementations for \texttt{static} evolution.
 
-Here we comment on the first one.
-
-For the first implementation, we create a single parallel region \texttt{outside} 
+For the first implementation, we create only one parallel region \texttt{outside} 
 of the for loop over the evolution time steps. Furthermore, we use MPI Multiple 
-mode, where each thread can make an MPI call contemporarily:
+mode, where each thread can make an MPI call contemporarily, as illustrated in the 
+following image:
 
 \begin{figure}[H]
     \centering
@@ -1406,7 +1401,7 @@ mode, where each thread can make an MPI call contemporarily:
     thread can make MPI calls.}
 \end{figure}
 
-The idea behind this, is to avoid the creation of a parallel region every time 
+The idea behind this is to avoid the creation of a parallel region every time 
 we iterate over the time steps and have multiple threads make MPI calls contemporarily. 
 To do this, we need to initialize MPI slightly differently, as shown below:
 
@@ -1423,7 +1418,7 @@ if(provided_thread_level<MPI_THREAD_MULTIPLE)
 Then, the for loop over the evolution time steps looks like this:
 
 \begin{lstlisting}[language=C++]
-// single parallel region
+// one parallel region
 #pragma omp parallel
 for(unsigned long int t = 1; t < n+1; ++t)
 {
@@ -1502,13 +1497,13 @@ for(unsigned long int t = 1; t < n+1; ++t)
 \end{lstlisting}
 
 The snippet is well commented and explained. However, we briefly touch on some 
-important points. Since we create a single parallel region, we will need to 
+important points. Since we create only one parallel region, we will need to 
 be careful with the synchronization. For example, after the for loop on the 
-internal cells, we have an implied barrier that we cannot elimiate otherwise the 
-wait operation may give an error (if execute before the recv has been posted).
+internal cells, we have an implied barrier that we cannot eliminate, otherwise the 
+wait operation may give an error (if executed before the recv has been posted).
 
-There is another implied barrier after the wait clauses, since we need to wait 
-to receive the halo rows before processing the first and last rows.
+There is another implied barrier after the MPI\_Wait() calls, since we need to wait 
+to receive the halo rows before processing the first and last rows of the grid.
 
 There is another implied barrier after we process the last row, since 
 we need to process the whole grid before possibly saving. Finally, there is another 
@@ -1516,18 +1511,18 @@ implied barrier before going on to the next step of the evolution, otherwise the
 data regions may not have been swapped.
 
 In total, we have four implied barriers, which, as we will see later, kills  
-performance.
+the performance.
 
 \subsection{OMP Integration - Hybrid V2}
 
 The second versions tries to be as simple as possible. 
 
 During our development path for this project, we wrote a serial version, several
-pure OMP versions, and pure MPI version before writing the hybrid version. 
-This is one of the first implementations we had attempted but discared for being 
+pure OMP versions, and a pure MPI version before writing the hybrid version. 
+This is one of the first implementations we had attempted but discarded for being 
 too simple. Finally, we decided to come back to it because of its simplicity. 
 
-The idea is to add simply put a pragma parallel for construct on top of the 
+The idea is simply to put a pragma parallel for construct on top of the 
 first for loop over the rows. In this way, each thread updates a subset of the 
 rows - similar to how each MPI process gets its part of the grid.
 
@@ -1584,41 +1579,46 @@ for(unsigned long int t = 1; t < n+1; ++t)
 }
 \end{lstlisting}
 
-The code is virtually the same, so we briefly comment the most significant 
-details. First, we create a parallel region at \textit{each} time step. 
+It is virtually the same as the version 1, so we comment the most significant 
+details. 
+
+First, we create a parallel region at \textit{each} time step. 
+
 Second, we only paralellize the outer for loop over the rows, which means that 
-in the extreme case where we have 1 row per process, the multhreading wont do 
-anything. However, this is a very unlikely scenario, since to do this, we need 
-as many processes and rows, and in this case, the issue will be with communication 
+in the extreme case where we have one row per process, the multhreading won't do 
+anything. However, this is a very unlikely scenario, since we would need as many
+processes as rows. In this case, the issue will be with communication 
 rather than lack of multithreading.
 
 Finally, we explain \textit{why} we initially got rid of this version, and then 
 came back to it, calling it \texttt{V2}.
 
 As mentioned above, we first developed some serial and pure OMP versions before 
-doing the hybrid version. Originally one of our main preoccupations was that this 
-version introduced a lot of overhead due to the creation of the parallel regions 
-each time. This eventually led to putting the pragma construct outside of the 
-for loop over the time steps and developing the mpi multiple mode. 
+doing the hybrid version. This, version, was our first attempt. Originally, 
+one of our main preoccupations was that this version introduced a lot of 
+overhead due to the creation of the parallel regions each time.
+This eventually led to putting the pragma construct outside of the 
+for loop over the time steps and developing the MPI multiple mode. 
 
 Furthermore, another preoccupation, was that in the case of one row per process, 
-this version would not paralellize using OMP. It seemed much more practical and 
-elegant that the OMP would \textit{always} help by splitting up whatever each 
+this version would not paralellize using OMP. It seemed more practical and 
+elegant that the OMP would \textit{always} parallelize whatever work each 
 process had to do. 
 
 However, we realized that by putting the parallel region outside, we needed to 
-insert more barriers. Running some quick tests on pure OMP versions on our machine 
-also didn't seem to yield substantial differences.
+insert more barriers. Furthermore, some quick tests on pure OMP versions on our 
+personal machine did not seem to show any real loss in creating the parallel region 
+each time or just once.
 
-Finally, we decided to test it out, just to see how it would perform.
+In the end, we decided include it, just to test it out.
 
 \subsection{Software Stack - Running the code}
-On Orfeo, we always used the Open MPI module compiled against gcc version 12.2.1. 
+On Orfeo, we always used the Open MPI module compiled against gnu version 12.2.1. 
 
 To compile the code, we provided a Makefile, which automatically compiles the 
-source code. We used as many error flags as possible, such as \-Wall, \-Werror, and 
-\-Wextra. Finally, to optimize as much as possible we compiled with \-O3 and 
-\-march\=native. 
+source code. We used as many error flags as possible, such as -Wall, -Werror, and 
+-Wextra. Finally, to optimize as much as possible, we compiled with -O3 and 
+-march=native. 
 
 The binaries for THIN nodes and for EPYC nodes can be found in the aptly named  
 folders.
@@ -1633,48 +1633,48 @@ The first option is used to initialize and save a random playground of size
 $k \times k$ with name \texttt{fname}.
 The second option loads a grid named \texttt{fname} and evolves it for N 
 timesteps, saving every S steps, with modality E. For the modality, 0 stands 
-for ordered evolution, while 1 stands for static.
+for \texttt{ordered} evolution, while 1 stands for \texttt{static}.
 
 \subsection{Miscellaneous}
 
 We briefly discuss some additional miscellaneous details. 
 
-To time the code, we used \texttt{MPI\_Wtime()}, along with a reduction 
-operation to compute the mean among all processes. This was inserted right 
+To time the code, we used \texttt{MPI\_Wtime()} which was inserted right 
 before and right after the for loop over the time steps to avoid including the 
-serial overhead of setting up everything for the evolution.  
+serial overhead of setting up everything for the evolution. We used a collective reduction 
+operation to compute the average time among all processes. 
 
 Furthermore, we decided to conduct all our experiments with zero frequency saving. 
-In other words, all of the execution times we report do not consider the IO since 
-with zero frequency saving, we check whether we need to save \textit{after} the
-for loop and the last call to \texttt{MPI\_Wtime()}. This is not a limitation, 
+In other words, all of the execution times we report do not consider the IO, since 
+with zero frequency saving we check whether we need to save \textit{after}
+the last call to \texttt{MPI\_Wtime()}. This is not a limitation, 
 although it means that we are not analyzing the impact of the IO in our experiments.
 
 To check for correctness of our code, we created a bash script called 
-\texttt{check.sh}. This bash script runs all the implementations we have created 
-with two famous examples, the glider gun and the snark loop, and compares the 
-snapshots created at the end among the different versions. 
+\texttt{check.sh}. This bash script runs all the implementations we have created, 
+with two famous patterns: the Gosper Glider Gun\cite{glidergun} and the
+p43 Snark Loop\cite{snarkloop}. The script compares the snapshots created at 
+the end for a different number of evolution steps among the different implementations. 
 
 Since we have created a very simple serial version which we are sure is correct, 
-this gives us some security in the correctness of the other implementations. 
-However, if one wanted to be more thorough, it would be better to create various 
-unit tests for each of the rule of conway and test against these.
+this gives us some security in the correctness of our other implementations. 
 
-Lastly, we briegly talk about the contents of our folder. We have many implementations.
+Lastly, we briefly talk about the contents of our folder. We have many implementations.
 Some of these were developed along the way to test some personal curiosities and 
 to better guide us in the development of our final hybrid code. 
 
 In particular, we have a serial version we used mainly to be sure of the correctness 
 of our results. We have three pure OMP implementations, which we used to test 
 different ways to parallelize using OMP and to see some differences with respect 
-to where we place the parallel regions and other things. Finally, we also have a 
-pure MPI version which we initially implemented to begin thinking in parallel and 
-we used as a base for the hybrid code. 
+to where we place the parallel regions and other aspects. Finally, we also have a 
+pure MPI version which we initially implemented to begin thinking in parallel. This 
+was based on some of the ideas presented here\cite{MPIIOtalk}, here\cite{conway_implementation}, 
+and here\cite{conway_slides}. Then, it became the base for the hybrid code. 
 
 In the \texttt{patterns\_pgm} directory we find the PGM files for the gosper glider gun and 
 for the snark loop. Furthermore, in the \texttt{pattern\_gifs} we find small videos 
 that we produced on our local machine to visualize the results of our evolution 
-using the ffmpeg utility. The snippet below shows how to do this: 
+using the \texttt{ffmpeg} utility. The snippet below shows how to do this: 
 
 \begin{lstlisting}[language=bash]
     $mpirun -np 8 conway_hybrid_pgm.v2.out -r -f snark_loop.pgm -n 400 -s 1 -e 1 
@@ -1690,18 +1690,18 @@ document it since I particularly enjoyed it.
 
 In this section, we implemented a clever reformulation the problem from an 
 algorithmic perspective based on the ideas presented in chapter 17 of 
-\ref{algo2}. 
+\cite{algo2}. 
 
 The idea is that for the current implementation, we have to check eight neighbors 
 for \texttt{every} cell. This means that we have to perform at least 8 instructions 
-per cell, everytime. However, in conway's game of life, for the majority of 
+per cell, everytime. However, in Conway's game of life, for the majority of 
 patterns of interest, most of the cells are dead and have all dead neighbors, 
 and they stay this way throughout the evolution. So it is useless and expensive
 to check all eight neighbors for these cells each time.
 
-In \ref{algo2} they propose to fix this using the following clever trick. 
+In \cite{algo2} they propose to fix this problem using the following clever trick. 
 Since we only need one bit to encode the state of a cell and we are using an 
-\texttt{unsigned char} to store the state of the cell, we are wasting 7 bits 
+\texttt{unsigned char}, we are wasting 7 bits 
 of space. Therefore, we can use four of these 7 bits to directly encode the 
 sum of the 8 neighbors. This is shown in the figure below:
 
@@ -1718,7 +1718,7 @@ these cells, saving instructions.
 
 However, there are a few things we must be careful with. First of all, whenever 
 we modify the state of a cell by death or birth, we need to modify the neighbor 
-count of all eight neighbors of the cell. Therefore we are introducing a data  
+count of all eight neighbors of the cell. Thus, we are introducing a data  
 dependency between adjacent rows, since modifying one row can change the state 
 of the previous and next row. 
 
@@ -1726,7 +1726,7 @@ This doesn't seem like a real loss in the serial case, however, as we will see,
 paralellizing this algorithm with MPI requires double the amount of 
 communications, more synchronization, and it is overall more complicated. 
 And with OMP the complexity is even higher since we have to be expliticly careful 
-with race conditions, since modying one row may inadvertently modify another one 
+with race conditions since modying one row may inadvertently modify another one 
 on which another thread is working on. This is why we did not attempt to 
 implement a hybrid implementation and just stopped with the pure MPI and pure 
 OMP one. 
@@ -1735,8 +1735,7 @@ All this overhead is worth it however, in the case of sparse grids, as we will
 see. However, in the case of a random grid or non-sparse grids, the added 
 overhead is not worth it. 
 
-In the last section of the results and discussion, we will show a bit of the 
-results using this implementation as an additional curiosity. 
+We show some results using this implementation at the end, as an optional section.
 
 Now we briefly discuss the salient aspects of this implementation. 
 
@@ -1749,9 +1748,9 @@ which are more focused on the correct synchronization of the updates.
 The initialization of the playground is identical to the other implementations.
 
 However, when we need to run the playground, we need to do a bit of preprocessing 
-that wasn't present in the other implementations. This is to prepare the grid 
+that wasn't present in the other algorithm. This is to prepare the grid 
 in the format that we described. Essentially, for each cell, we count the neighbors 
-and write it in the 4 bits we described earlier.
+and write it in the 4 bits that we described earlier.
 
 The relevant code is found here:
 \begin{lstlisting}[language=C++]
@@ -1773,8 +1772,8 @@ void preprocess_cell(unsigned char * data_array, unsigned long int i, unsigned l
     register unsigned long int im1 = i-1;
     register unsigned long int ip1 = i+1;
 
-    // get neighbors state. We do a bitwise and with 0x01 to  
-    // get the last bit.
+    // get neighbors state. We do a bitwise AND with 0x01 to  
+    // get the last bit which is the state of the cell.
     unsigned char tmp0=data_array[im1*cols+jm1] & 0x01;
     unsigned char tmp3=data_array[i*cols+jm1] & 0x01;
     unsigned char tmp5=data_array[ip1*cols+jm1] & 0x01;
@@ -1789,16 +1788,19 @@ void preprocess_cell(unsigned char * data_array, unsigned long int i, unsigned l
 
     // this will be a number between 8 and 0
     unsigned char n_alive_cells = tmp0+tmp1+tmp2+tmp3+tmp4+tmp5+tmp6+tmp7;
-    // so now I need to shift everything left by one
+
+    // Now I need to shift everything left by one
     n_alive_cells = n_alive_cells<<1;
+
+    // this will result in something like 000xxxx0 where the x's 
+    // represent any neighbor count.
 
     // lastly, if the cell is dead, we leave the last bit as is 
     // and if the cell is alive, we need to set the last bit to 1
     // keeping everything else the same. 
     // so if cell is dead we have:                      00000000
-    // and if we do bitwise or with nalivecells:        000xxxx0 
-    // (x denotes any possible values)
-    // we obtain again n_alive_cells. 
+    // and if we do bitwise OR with nalivecells:        000xxxx0 
+    // we obtain again:                                 000xxxx0 
     //
     // if cell is alive:     00000001
     // and we OR with        000xxxx0
@@ -1812,17 +1814,21 @@ void preprocess_cell(unsigned char * data_array, unsigned long int i, unsigned l
 Now, the grid is in the format we described.
 
 To perform the update, we need to be more careful this time because of the 
-data dependency we introduced. First, to make everything easier, we copy 
-all of the grid into the buffer of the next generation. 
+data dependency we introduced. First, to make everything easier, we copy the whole
+grid into the buffer of the next generation. 
 
-Next, we swap copy the last row into the top halo region. After we update the first 
-row, this may have changed the top halo, so we need to copy it back into the last row, 
-so it can be updated properly. Then, we process the second row, which in turn may 
-change the first row. Now that the first row has changed, we copy it into the bottom 
-halo row. 
-We proceed to update all the remaining rows. However, when we process the last row, 
-this can update the bottom halo. So as the last step, we need to copy the bottom 
-halo back into row 1. 
+Next, we copy the last row into the top halo region. 
+
+Then, we proceed to update the first row. However, this may have changed the top
+halo, so we need to copy it back into the last row to ensure that it can be 
+updated properly. Then, we process the second row, which in turn may 
+change the first row. 
+
+Now that the first row has changed, we copy it into the bottom halo row. Then, 
+we proceed to update all the remaining rows. 
+
+However, when we process the last row, this can update the bottom halo. 
+So as the last step, we need to copy the bottom halo back into row 1. 
 
 As we can see, this process is more complex, and requires swapping of halo rows 
 twice, which means that in the MPI version, we will have 4 communications per process 
@@ -1834,10 +1840,10 @@ that order for the first two rows. This reduces the paralellization a bit.
 The relevant code snippet is shown below:
 
 \begin{lstlisting}[language=C++]
-
+//copy buffer into buffer of new generation
 memcpy(data+cols, data_prev+cols, grid_size_bytes);
 
-// copy row n into halo 0
+// copy last row into top halo
 memcpy(data, data + rows_x_cols, row_len_bytes);
 
 // update row 1
@@ -1855,7 +1861,7 @@ for(unsigned long int j = 0; j < cols; ++j)
 
 }
 
-// update row 2
+// we update row 2
 for(unsigned long int j = 0; j < cols; ++j)
 {
     if(DATA_PREV(2,j)==0)
@@ -1867,13 +1873,13 @@ for(unsigned long int j = 0; j < cols; ++j)
 
 }
 
-// copy halo 0 back into row n
+// copy top halo back into last row
 memcpy(data + rows_x_cols, data, row_len_bytes);
 
-// copy row 1 into halo n+1 
+// copy row 1 into bottom halo 
 memcpy(data+rows_x_cols_p_cols, data+cols, row_len_bytes);
 
-// we go through the rest of the array (from row 3 to end)
+// we go through the rest of the array (from row 3 to last row)
 for(unsigned long int i = 3; i < rows+1; ++i)
 {
     for(unsigned long int j = 0; j < cols; ++j)
@@ -1888,7 +1894,7 @@ for(unsigned long int i = 3; i < rows+1; ++i)
     }
 }
 
-// we copy halo n+1 into row 1
+// we copy bottom halo into row 1
 memcpy(data+cols, data+rows_x_cols_p_cols, row_len_bytes);
 
 ...
@@ -1910,7 +1916,7 @@ void upgrade_cell_static(unsigned char * restrict data_prev, unsigned char * res
     // 3. both
     //
     // However, since we already copied the contents 
-    // of data prev, we only need to keep track of 
+    // of data_prev, we only need to keep track of 
     // events that *change* the status of the cell 
     // i.e births and deaths
     
@@ -1930,7 +1936,7 @@ void upgrade_cell_static(unsigned char * restrict data_prev, unsigned char * res
 
             // to set cell to dead we need to
             // 1. flip its last bit. We can do this by doing 
-            // a bit wise and with ~0x01. i.e 11111110
+            // a bit wise AND with ~0x01. i.e 11111110
             // since 1 & 0 = 0 and 1 & 1 = 1, the first 7 bits 
             // remain unchanged. while the last one is turned to 
             // zero.
@@ -1973,12 +1979,11 @@ void upgrade_cell_static(unsigned char * restrict data_prev, unsigned char * res
 
             // set to living and increase counter of neighbors
 
-            // we set the last bit to 1 with a bit wise or
+            // we set the last bit to 1 with a bit wise OR
             DATA(i,j) |= 0x01; 
 
             // 2. get neighbors and increase the neighbor count 
-            // of each one. 
-            // To do this, we need to sum 0x02
+            // of each one. // To do this, we need to sum 0x02
 
             DATA(im1, jm1)+=0x02;
             DATA(im1,j)+=0x02;
@@ -1999,7 +2004,7 @@ the grid is in this special format, we need to extract the information contained
 in the last bit of each cell. We do this by copying the whole contents of one 
 buffer into the other one, while also doing a bitwise AND with 0x01.
 
-We also attempted, for the sake of curiosity, to speed up this operation by using 
+We also attempted to speed up this operation by using 
 explicit vectorized instructions. Basically we did a bitwise AND with 0x01, 32 
 cells at a time. However, some quick testing on my local machine did not yield 
 significant improvements (perhaps the -O3 optimization already did it for us). 
@@ -2014,9 +2019,9 @@ The MPI implementation is conceptually similar to the serialized version we just
 described. The steps can be summaried as follows:
 
 \begin{enumerate}
-    \item Copy data\_prev into data
+    \item Copy old buffer into new buffer.
     \item Non-blocking send last row (my\_rows) to next rank and non-blocking receive it in its top halo.
-    \item Process rows 3 to $\text{my\_rows} - 2$ (to hide latency)
+    \item Process rows 3 to $\text{my\_rows} - 2$ (to hide latency).
     \item Wait until receive of top halo row is complete.
     \item Process rows 1 and 2.
     \item Non-blocking send top halo to the previous rank and non-blocking receive it in its last row.
@@ -2055,7 +2060,7 @@ for(unsigned long int i = 3; i < my_rows-1; ++i)
 
 }
 
-// wait to receive row 0
+// wait to receive top halo
 MPI_Wait(&prev_recv_request, MPI_STATUS_IGNORE);
 MPI_Request_free(&next_send_request);
 
@@ -2081,11 +2086,11 @@ for(unsigned long int j = 0; j < cols; ++j)
     }
 }
     
-// send row 0 to prev into row last row
+// send top halo to previous rank so it can be placed back into last row
 MPI_Isend(data, cols, MPI_CHAR, prev, prev_tag, MPI_COMM_WORLD, &prev_send_request);
 MPI_Irecv(data + my_rows*cols, cols, MPI_CHAR, next, prev_tag, MPI_COMM_WORLD, &next_recv_request);
 
-// send row 1 to prev into bottom halo
+// send row 1 to previous rank so it can be placed in bottom halo
 MPI_Isend(data + cols, cols, MPI_CHAR, prev, prev_tag+1, MPI_COMM_WORLD, &prev_send_request1);
 MPI_Irecv(data + my_rows*cols+cols, cols, MPI_CHAR, next, prev_tag+1, MPI_COMM_WORLD, &next_recv_request1);
 
@@ -2104,7 +2109,7 @@ for(unsigned long int j = 0; j < cols; ++j)
     upgrade_cell_static(data_prev, data, my_rows-1, j);
 }
 
-// wait until receive of row n+1
+// wait until receive of bottom halo
 MPI_Wait(&next_recv_request1, MPI_STATUS_IGNORE);
 MPI_Request_free(&prev_send_request1);
 
@@ -2119,10 +2124,11 @@ for(unsigned long int j = 0; j < cols; ++j)
     upgrade_cell_static(data_prev, data, my_rows, j);
 }
 
-// send row n+1 to next into row 1
+// send bottom halo to next rank to be placed in row 1
 MPI_Isend(data + my_rows*cols + cols, cols, MPI_CHAR, next, next_tag, MPI_COMM_WORLD, &next_send_request);
-// blocking receive
+// blocking receive since we just need to wait for completion.
 MPI_Recv(data + cols, cols, MPI_CHAR, prev, next_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+// free send requests
 MPI_Request_free(&next_send_request);
 \end{lstlisting}
 
@@ -2133,7 +2139,8 @@ This is the most complex version since we have data interdependency which
 causes race conditions. 
 
 The problem is that if we split the grid among threads, we may have race conditions 
-for the rows at the boundary of each thread. 
+for the rows at the boundary of the region that each thread works on.
+
 To illustrate this, consider a simple example of a 10x10 grid and 2 threads. 
 Thread 0 gets the first 5 rows, and thread 1 gets the last 5. However, the execution 
 order of threads is not guaranteed by OMP, and it is decided by the OS. This means 
@@ -2145,7 +2152,7 @@ which thread 1 is working on.
 
 To eliminate this problem, we process the grid in steps of three at a time. 
 In this way, we are sure that each thread cannot interfere with the other. However, 
-this is much worse for memory access as we have to traverse the grid 3 times in 
+this is worse for memory access as we have to traverse the grid 3 times in 
 total.
 
 This makes this approach very inefficient and undesirable, which is why we did not 
@@ -2156,38 +2163,53 @@ but is not of practical interest.
 
 \section{Results and Discussion}
 
-As mentioned in the introduction, we analyzed different scenarios. 
+As mentioned in the introduction, we analyze Strong OMP, Strong MPI, and weak MPI 
+scalability.
+
 Each of these was repeated on both EPYC and THIN nodes when possible. 
-However, since THIN nodes were generally less occupied, most of our 
-results were taken for this architecture. 
 
-All of the results below were taken for \texttt{static} evolution, since it is 
-the only one that can be truly paralellized. As we mentioned previously, 
-\texttt{ordered} evolution is intrinsically serial, so the only thing we can 
-do is use MPI to handle much bigger grids. However, this is of very little 
-interest in terms of scalability, since we won't gain anything by using more 
-cores in terms of execution speed, as there is no portion of the code to 
-paralellize.
+\subsection{Ordered Evolution}
 
+As we mentioned previously, \texttt{ordered} evolution is intrinsically serial,
+so the only thing we can do is use MPI to handle much bigger grids. However, 
+this is of very little interest in terms of scalability, since we won't gain 
+anything by using more processes in terms of execution speed as the evolution 
+is not paralellizable. The only paralellization available in this case is the 
+MPI IO, which we do not include in our experiments, since we save with frequency 
+zero. Furthermore, this feature is common to all the evolution modes.
 
-\subsection{Strong OMP Scalability}
+In fact, we expect that as we increase the number of MPI processes, the execution 
+time should stay the same, or get worse due to more communication overhead. 
 
-In this section, we use a single THIN of EPYC node, and fix the number of MPI 
+We test this on a THIN node with a random grid of size $10k$ and 200 evolution 
+steps. The results are shown below.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=14cm, height=7cm]{./images/strong_MPI_ordered.pdf}
+\caption{\label{fig:strongomp10kspeedupthin} Time of \texttt{ordered} evolution of a random grid 
+of size $10k$ as we increase the number of MPI processes on a THIN node.}
+\end{figure}
+
+As expected, the execution time stays approximately the same as we increase the 
+number of MPI processes. 
+We also highlight that \texttt{ordered} evolution is the same across the different 
+hybrid implementations. 
+
+The rest of this section is devoted to \texttt{static} evolution which is 
+more interesting in terms of scalability as it can be parallelized.
+
+\subsection{Static Evolution}
+
+\subsubsection{Strong OMP Scalability}
+
+In this section, we use a single THIN or EPYC node, and fix the number of MPI 
 tasks to 2, pinning each to one socket. Then, we slowly increase the 
 number of OMP threads by changing the \texttt{OMP\_NUM\_THREADS} environment 
-variable. This is done until we saturated each socket, i.e. 12 threads for THIN 
+variable. This is done until we saturated each socket - i.e. 12 threads for THIN 
 and 64 threads for EPYC. We use a randomly initialized grid with size fixed to 
 $10k \times 10k$. We use 200 evolution steps and save only at the end. 
 We use \texttt{OMP\_PLACES=cores} and \texttt{OMP\_PROC\_BIND=close}.
-
-This corresponds to using the following setup:  
-
-\begin{lstlisting}[language=bash]
-$export OMP_NUM_THREADS={NUM}
-$export OMP_PLACES=cores
-$export OMP_PROC_BIND=close
-$mpirun --map-by socket -np 2 conway_hybrid_pgm.v2.c -r -f grid_010k -n 200 -s 0 -e 1
-\end{lstlisting}
 
 We repeated the measurements 10 times to obtain a statistical average and standard 
 deviation. Below are the results for THIN nodes:
@@ -2199,14 +2221,14 @@ deviation. Below are the results for THIN nodes:
 random grid of size $10k \times 10k$. V1 takes almost three times as long as V2.}
 \end{figure}
 
-As we can see, version 1 (V1) takes almost three times the amount of time of 
-version 2 (V2). This confirms our initial supposition that all the barriers 
+As we can see, hybrid version 1 (V1) takes almost three times the amount of time of 
+hybrid version 2 (V2). This confirms our initial supposition that all the barriers 
 that were introduced in V1 killed the performance. 
 
 We also decided to test our implementation on bigger matrices. However, due to 
 limitations on job times, we limited our study to V2 for bigger matrices. 
 We repeated the approach for matrices of size $20k\times 20k$ and $40k\times 40k$. 
-However, this time, the sample size for $20k$ and $40k$ were 5 and 3, respectively.
+This time, the sample size for $20k$ and $40k$ were 5 and 3, respectively.
 
 Below we show the results: 
 
@@ -2221,7 +2243,7 @@ Below we show the speedup for all of these runs.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=10cm, height=8cm]{./images/strong_OMP_thin_hybrid_speedup.pdf}
+\includegraphics[width=14cm, height=12cm]{./images/strong_OMP_thin_hybrid_speedup.pdf}
 \caption{\label{fig:strongompspeedupthin} Speedup for strong OMP scalability using 
 increasingly bigger grid sizes for V2. As we can see, V1 scales poorly due to the 
 barriers that were introduced. V1 scales very well, indicating that our code 
@@ -2234,20 +2256,21 @@ the best, due to the various barriers that were introduced.
 
 Furthermore, we see that V2 is able to scale well with increasingly bigger 
 problem sizes that are 4 and 16 times as big as the original one. 
-This is a good indicator that our code is written well, scalable, and efficient.   
+This is a good indicator that our code is well written, scalable, and efficient.   
 
 Now we repeat the same experiments with an EPYC node.
 
-In this we only ran experiments with the $10k$ grid. However, given the more 
+This time we only ran experiments with a $10k$ grid. However, given the more 
 complex architecture of EPYC nodes, we decided to experiment with the OMP policy.
 
 Initially, we used \texttt{OMP\_PROC\_BIND=close} as we did for THIN. Then, we 
 remembered that EPYC nodes have a particular architecture. They have two 
-sockets, like THIN, however, inside each socket, they have 2 NUMA regions. 
+sockets, like THIN, however, inside each socket, they have four NUMA regions. 
 
 Therefore, we hypothesized that using \texttt{OMP\_PROC\_BIND=spread} 
-would give better results since each thread would intially be mapped, within the 
-socket, into different NUMA regions and exploit the cache better.
+would give better results since each thread would intially be mapped into 
+different NUMA regions within the socket. Therefore, it would not have to share 
+the L3 cache.
 
 Below we show the results for both hybrid versions, with both policies. We show 
 both the time and the speedup.
@@ -2262,10 +2285,11 @@ Results for both V1 and V2 are shown.}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=10cm, height=8cm]{./images/strong_OMP_epyc_hybrid_grid_010k_speedup.pdf}
-\caption{\label{fig:strongomp10kspeedupepyc} Speedup for strong OMP scalability using a random 
-grid of $10k$ with \texttt{OMP\_PROC\_BIND=close} and \texttt{OMP\_PROC\_BIND=spread}. Results 
+\includegraphics[width=14cm, height=12cm]{./images/strong_OMP_epyc_hybrid_grid_010k_speedup.pdf}
+\caption{Speedup for strong OMP scalability using a random grid of $10k$ with 
+\texttt{OMP\_PROC\_BIND=close} and \texttt{OMP\_PROC\_BIND=spread}. Results 
 for both V1 and V2 are shown.}
+\label{fig:strongomp10kspeedupepyc} 
 \end{figure}
 
 First, we notice that the OMP policy barely changes the results. This leads us 
@@ -2274,31 +2298,27 @@ However, considering the results of the previous chapter, it may be the case
 that with much bigger matrix sizes, we may obtain some benefits.
 
 Furthermore, once again, we see that V1 does not scale well, regardless of the 
-OMP policy that we use. On the other hand, V2 seems to scale well until 
+OMP policy that we use. On the other hand, V2 seems to scale linearly until 
 we start to use half of each socket (32 threads per process). A possible 
 explanation for this is that when we start to use more threads we begin to 
 incur in more overhead for creation of the regions, synchronization of threads, 
-resource sharing, and so on. 
-
-However, when we use the full node, we still achieve $\sim 64\%$ of the 
+resource sharing, and so on. However, when we use the full node, we still achieve $\sim 64\%$ of the 
 theoretical speedup.
 
 As a curiosity, we also ran the experiments only for V2 using a random grid 
-of size $50k$. 
-
-The results are shown below:
+of size $50k$. The results are shown below:
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=14cm, height=7cm]{./images/strong_OMP_epyc_hybrid_grid_050k.pdf}
 \caption{\label{fig:strongomp10kepyc} Time for EPYC nodes using a random grid of size 
 $50k$ and both \texttt{OMP\_PROC\_BIND=close} and \texttt{OMP\_PROC\_BIND=spread}. 
-Only results for V2 were taken.}
+Only measurements for V2 were taken.}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=10cm, height=8cm]{./images/strong_OMP_epyc_hybrid_grid_050k_speedup.pdf}
+\includegraphics[width=14cm, height=12cm]{./images/strong_OMP_epyc_hybrid_grid_050k_speedup.pdf}
 \caption{\label{fig:strongomp10kspeedupepyc}Speedup for strong OMP scalability using a random 
 grid of $50k$ with \texttt{OMP\_PROC\_BIND=close} and \texttt{OMP\_PROC\_BIND=spread}. }
 \end{figure}
@@ -2308,18 +2328,18 @@ performance.
 However, we notice that when using a bigger grid, the scaling is a bit more stable 
 across number of threads. However, the analysis is practically the same.
 
-\subsection{Strong MPI Scalability}
+\subsubsection{Strong MPI Scalability}
 
-In this section, we fix the number of OMP threads per MPI process to 1, and we 
+In this section, we fix the number of OMP threads per MPI process to 1 and we 
 continuously increase the number of MPI tasks, using the most nodes we can get 
 for each architecture. 
 
-For these experiments, we wanted to use much bigger grids to test the limits 
+For these experiments, we wanted to use much larger grids to test the limits 
 of our implementation. However, given the poor results for V1, we 
 decided to test only V2. This choice was also made for practical time 
 constraints as the V1 version took too long to execute on these larger grids. 
 
-On THIN, we used 3 nodes and grids of sizes $50k$, $70k$, and $100k$. The last 
+On THIN, we used 3 nodes and grids of size $50k$, $70k$, and $100k$. The last 
 one is approximately 10 GBytes of data. On EPYC, we used 4 nodes and used the 
 same grid sizes, to have a comparison. Results were taken 3-5 times to get an 
 average (due to time constraints with job sizes).
@@ -2335,7 +2355,7 @@ of size $50k$, $70k$, and $100k$ using 3 nodes and one thread per MPI task. }
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=10cm, height=8cm]{./images/strong_MPI_thin_hybrid_speedup.pdf}
+\includegraphics[width=14cm, height=12cm]{./images/strong_MPI_thin_hybrid_speedup.pdf}
 \caption{\label{fig:strongmpithinhybridspeedup} Speedup for strong MPI scalability 
 for random grids of size $50k$, $70k$, and $100k$ across 3 nodes. The scalability 
 is superlinear.}
@@ -2345,12 +2365,15 @@ As we can see, we obtain a superlinear scalability. This is a very strange
 occurrence and it can happen when our base value for the serial time is worse 
 than it should be, or if the problem is benefitting from better cache usage. 
 
-In our case, we also tested a purely serial code which was slower since in the 
-hybrid implementation, we took advantage of non blocking communications to 
-exchange the halo rows while each process started to work on the internal rows. 
+In our case, we also tested a purely serial code which was slower than the hybrid 
+V2 with one MPI task. This is because in the 
+hybrid implementation we took advantage of non-blocking communications to 
+exchange the halo rows while each process started to work on the internal rows.
+On the other hand, in the serial implementation we have to wait for the exchange
+to happen. 
 Therefore, we conclude that the most probable reason for the superlinearity 
 is that as we use more and more processes, the problem size becomes smaller and 
-more can fit in the cache, speeding up the computation.
+more of it can fit in the cache, speeding up the computation.
 
 Now, we show the results for EPYC nodes.
 
@@ -2363,34 +2386,28 @@ of size $50k$, $70k$, and $100k$ using 4 nodes and one thread per MPI task. }
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=10cm, height=8cm]{./images/strong_MPI_epyc_hybrid_grid_100k_speedup.pdf}
+\includegraphics[width=14cm, height=12cm]{./images/strong_MPI_epyc_hybrid_grid_100k_speedup.pdf}
 \caption{\label{fig:strongmpiepychybridspeedup} Speedup for strong MPI scalability 
 for random grids of size $50k$, $70k$, and $100k$ across 4 nodes. The practically 
 linear across all grid sizes.}
 \end{figure}
 
-In this case, we notice that the implementation is scaling well. This is interesting 
-considering that with strong OMP scalability, the scalability was worse within 
+In this case, we notice that the implementation is scaling linearly. This is interesting 
+considering that with strong OMP scalability, the scalability stopped being linear within 
 a single node. One possibility for this is that using multiple threads per task 
-adds some thread management overhead which reduces the scalability. It is also 
-worth noticing that using a pure MPI implementation vs a pure OMP implementation 
-within a node is the same at hardware level. In the first case, the code tends 
-to be more encapsulated while in the second case we need to manually deal with 
-race conditions and other complications. However, usually it is easier to implement 
-a pure OMP version since we just need to add some compiler directives to the serial 
-code rather than completely change the implementation.
+adds some thread management overhead which reduces the scalability. 
 
-\subsection{Weak MPI Scalability}
+\subsubsection{Weak MPI Scalability}
 
 In this section, we fix the number of OMP threads to completely saturate a 
-socket, i.e 12 for THIN and 64 for EPYC. Then, we slowly increase the number 
+socket - i.e 12 for THIN and 64 for EPYC. Then, we slowly increase the number 
 of MPI tasks, pinning them to the sockets, across as many nodes as possible. 
-However, as we increase the number of MPI tasks, we also increase the grid 
-size to keep the workload per MPI task the same. In other words, if we 
-double the number of tasks, we double the workload. Below we show the 
-dimensions we used and the workload per MPI task.
+We start with an initial grid size of $10k$ and as we increase the number of 
+MPI tasks, we also increase the grid size to keep the workload per MPI task 
+the same. In other words, if we double the number of tasks, we double the 
+workload. 
 
-Below we show a table with the dimensions we used:
+Below we show the dimensions we used and the workload per MPI task.
 
 \begin{table}[H]
 \centering
@@ -2406,31 +2423,34 @@ Below we show a table with the dimensions we used:
     26457 &    7     & $\frac{26457^2}{7}=0.99996\times 10^8$\\
     28284 &    8     & $\frac{28284^2}{8}=0.99998\times 10^8$\\ \hline
 \end{tabular}
-\caption{\label{tab:weak}}
+\caption{\label{tab:weak}The grid dimensions we used as we increased the number 
+of MPI tasks. Since we are working with squared grids only, it is difficult to 
+obtain exactly the same workload. However, as we can see, the workload remains 
+the same up to a negligible difference.}
 \end{table}
 
-For THIN nodes, we only used three nodes. Below we show the results for the 
+For THIN nodes, we used three nodes. Below we show the results for the 
 weak efficiency:
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=14cm, height=7cm]{./images/weak_MPI_thin_hybrid.pdf}
+\includegraphics[width=14cm, height=8cm]{./images/weak_MPI_thin_hybrid.pdf}
 \caption{\label{fig:weakmpithinhybrid} Weak efficiency for THIN nodes as 
 we simultaneously increase the number of MPI tasks and the grid size, keeping the 
 workload per process constant.}
 \end{figure}
 
-As we can see, the efficiency becomes worse as we increase the number of nodes. 
-This is to be expected since using more nodes implies higher communication 
-overhead, more resource contention, and the implementation becomes overall less 
-efficient.
+As we can see, the efficiency becomes worse as we increase the number of MPI 
+tasks and start using more nodes. This is to be expected since this implies a 
+higher communication overhead, more resource contention, and the implementation 
+becomes overall less efficient.
 
 Now we show the results for EPYC nodes. In this case, we used four nodes in total.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=14cm, height=7cm]{./images/weak_MPI_epyc_hybrid.pdf}
-\caption{\label{fig:weakmpiepychybrid} Weak efficiency for THIN nodes as 
+\includegraphics[width=14cm, height=8cm]{./images/weak_MPI_epyc_hybrid.pdf}
+\caption{\label{fig:weakmpiepychybrid} Weak efficiency for EPYC nodes as 
 we simultaneously increase the number of MPI tasks and the grid size, keeping the 
 workload per process constant.}
 \end{figure}
@@ -2440,74 +2460,77 @@ of THIN nodes. However, in this case we have slightly worse efficiency, which
 could be due to the fact that we have much more thread overhead per task compared 
 to THIN nodes.
 
-\section{Conclusion}
+\section{Conclusions}
 
 In conclusion, our V2 implementation scaled well when we considered strong scaling, 
 on all architectures, and for various increasing grid sizes. We explored results for 
-strong OMP scaling using grids up to $40k$, while for strong MPI scaling, we used 
-grids of size $100k$, across many nodes.  
+strong OMP scaling using grids up to $40k$. For strong MPI scaling, we used 
+grids of size up to $100k$ across many nodes.  
 
 In some cases, we obtained superlinear scaling, which was probably caused by better 
 cache usage. 
 
 When we considered weak scaling, on both THIN and EPYC nodes, the weak 
-efficiency progressively got worse as we used more and more nodes. However, 
-this is to be expected.
+efficiency progressively got worse as we used more MPI processes and started using 
+more nodes. However, this is to be expected.
 
-More importantly, we also observed that it is not always to implement overly 
+More importantly, we also observed that it is not always beneficial to implement overly 
 complicated versions, and that sometimes the best solution is the simplest one. 
-This is evidenced by the poor scaling achieved by version V1, which was more 
-advanced, but required more synchronization, which ultimately killed performance.
+This is evidenced by the poor scaling achieved by version V1, which was conceptually more 
+advanced and refined, but required more synchronization, which ultimately killed performance.
 
 Lastly, we talk about some possible improvements. All our experiments were conducted 
-without saving the snapshots. However, in most applications of interest, we are interested 
+with zero frequency saving. However, in most applications of interest, we are interested 
 in visualizing the pattern as we evolve the grid. Therefore, it would be very 
 interesting to repeat the above experiments using a high frequency of saving, for 
-example -s 1. We expect that the scalability will suffer as we increase the number of 
-processes since more processes will be writing the snapshot image. In fact, according 
-to this\cite{} source which we used for MPI IO, one of the biggest bottle necks of today 
-are caused precisely by the IO operations. 
+example s=1. We expect that the scalability will suffer as we increase the number of 
+processes, since more processes will be writing the snapshot image. In fact, according 
+to this\cite{MPIIOtalk} source, which we used for MPI IO, one of the biggest bottlenecks of today 
+is caused precisely by the IO operations. 
 
 Another very interesting idea would be to implement a version that deals with everything 
-at the bit level, to be much more memory efficient. We expect that this version 
+at the bit level, to be more memory efficient. We expect that this version 
 will be slightly slower since we will have more overhead to extract the information 
 from the cells, however, by doing this, we would be able to deal with problem sizes 
-8 times as big. However, this is of little practical interest, since if more 
-memory is needed, we could simply try to work on a bigger machine. 
+8 times as big. 
 
 \section{Optional - Results and Discussion: Algorithm 2}
 
-This section is devoted to testing the implementation for the second algorithm that 
-we implemented. In particular we compare the serial implementations and then 
-we study the strong scalability of the pure MPI implementation, which is the one 
-of main interest. 
+This last optional section is devoted to presenting and discussing some results 
+of the implementations for the second algorithm. In particular we compare the serial 
+programs of both algorithms and then we study the strong MPI scalability of the pure MPI 
+implementation of algorithm 2 and compare it to the hybrid V2 implementation. 
 
-Note that this section is completely optional and not the main focus of the assignment. 
+Note that this section is completely optional and not the main focus of the 
+assignment. 
 
 For simplicity, we only run our experiments on THIN nodes. 
 
-As discussed previously, this implementation tries to reduce the number of updates 
-we need to to by skipping over dead cells with dead neighbors. Therefore, we expect 
-to have the best results when using a very sparse grid. In our analysis, we will 
-consider both a randomly initialized grid as well as a sparse one, and compare the 
-differences. 
+As discussed previously, the idea behind algorithm 2 is to reduce the number of
+unecessary updates by skipping over dead cells with dead neighbors. Therefore, 
+we expect to have the best results when using a very sparse grid. In our analysis, 
+we will consider both a randomly initialized grid as well as a sparse one, 
+and compare the differences. 
+
+Of course, our analysis is limited to \texttt{static} evolution.
 
 \subsection{Serial comparison}
 
-We begin by comparing the serial version of both algorithms: the one based on 
+We begin by comparing the serial versions of both algorithms: the one based on 
 the first algorithm (A1) and the new one based on algorithm 2 (A2). 
 
 We use a randomly initialized grid of size $10k$ and a sparse grid of the same 
-size, based on the glider pattern\cite{glider}, which is a famous pattern that 
-will "glide" through the grid indefinitely. 
+size based on the glider pattern\cite{glider}, which is a famous pattern that 
+will "glide" through the grid indefinitely. In this grid, only 5 cells are alive 
+in any given step of the evolution.
 
 In the random grid, we will have random noise throughout the evolution, so we 
 don't expect much of a speedup. If anything, the additional overhead will slow 
 down the serial A2 implementation compared to the serial A1. However, for the 
-second grid, we expect that the serial A2 will perform much better. 
+second grid, we expect that the serial A2 will perform better. 
 
 Below we show the results of the serial implementations using both grids and doing 
-200 evolutions, saving only at the end. We ran all experiments 10 times to 
+200 evolutions, with zero frequency saving. We ran all experiments 10 times to 
 obtain a mean and standard deviation.
 
 \begin{table}[H]
@@ -2519,13 +2542,14 @@ obtain a mean and standard deviation.
     (A2) algo2\_conway\_serial\_pgm.out &   $101.03 \pm 0.01$ (s) & $25.15 \pm 0.01$ (s)   \\ \hline
                                    &   $0.84$x slower        & $ 3.5$x faster         \\ \hline
 \end{tabular}
-\caption{\label{tab:a2serial}}
+\caption{\label{tab:a2serial}Comparison of serial versions for both algorithms on a randomly 
+initialized grid and a sparse grid of size $10k$.}
 \end{table}
 
 As expected, the execution time for serial A1 is the same for both grids since 
-it performs the same number of operations. We also see that, as predicted, 
-for a random grid, the serial A2 is slower than serial A1. This is the result 
-of additional overhead in the algorithm. 
+it performs the same number of operations, regardless of the grid. We also observe 
+that, as predicted, for a random grid, the serial A2 is slower than serial A1. 
+This is the result of additional overhead in the algorithm since it is more complex.
 
 However, for a very sparse grid, the serial A2 is 
 3.5 times faster than the A1 counterpart. This is a notable speedup 
@@ -2540,7 +2564,7 @@ Below we show the results of the execution time.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=14cm, height=7cm]{./images/a1_v_a2_static_grid_010k.pdf}
+\includegraphics[width=14cm, height=8cm]{./images/a1_v_a2_static_grid_010k.pdf}
 \caption{\label{fig:strongmpiepychybrid} Time for A1 hybrid V2 implementation 
 vs pure MPI implementation of A2, using a random grid and a sparse glider grid. When 
 using a sparse grid, we obtain a considerable speedup.}
@@ -2549,16 +2573,17 @@ using a sparse grid, we obtain a considerable speedup.}
 As expected, the execution time for A1 hybrid V2 doesn't change when we use the 
 different grids since we always check \textit{all} the cells.
 On the other hand, the pure MPI implementation of A2 is slower when we use a 
-random grid, which is not very sparse, but much faster when we use a very sparse 
-grid. This is because we skip over many cells that do not need to be updated, 
-which reduces considerably the instructions used.
+randomly initialized grid, which is not very sparse. However, it is much faster
+when we use the very sparse glider grid. This is because we skip over many 
+cells that do not need to be updated, which reduces considerably the number of 
+instructions used.
 
 Now we show the speedup. We use the smallest execution time for $T(1)$ as the 
 reference value.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=10cm, height=8cm]{./images/a1_v_a2_static_grid_010k_speedup.pdf}
+\includegraphics[width=14cm, height=10cm]{./images/a1_v_a2_static_grid_010k_speedup.pdf}
 \caption{\label{fig:strongmpiepychybridspeedup} Speedup for strong MPI scalability 
 for A1 hybrid V2 vs pure MPI implementation of A2. We use both a 
 random grid and a sparse grid of size $10k$.}
