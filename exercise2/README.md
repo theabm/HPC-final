@@ -30,4 +30,16 @@ dgemm.c - the `gemm` program we used.
 Makefile -the Makefile we used to compile `dgemm.c`
 README.md - This README
 ```
+# To compile the code 
+Follow instructions [here](https://github.com/Foundations-of-HPC/Foundations_of_HPC_2022/blob/main/Assignment/README.MD) 
+and [here](https://github.com/Foundations-of-HPC/Foundations_of_HPC_2022/blob/main/Assignment/exercise2/README.md) to compile 
+the BLIS library. The MKL and OpenBLAS libraries were already installed in Orfeo.
 
+# To run the code
+
+To run the code with N OMP threads using matrices of size K, select the 
+appropriate executable and run: 
+```
+$export OMP_NUM_THREADS=N 
+$./selected_executable K K K 
+```
