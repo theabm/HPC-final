@@ -36,9 +36,9 @@
 \contentsline {subsection}{\numberline {2.4.2}Algorithm 2 - MPI Implementation}{32}{subsection.2.4.2}%
 \contentsline {subsection}{\numberline {2.4.3}Algorithm 2 - OMP version}{34}{subsection.2.4.3}%
 \contentsline {section}{\numberline {2.5}Results and Discussion}{34}{section.2.5}%
-\contentsline {subsection}{\numberline {2.5.1}Strong OMP Scalability}{34}{subsection.2.5.1}%
-\contentsline {subsection}{\numberline {2.5.2}Strong MPI Scalability}{38}{subsection.2.5.2}%
+\contentsline {subsection}{\numberline {2.5.1}Strong OMP Scalability}{35}{subsection.2.5.1}%
+\contentsline {subsection}{\numberline {2.5.2}Strong MPI Scalability}{39}{subsection.2.5.2}%
 \contentsline {subsection}{\numberline {2.5.3}Weak MPI Scalability}{41}{subsection.2.5.3}%
-\contentsline {section}{\numberline {2.6}Conclusions}{42}{section.2.6}%
+\contentsline {section}{\numberline {2.6}Conclusion}{42}{section.2.6}%
 \contentsline {section}{\numberline {2.7}Optional - Results and Discussion: Algorithm 2}{42}{section.2.7}%
-\contentsline {subsection}{\numberline {2.7.1}Serial comparison}{42}{subsection.2.7.1}%
+\contentsline {subsection}{\numberline {2.7.1}Serial comparison}{43}{subsection.2.7.1}%

@@ -1,34 +1,33 @@
-# information about exercise 2
+# Exercise 2 - Benchmarking MKL, OpenBLAS, and BLIS
 
-## Build BLIS library 
+Exercise 2 consists of benchmarking the level 3 math function `gemm` for matrix-matrix 
+multiplication for three HPC math libraries, namely, MKL, OpenBLAS, and BLIS. 
 
+We compare the obtained GFLOPS with the expected peak performance for the two types 
+of architectures in Orfeo in two cases: 
+1. Fixed cores: We fix the number of cores to use the full node. For THIN nodes, 
+this corresponds to 24, while for EPYC nodes this corresponds to 128 cores. Then, 
+using all three libraries, we compute the GFLOPS by running `gemm` using 
+squared matrices of increasing sizes, from $2000$ to $20000$, with steps of 
+$2000$.
+2. Fixed size: We fix the dimensions of the squared matrices to $10000$ and we 
+slowly increase the number of cores used for the matrix matrix multiplication. 
+We start from 1 and end at 24 for THIN and 128 for EPYC. 
 
-AMD provide its own implementation of standard BLAS routine, this implementation is provided in the `BLIS` library, <a href="https://developer.amd.com/amd-aocl/blas-library/"> available here </a>.
-There is also the source code on github.
+We repeat these measures for both double and single precision operations, and for 
+THIN end EPYC nodes.
 
-Download it:
+In both cases, we compare the GFLOPS obtained with the theoretical peak performance 
+of the resources we use.
+
+# Structure of this directory: 
 ```
-$git clone https://github.com/flame/blis.git
-$cd blis
+1-fixed_cores/all the data and ipynb to generate graphs for this section.
+2-fixed_size/all the data and ipynb to generate graphs for this section.
+bins/all the binaries for THIN and EPYC, for all three libraries.
+scripts/all scripts used to launch the jobs.
+dgemm.c - the `gemm` program we used.
+Makefile -the Makefile we used to compile `dgemm.c`
+README.md - This README
 ```
 
-Configure and compile with openMP support (multithreading is disabled by default,remember to modify *prefix* path):
-```
- srun -n1 ./configure --enable-cblas --enable-threading=openmp --prefix=/u/area/ntosato/myblis auto
- srun  -n 1 --cpus-per-task=128 make -j 128
- make install
-```
-
-We compile in the target machine, and we allow the command to use 128 cores, then use `-j 128` argument to compile in parallel way.
-
-To use BLIS with multiple threads:
-`export BLIS_NUM_THREADS=128`.
-
-The final artifact will be placed in `/u/area/ntosato/myblis/lib` directory, this is the path that you need to put inside `Makefile` and library path .
-
-To compile the previous exercise with the new BLIS library modify the `Makefile` uncommenting the `BLIS` related rows. 
-
-And adjust LD_LIBRARY_PATH (**modify it with your own path**):
-```
- export LD_LIBRARY_PATH=/u/area/ntosato/myblis/lib:$LD_LIBRARY_PATH
-```

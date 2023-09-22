@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2023.6.1)  22 SEP 2023 01:28
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2023.6.1)  22 SEP 2023 12:55
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -566,6 +566,9 @@ LaTeX Warning: Label `fig:strongomp10kspeedupepyc' multiply defined.
 
 LaTeX Warning: Label `fig:strongmpiepychybrid' multiply defined.
 
+
+LaTeX Warning: Label `fig:strongmpiepychybridspeedup' multiply defined.
+
 )
 \openout1 = `main.aux'.
 
@@ -1039,183 +1042,191 @@ Package pdftex.def Info: ./other_images/mpi_multiple.png  used on input line 142
 l.1467  
            // have been posted <./other_images/mpi_multiple.png>] [25] [26] [27]
 
-LaTeX Warning: Reference `algo2' on page 28 undefined on input line 1705.
+LaTeX Warning: Reference `algo2' on page 28 undefined on input line 1711.
 
 
-LaTeX Warning: Reference `algo2' on page 28 undefined on input line 1714.
+LaTeX Warning: Reference `algo2' on page 28 undefined on input line 1720.
 
-<./other_images/new_cell_rep.png, id=1126, 505.89pt x 163.61125pt>
+<./other_images/new_cell_rep.png, id=1122, 505.89pt x 163.61125pt>
 File: ./other_images/new_cell_rep.png Graphic file (type png)
 <use ./other_images/new_cell_rep.png>
-Package pdftex.def Info: ./other_images/new_cell_rep.png  used on input line 1722.
+Package pdftex.def Info: ./other_images/new_cell_rep.png  used on input line 1728.
 (pdftex.def)             Requested size: 256.07838pt x 85.35794pt.
 [28pdfTeX warning (ext4): destination with the same identifier (name{figure.2.5}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.1774  
-               preprocess_cell(data_prev, i, j, cols); <./other_images/new_cell_rep.png>] [29] [30] [31] [32] [33]
-<./images/strong_OMP_thin_hybrid_grid_010k.pdf, id=1457, 752.8125pt x 376.52669pt>
+l.1774 T
+        he relevant code is found here: <./other_images/new_cell_rep.png>] [29] [30] [31] [32] [33] [34]
+<./images/strong_OMP_thin_hybrid_grid_010k.pdf, id=1478, 752.8125pt x 376.52669pt>
 File: ./images/strong_OMP_thin_hybrid_grid_010k.pdf Graphic file (type pdf)
 <use ./images/strong_OMP_thin_hybrid_grid_010k.pdf>
-Package pdftex.def Info: ./images/strong_OMP_thin_hybrid_grid_010k.pdf  used on input line 2200.
+Package pdftex.def Info: ./images/strong_OMP_thin_hybrid_grid_010k.pdf  used on input line 2215.
 (pdftex.def)             Requested size: 398.34544pt x 199.17325pt.
- [34]
-<./images/strong_OMP_thin_hybrid_v2.pdf, id=1484, 752.8125pt x 376.52669pt>
+<./images/strong_OMP_thin_hybrid_v2.pdf, id=1479, 752.8125pt x 376.52669pt>
 File: ./images/strong_OMP_thin_hybrid_v2.pdf Graphic file (type pdf)
 <use ./images/strong_OMP_thin_hybrid_v2.pdf>
-Package pdftex.def Info: ./images/strong_OMP_thin_hybrid_v2.pdf  used on input line 2218.
+Package pdftex.def Info: ./images/strong_OMP_thin_hybrid_v2.pdf  used on input line 2233.
 (pdftex.def)             Requested size: 398.34544pt x 199.17325pt.
-<./images/strong_OMP_thin_hybrid_speedup.pdf, id=1485, 752.8125pt x 602.25pt>
-File: ./images/strong_OMP_thin_hybrid_speedup.pdf Graphic file (type pdf)
-<use ./images/strong_OMP_thin_hybrid_speedup.pdf>
-Package pdftex.def Info: ./images/strong_OMP_thin_hybrid_speedup.pdf  used on input line 2227.
-(pdftex.def)             Requested size: 284.53246pt x 227.62596pt.
  [35pdfTeX warning (ext4): destination with the same identifier (name{figure.2.6}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.2233 
-       pdfTeX warning (ext4): destination with the same identifier (name{figure.2.7}) has been already used, duplicate ignored
+l.2237 
+        <./images/strong_OMP_thin_hybrid_grid_010k.pdf>]
+<./images/strong_OMP_thin_hybrid_speedup.pdf, id=1500, 752.8125pt x 602.25pt>
+File: ./images/strong_OMP_thin_hybrid_speedup.pdf Graphic file (type pdf)
+<use ./images/strong_OMP_thin_hybrid_speedup.pdf>
+Package pdftex.def Info: ./images/strong_OMP_thin_hybrid_speedup.pdf  used on input line 2242.
+(pdftex.def)             Requested size: 284.53246pt x 227.62596pt.
+ [36pdfTeX warning (ext4): destination with the same identifier (name{figure.2.7}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.2233 
-        <./images/strong_OMP_thin_hybrid_grid_010k.pdf> <./images/strong_OMP_thin_hybrid_v2.pdf>]
-<./images/strong_OMP_epyc_hybrid_grid_010k.pdf, id=1513, 752.8125pt x 376.52669pt>
+l.2266 T
+        herefore, we hypothesized that using \texttt{OMP\_PROC\_BIND=spread}pdfTeX warning (ext4): destination with the same identifier (name{figure.2.8}) has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  \__shipout_drop_firstpage_...
+l.2266 T
+        herefore, we hypothesized that using \texttt{OMP\_PROC\_BIND=spread} <./images/strong_OMP_thin_hybrid_v2.pdf> <./images/strong_OMP_thin_hybrid_speedup.pdf>]
+<./images/strong_OMP_epyc_hybrid_grid_010k.pdf, id=1529, 752.8125pt x 376.52669pt>
 File: ./images/strong_OMP_epyc_hybrid_grid_010k.pdf Graphic file (type pdf)
 <use ./images/strong_OMP_epyc_hybrid_grid_010k.pdf>
-Package pdftex.def Info: ./images/strong_OMP_epyc_hybrid_grid_010k.pdf  used on input line 2260.
+Package pdftex.def Info: ./images/strong_OMP_epyc_hybrid_grid_010k.pdf  used on input line 2275.
 (pdftex.def)             Requested size: 398.34544pt x 199.17325pt.
- [36pdfTeX warning (ext4): destination with the same identifier (name{figure.2.8}) has been already used, duplicate ignored
-<argument> ...shipout:D \box_use:N \l_shipout_box 
-                                                  \__shipout_drop_firstpage_...
-l.2265 
-        <./images/strong_OMP_thin_hybrid_speedup.pdf>]
 <./images/strong_OMP_epyc_hybrid_grid_010k_speedup.pdf, id=1530, 752.8125pt x 602.25pt>
 File: ./images/strong_OMP_epyc_hybrid_grid_010k_speedup.pdf Graphic file (type pdf)
 <use ./images/strong_OMP_epyc_hybrid_grid_010k_speedup.pdf>
-Package pdftex.def Info: ./images/strong_OMP_epyc_hybrid_grid_010k_speedup.pdf  used on input line 2268.
+Package pdftex.def Info: ./images/strong_OMP_epyc_hybrid_grid_010k_speedup.pdf  used on input line 2283.
 (pdftex.def)             Requested size: 284.53246pt x 227.62596pt.
 
-Underfull \hbox (badness 2744) in paragraph at lines 2271--2271
+Underfull \hbox (badness 2744) in paragraph at lines 2286--2286
 []\OT1/cmr/m/n/10 Figure 2.10: [][] Speedup for strong OMP scal-a-bil-ity us-ing a ran-dom grid of $10\OML/cmm/m/it/10 k$ \OT1/cmr/m/n/10 with
  []
 
-<./images/strong_OMP_epyc_hybrid_grid_050k.pdf, id=1531, 752.8125pt x 376.52669pt>
-File: ./images/strong_OMP_epyc_hybrid_grid_050k.pdf Graphic file (type pdf)
-<use ./images/strong_OMP_epyc_hybrid_grid_050k.pdf>
-Package pdftex.def Info: ./images/strong_OMP_epyc_hybrid_grid_050k.pdf  used on input line 2296.
-(pdftex.def)             Requested size: 398.34544pt x 199.17325pt.
 [37pdfTeX warning (ext4): destination with the same identifier (name{figure.2.9}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.2301 
+l.2300 
        pdfTeX warning (ext4): destination with the same identifier (name{figure.2.10}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.2301 
+l.2300 
         <./images/strong_OMP_epyc_hybrid_grid_010k.pdf> <./images/strong_OMP_epyc_hybrid_grid_010k_speedup.pdf>]
+<./images/strong_OMP_epyc_hybrid_grid_050k.pdf, id=1557, 752.8125pt x 376.52669pt>
+File: ./images/strong_OMP_epyc_hybrid_grid_050k.pdf Graphic file (type pdf)
+<use ./images/strong_OMP_epyc_hybrid_grid_050k.pdf>
+Package pdftex.def Info: ./images/strong_OMP_epyc_hybrid_grid_050k.pdf  used on input line 2311.
+(pdftex.def)             Requested size: 398.34544pt x 199.17325pt.
 <./images/strong_OMP_epyc_hybrid_grid_050k_speedup.pdf, id=1558, 752.8125pt x 602.25pt>
 File: ./images/strong_OMP_epyc_hybrid_grid_050k_speedup.pdf Graphic file (type pdf)
 <use ./images/strong_OMP_epyc_hybrid_grid_050k_speedup.pdf>
-Package pdftex.def Info: ./images/strong_OMP_epyc_hybrid_grid_050k_speedup.pdf  used on input line 2304.
+Package pdftex.def Info: ./images/strong_OMP_epyc_hybrid_grid_050k_speedup.pdf  used on input line 2319.
 (pdftex.def)             Requested size: 284.53246pt x 227.62596pt.
 
-Underfull \hbox (badness 4819) in paragraph at lines 2306--2306
+Underfull \hbox (badness 4819) in paragraph at lines 2321--2321
 []\OT1/cmr/m/n/10 Figure 2.12: [][]Speedup for strong OMP scal-a-bil-ity us-ing a ran-dom grid of $50\OML/cmm/m/it/10 k$ \OT1/cmr/m/n/10 with
  []
 
 [38pdfTeX warning (ext4): destination with the same identifier (name{figure.2.11}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.2329 
-       pdfTeX warning (ext4): destination with the same identifier (name{figure.2.12}) has been already used, duplicate ignored
+l.2335 F
+        or these experiments, we wanted to use much bigger grids to test the...pdfTeX warning (ext4): destination with the same identifier (name{figure.2.12}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.2329 
-        <./images/strong_OMP_epyc_hybrid_grid_050k.pdf> <./images/strong_OMP_epyc_hybrid_grid_050k_speedup.pdf>]
+l.2335 F
+        or these experiments, we wanted to use much bigger grids to test the... <./images/strong_OMP_epyc_hybrid_grid_050k.pdf> <./images/strong_OMP_epyc_hybrid_grid_050k_speedup.pdf>]
 <./images/strong_MPI_thin_hybrid.pdf, id=1585, 752.8125pt x 376.52669pt>
 File: ./images/strong_MPI_thin_hybrid.pdf Graphic file (type pdf)
 <use ./images/strong_MPI_thin_hybrid.pdf>
-Package pdftex.def Info: ./images/strong_MPI_thin_hybrid.pdf  used on input line 2334.
+Package pdftex.def Info: ./images/strong_MPI_thin_hybrid.pdf  used on input line 2349.
 (pdftex.def)             Requested size: 398.34544pt x 199.17325pt.
 <./images/strong_MPI_thin_hybrid_speedup.pdf, id=1586, 752.8125pt x 602.25pt>
 File: ./images/strong_MPI_thin_hybrid_speedup.pdf Graphic file (type pdf)
 <use ./images/strong_MPI_thin_hybrid_speedup.pdf>
-Package pdftex.def Info: ./images/strong_MPI_thin_hybrid_speedup.pdf  used on input line 2341.
+Package pdftex.def Info: ./images/strong_MPI_thin_hybrid_speedup.pdf  used on input line 2356.
 (pdftex.def)             Requested size: 284.53246pt x 227.62596pt.
  [39pdfTeX warning (ext4): destination with the same identifier (name{figure.2.13}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.2358 N
-        ow, we show the results for EPYC nodes.pdfTeX warning (ext4): destination with the same identifier (name{figure.2.14}) has been already used, duplicate ignored
+l.2365 
+       pdfTeX warning (ext4): destination with the same identifier (name{figure.2.14}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.2358 N
-        ow, we show the results for EPYC nodes. <./images/strong_MPI_thin_hybrid.pdf> <./images/strong_MPI_thin_hybrid_speedup.pdf>]
+l.2365 
+        <./images/strong_MPI_thin_hybrid.pdf> <./images/strong_MPI_thin_hybrid_speedup.pdf>]
 <./images/strong_MPI_epyc_hybrid_grid_100k.pdf, id=1613, 752.8125pt x 376.52669pt>
 File: ./images/strong_MPI_epyc_hybrid_grid_100k.pdf Graphic file (type pdf)
 <use ./images/strong_MPI_epyc_hybrid_grid_100k.pdf>
-Package pdftex.def Info: ./images/strong_MPI_epyc_hybrid_grid_100k.pdf  used on input line 2362.
+Package pdftex.def Info: ./images/strong_MPI_epyc_hybrid_grid_100k.pdf  used on input line 2377.
 (pdftex.def)             Requested size: 398.34544pt x 199.17325pt.
 <./images/strong_MPI_epyc_hybrid_grid_100k_speedup.pdf, id=1614, 752.8125pt x 602.25pt>
 File: ./images/strong_MPI_epyc_hybrid_grid_100k_speedup.pdf Graphic file (type pdf)
 <use ./images/strong_MPI_epyc_hybrid_grid_100k_speedup.pdf>
-Package pdftex.def Info: ./images/strong_MPI_epyc_hybrid_grid_100k_speedup.pdf  used on input line 2369.
+Package pdftex.def Info: ./images/strong_MPI_epyc_hybrid_grid_100k_speedup.pdf  used on input line 2384.
 (pdftex.def)             Requested size: 284.53246pt x 227.62596pt.
  [40pdfTeX warning (ext4): destination with the same identifier (name{figure.2.15}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.2395 
+l.2400 
        pdfTeX warning (ext4): destination with the same identifier (name{figure.2.16}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.2395 
+l.2400 
         <./images/strong_MPI_epyc_hybrid_grid_100k.pdf> <./images/strong_MPI_epyc_hybrid_grid_100k_speedup.pdf>]
 <./images/weak_MPI_thin_hybrid.pdf, id=1641, 752.8125pt x 376.52669pt>
 File: ./images/weak_MPI_thin_hybrid.pdf Graphic file (type pdf)
 <use ./images/weak_MPI_thin_hybrid.pdf>
-Package pdftex.def Info: ./images/weak_MPI_thin_hybrid.pdf  used on input line 2420.
+Package pdftex.def Info: ./images/weak_MPI_thin_hybrid.pdf  used on input line 2435.
 (pdftex.def)             Requested size: 398.34544pt x 199.17325pt.
 <./images/weak_MPI_epyc_hybrid.pdf, id=1642, 752.8125pt x 376.52669pt>
 File: ./images/weak_MPI_epyc_hybrid.pdf Graphic file (type pdf)
 <use ./images/weak_MPI_epyc_hybrid.pdf>
-Package pdftex.def Info: ./images/weak_MPI_epyc_hybrid.pdf  used on input line 2435.
+Package pdftex.def Info: ./images/weak_MPI_epyc_hybrid.pdf  used on input line 2450.
 (pdftex.def)             Requested size: 398.34544pt x 199.17325pt.
  [41pdfTeX warning (ext4): destination with the same identifier (name{table.2.1}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.2440 
+l.2455 
        pdfTeX warning (ext4): destination with the same identifier (name{figure.2.17}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.2440 
-        <./images/weak_MPI_thin_hybrid.pdf>]
-
-LaTeX Warning: Citation 'glider' on page 42 undefined on input line 2488.
-
-[42pdfTeX warning (ext4): destination with the same identifier (name{figure.2.18}) has been already used, duplicate ignored
+l.2455 
+        <./images/weak_MPI_thin_hybrid.pdf>] [42pdfTeX warning (ext4): destination with the same identifier (name{figure.2.18}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.2495 
-        <./images/weak_MPI_epyc_hybrid.pdf>]
+l.2507 A
+        s discussed previously, this implementation tries to reduce the numb... <./images/weak_MPI_epyc_hybrid.pdf>]
+
+LaTeX Warning: Citation 'glider' on page 43 undefined on input line 2519.
+
 <./images/a1_v_a2_static_grid_010k.pdf, id=1676, 752.8125pt x 376.52669pt>
 File: ./images/a1_v_a2_static_grid_010k.pdf Graphic file (type pdf)
 <use ./images/a1_v_a2_static_grid_010k.pdf>
-Package pdftex.def Info: ./images/a1_v_a2_static_grid_010k.pdf  used on input line 2522.
+Package pdftex.def Info: ./images/a1_v_a2_static_grid_010k.pdf  used on input line 2561.
 (pdftex.def)             Requested size: 398.34544pt x 199.17325pt.
- [43pdfTeX warning (ext4): destination with the same identifier (name{table.2.2}) has been already used, duplicate ignored
+[43pdfTeX warning (ext4): destination with the same identifier (name{table.2.2}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.2530 
+l.2573 
        pdfTeX warning (ext4): destination with the same identifier (name{figure.2.19}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.2530 
+l.2573 
         <./images/a1_v_a2_static_grid_010k.pdf>]
-Overfull \hbox (8.58035pt too wide) in paragraph at lines 2530--2530
+<./images/a1_v_a2_static_grid_010k_speedup.pdf, id=1693, 752.8125pt x 602.25pt>
+File: ./images/a1_v_a2_static_grid_010k_speedup.pdf Graphic file (type pdf)
+<use ./images/a1_v_a2_static_grid_010k_speedup.pdf>
+Package pdftex.def Info: ./images/a1_v_a2_static_grid_010k_speedup.pdf  used on input line 2579.
+(pdftex.def)             Requested size: 284.53246pt x 227.62596pt.
+ [44pdfTeX warning (ext4): destination with the same identifier (name{figure.2.20}) has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  \__shipout_drop_firstpage_...
+l.2595 
+        <./images/a1_v_a2_static_grid_010k_speedup.pdf>]
+Overfull \hbox (8.58035pt too wide) in paragraph at lines 2595--2595
 []\OT1/cmr/m/n/10 LifeWiki. \  Cat-e-gory: Pat-terns." (), [On-line]. Avail-able: [][]$\OT1/cmtt/m/n/10 https : / / conwaylife . com / wiki / Category :
  []
 
-[44
+[45
 
 ] (./main.aux)
 
@@ -1225,24 +1236,24 @@ LaTeX Warning: There were undefined references.
 LaTeX Warning: There were multiply-defined labels.
 
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 4739E0921EA5D3BC0BF6902BF595B1BE;6949.
+(rerunfilecheck)             Checksum: F1002C81B4A82427BC8C21489484B0EE;6944.
 Package logreq Info: Writing requests to 'main.run.xml'.
 \openout1 = `main.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 22500 strings out of 478287
- 390249 string characters out of 5849290
- 1762866 words of memory out of 5000000
- 39490 multiletter control sequences out of 15000+600000
+ 22509 strings out of 478287
+ 390628 string characters out of 5849290
+ 1771846 words of memory out of 5000000
+ 39496 multiletter control sequences out of 15000+600000
  477168 words of font info for 56 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 60i,10n,68p,1058b,1952s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 60i,10n,68p,1058b,1950s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texmf/fonts/enc/dvips/cm-super/cm-super-ts1.enc}</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt8.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfrm1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt0800.pfb>
-Output written on main.pdf (45 pages, 920178 bytes).
+Output written on main.pdf (46 pages, 935086 bytes).
 PDF statistics:
- 1965 PDF objects out of 2073 (max. 8388607)
- 1745 compressed objects within 18 object streams
- 928 named destinations out of 1000 (max. 500000)
- 533 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1981 PDF objects out of 2073 (max. 8388607)
+ 1757 compressed objects within 18 object streams
+ 930 named destinations out of 1000 (max. 500000)
+ 538 words of extra memory for PDF output out of 10000 (max. 10000000)
 

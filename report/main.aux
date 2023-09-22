@@ -112,11 +112,11 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.4.2}Algorithm 2 - MPI Implementation}{32}{subsection.2.4.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.4.3}Algorithm 2 - OMP version}{34}{subsection.2.4.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {2.5}Results and Discussion}{34}{section.2.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.1}Strong OMP Scalability}{34}{subsection.2.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.1}Strong OMP Scalability}{35}{subsection.2.5.1}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {2.6}{\ignorespaces  Time for THIN nodes with a random grid of size $10k \times 10k$. V1 takes almost three times as long as V2.}}{35}{figure.2.6}\protected@file@percent }
 \newlabel{fig:strongomp10kspeedupthin}{{2.6}{35}{Time for THIN nodes with a random grid of size $10k \times 10k$. V1 takes almost three times as long as V2}{figure.2.6}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.7}{\ignorespaces  Time for THIN nodes for V2 with increasingly bigger grids.}}{35}{figure.2.7}\protected@file@percent }
-\newlabel{fig:strongompv2thin}{{2.7}{35}{Time for THIN nodes for V2 with increasingly bigger grids}{figure.2.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.7}{\ignorespaces  Time for THIN nodes for V2 with increasingly bigger grids.}}{36}{figure.2.7}\protected@file@percent }
+\newlabel{fig:strongompv2thin}{{2.7}{36}{Time for THIN nodes for V2 with increasingly bigger grids}{figure.2.7}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {2.8}{\ignorespaces  Speedup for strong OMP scalability using increasingly bigger grid sizes for V2. As we can see, V1 scales poorly due to the barriers that were introduced. V1 scales very well, indicating that our code is well implemented.}}{36}{figure.2.8}\protected@file@percent }
 \newlabel{fig:strongompspeedupthin}{{2.8}{36}{Speedup for strong OMP scalability using increasingly bigger grid sizes for V2. As we can see, V1 scales poorly due to the barriers that were introduced. V1 scales very well, indicating that our code is well implemented}{figure.2.8}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {2.9}{\ignorespaces  Time for EPYC nodes using a random grid of size $10k$ and both \texttt  {OMP\_PROC\_BIND=close} and \texttt  {OMP\_PROC\_BIND=spread}. Results for both V1 and V2 are shown.}}{37}{figure.2.9}\protected@file@percent }
@@ -127,7 +127,7 @@
 \newlabel{fig:strongomp10kepyc}{{2.11}{38}{Time for EPYC nodes using a random grid of size $50k$ and both \texttt {OMP\_PROC\_BIND=close} and \texttt {OMP\_PROC\_BIND=spread}. Only results for V2 were taken}{figure.2.11}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {2.12}{\ignorespaces Speedup for strong OMP scalability using a random grid of $50k$ with \texttt  {OMP\_PROC\_BIND=close} and \texttt  {OMP\_PROC\_BIND=spread}. }}{38}{figure.2.12}\protected@file@percent }
 \newlabel{fig:strongomp10kspeedupepyc}{{2.12}{38}{Speedup for strong OMP scalability using a random grid of $50k$ with \texttt {OMP\_PROC\_BIND=close} and \texttt {OMP\_PROC\_BIND=spread}}{figure.2.12}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.2}Strong MPI Scalability}{38}{subsection.2.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.2}Strong MPI Scalability}{39}{subsection.2.5.2}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {2.13}{\ignorespaces  Time for THIN nodes using random grids of size $50k$, $70k$, and $100k$ using 3 nodes and one thread per MPI task. }}{39}{figure.2.13}\protected@file@percent }
 \newlabel{fig:strongmpithinhybrid}{{2.13}{39}{Time for THIN nodes using random grids of size $50k$, $70k$, and $100k$ using 3 nodes and one thread per MPI task}{figure.2.13}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {2.14}{\ignorespaces  Speedup for strong MPI scalability for random grids of size $50k$, $70k$, and $100k$ across 3 nodes. The scalability is superlinear.}}{39}{figure.2.14}\protected@file@percent }
@@ -141,17 +141,19 @@
 \newlabel{tab:weak}{{2.1}{41}{}{table.2.1}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {2.17}{\ignorespaces  Weak efficiency for THIN nodes as we simultaneously increase the number of MPI tasks and the grid size, keeping the workload per process constant.}}{41}{figure.2.17}\protected@file@percent }
 \newlabel{fig:weakmpithinhybrid}{{2.17}{41}{Weak efficiency for THIN nodes as we simultaneously increase the number of MPI tasks and the grid size, keeping the workload per process constant}{figure.2.17}{}}
-\abx@aux@cite{0}{glider}
-\abx@aux@segm{0}{0}{glider}
 \@writefile{lof}{\contentsline {figure}{\numberline {2.18}{\ignorespaces  Weak efficiency for THIN nodes as we simultaneously increase the number of MPI tasks and the grid size, keeping the workload per process constant.}}{42}{figure.2.18}\protected@file@percent }
 \newlabel{fig:weakmpiepychybrid}{{2.18}{42}{Weak efficiency for THIN nodes as we simultaneously increase the number of MPI tasks and the grid size, keeping the workload per process constant}{figure.2.18}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.6}Conclusions}{42}{section.2.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.6}Conclusion}{42}{section.2.6}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {2.7}Optional - Results and Discussion: Algorithm 2}{42}{section.2.7}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.7.1}Serial comparison}{42}{subsection.2.7.1}\protected@file@percent }
+\abx@aux@cite{0}{glider}
+\abx@aux@segm{0}{0}{glider}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.7.1}Serial comparison}{43}{subsection.2.7.1}\protected@file@percent }
 \@writefile{lot}{\contentsline {table}{\numberline {2.2}{\ignorespaces }}{43}{table.2.2}\protected@file@percent }
 \newlabel{tab:a2serial}{{2.2}{43}{}{table.2.2}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.19}{\ignorespaces  Time for algorithm 1 hybrid V2 implementation vs pure MPI implementation of algorithm 2, using a random grid and a sparse glider grid. When using a sparse grid, we obtain a considerable speedup.}}{43}{figure.2.19}\protected@file@percent }
-\newlabel{fig:strongmpiepychybrid}{{2.19}{43}{Time for algorithm 1 hybrid V2 implementation vs pure MPI implementation of algorithm 2, using a random grid and a sparse glider grid. When using a sparse grid, we obtain a considerable speedup}{figure.2.19}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.19}{\ignorespaces  Time for A1 hybrid V2 implementation vs pure MPI implementation of A2, using a random grid and a sparse glider grid. When using a sparse grid, we obtain a considerable speedup.}}{43}{figure.2.19}\protected@file@percent }
+\newlabel{fig:strongmpiepychybrid}{{2.19}{43}{Time for A1 hybrid V2 implementation vs pure MPI implementation of A2, using a random grid and a sparse glider grid. When using a sparse grid, we obtain a considerable speedup}{figure.2.19}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.20}{\ignorespaces  Speedup for strong MPI scalability for A1 hybrid V2 vs pure MPI implementation of A2. We use both a random grid and a sparse grid of size $10k$.}}{44}{figure.2.20}\protected@file@percent }
+\newlabel{fig:strongmpiepychybridspeedup}{{2.20}{44}{Speedup for strong MPI scalability for A1 hybrid V2 vs pure MPI implementation of A2. We use both a random grid and a sparse grid of size $10k$}{figure.2.20}{}}
 \abx@aux@read@bbl@mdfivesum{1CB756F9301C7DFECF2210595B6F5E7F}
 \abx@aux@defaultrefcontext{0}{arch}{none/global//global/global}
 \abx@aux@defaultrefcontext{0}{conway}{none/global//global/global}
@@ -159,4 +161,4 @@
 \abx@aux@defaultrefcontext{0}{pgm}{none/global//global/global}
 \abx@aux@defaultrefcontext{0}{mpi}{none/global//global/global}
 \abx@aux@defaultrefcontext{0}{omp}{none/global//global/global}
-\gdef \@abspage@last{45}
+\gdef \@abspage@last{46}

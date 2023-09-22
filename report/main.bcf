@@ -2355,14 +2355,14 @@
     <bcf:citekey order="5">pgm</bcf:citekey>
     <bcf:citekey order="6">mpi</bcf:citekey>
     <bcf:citekey order="7">omp</bcf:citekey>
-    <bcf:citekey order="8">glider</bcf:citekey>
-    <bcf:citekey order="9">arch</bcf:citekey>
-    <bcf:citekey order="10">conway</bcf:citekey>
-    <bcf:citekey order="11">conway_patterns</bcf:citekey>
-    <bcf:citekey order="12">pgm</bcf:citekey>
-    <bcf:citekey order="13">mpi</bcf:citekey>
-    <bcf:citekey order="14">omp</bcf:citekey>
-    <bcf:citekey order="15">glider</bcf:citekey>
+    <bcf:citekey order="9">glider</bcf:citekey>
+    <bcf:citekey order="10">arch</bcf:citekey>
+    <bcf:citekey order="11">conway</bcf:citekey>
+    <bcf:citekey order="12">conway_patterns</bcf:citekey>
+    <bcf:citekey order="13">pgm</bcf:citekey>
+    <bcf:citekey order="14">mpi</bcf:citekey>
+    <bcf:citekey order="15">omp</bcf:citekey>
+    <bcf:citekey order="16">glider</bcf:citekey>
   </bcf:section>
   <!-- SORTING TEMPLATES -->
   <bcf:sortingtemplate name="none">
